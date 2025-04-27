@@ -50,14 +50,14 @@ public class Post {
 
     }
 
-    public static PostEntity toEntity(Post post, UserEntity userEntity) {
+    public PostEntity toEntity(UserEntity userEntity) {
         return PostEntity.builder()
                 .userEntity(userEntity)
-                .title(post.getTitle())
-                .content(post.getContent())
-                .commentCount(post.getCommentCount())
-                .likeCount(post.getLikeCount())
-                .viewCount(post.getViewCount())
+                .title(this.getTitle())
+                .content(this.getContent())
+                .commentCount(this.getCommentCount())
+                .likeCount(this.getLikeCount())
+                .viewCount(this.getViewCount())
                 .build();
 
 
