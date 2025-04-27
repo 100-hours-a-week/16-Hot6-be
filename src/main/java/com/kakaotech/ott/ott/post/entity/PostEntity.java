@@ -17,7 +17,7 @@ import java.util.List;
 @Entity
 @Table(name = "posts")
 @Getter
-@EntityListeners(AuditingEntityListener.class) // ✅ 추가 필요
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostEntity extends AuditEntity {
 

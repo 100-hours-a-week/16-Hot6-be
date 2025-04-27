@@ -27,7 +27,8 @@ public class OAuthToken {
 
     private LocalDateTime updatedAt;
 
-    public static OAuthToken createOauthToken(Long userId, String provider, String providerId, String accessToken, String refreshToken) {
+    public static OAuthToken createOauthToken(Long userId, String provider, String providerId, String accessToken,
+                                              String refreshToken) {
 
         return OAuthToken.builder()
                 .userId(userId)

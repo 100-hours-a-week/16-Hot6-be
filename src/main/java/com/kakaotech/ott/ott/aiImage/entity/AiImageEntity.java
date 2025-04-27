@@ -1,0 +1,63 @@
+package com.kakaotech.ott.ott.aiImage.entity;
+
+import com.kakaotech.ott.ott.aiImage.domain.AiImage;
+import com.kakaotech.ott.ott.user.entity.UserEntity;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+
+@Entity
+@EntityListeners(AuditingEntityListener.class)
+@Table(name = "ai_images")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+public class AiImageEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id") // FK 컬럼명
+    private UserEntity userEntity;
+
+    @Column(name = "post_id", nullable = false)
+    private Long postId;
+
+    @Column(name = "before_image_path", nullable = false)
+    private String beforeImagePath;
+
+    @Column(name = "after_image_path", nullable = false)
+    private String afterImagePath;
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+
+    @Builder
+    public AiImageEntity(UserEntity userEntity, Long postId, String beforeImagePath, String afterImagePath) {
+        this.userEntity = userEntity;
+        this.postId = postId;
+        this.beforeImagePath = beforeImagePath;
+        this.afterImagePath = afterImagePath;
+    }
+
+    public AiImage toDomain() {
+
+        return AiImage.builder()
+                .userId(this.userEntity.getId())
+                .postId(this.postId)
+                .beforeImagePath(this.beforeImagePath)
+                .afterImagePath(this.afterImagePath)
+                .createdAt(this.createdAt)
+                .build();
+    }
+
+}
