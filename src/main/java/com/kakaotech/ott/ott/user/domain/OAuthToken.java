@@ -39,14 +39,14 @@ public class OAuthToken {
                 .build();
     }
 
-    public static OAuthTokenEntity toEntity(OAuthToken oAuthToken, UserEntity userEntity) {
+    public OAuthTokenEntity toEntity(UserEntity userEntity) {
         return OAuthTokenEntity.builder()
-                .id(oAuthToken.getId())
+                .id(this.getId())
                 .userEntity(userEntity)
-                .provider(oAuthToken.getProvider())
-                .providerId(oAuthToken.getProviderId())
-                .accessToken(oAuthToken.getAccessToken())
-                .refreshToken(oAuthToken.getRefreshToken())
+                .provider(this.getProvider())
+                .providerId(this.getProviderId())
+                .accessToken(this.getAccessToken())
+                .refreshToken(this.getRefreshToken())
                 .build();
     }
 }
