@@ -25,11 +25,11 @@ public class PostImage {
         this.imageUuid = imageUuid;
     }
 
-    public static PostImageEntity toEntity(PostImage postImage, PostEntity postEntity) {
+    public PostImageEntity toEntity(PostEntity postEntity) {
         return PostImageEntity.builder()
                 .postEntity(postEntity)
-                .sequence(postImage.getSequence())
-                .imageUuid(postImage.getImageUuid())
+                .sequence(this.getSequence())
+                .imageUuid(this.getImageUuid())
                 .build();
     }
 }
