@@ -47,18 +47,18 @@ public class User {
                 .build();
     }
 
-    public static UserEntity toEntity(User user) {
+    public UserEntity toEntity() {
         return UserEntity.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .nicknameKakao(user.getNicknameKakao())
-                .nicknameCommunity(user.getNicknameCommunity())
-                .point(user.getPoint())
-                .imagePath(user.getImagePath())
-                .isActive(user.isActive())
-                .isVerified(user.isVerified())
-                .deletedAt(user.getDeletedAt())
+                .id(this.getId())
+                .email(this.getEmail())
+                .role(this.getRole())
+                .nicknameKakao(this.getNicknameKakao())
+                .nicknameCommunity(this.getNicknameCommunity())
+                .point(this.getPoint())
+                .imagePath(this.getImagePath())
+                .isActive(this.isActive())
+                .isVerified(this.isVerified())
+                .deletedAt(this.getDeletedAt())
                 .build();
     }
 
