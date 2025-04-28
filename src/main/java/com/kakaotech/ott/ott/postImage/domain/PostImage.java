@@ -5,7 +5,7 @@ import com.kakaotech.ott.ott.postImage.entity.PostImageEntity;
 import lombok.Builder;
 import lombok.Getter;
 
-@Builder
+
 @Getter
 public class PostImage {
 
@@ -17,12 +17,20 @@ public class PostImage {
     private String imageUuid;
 
 
-    // 나중에 유효성 검사 때 필요
+    @Builder
     public PostImage(Long id, Long postId, int sequence, String imageUuid) {
         this.id = id;
         this.postId = postId;
         this.sequence = sequence;
         this.imageUuid = imageUuid;
+    }
+
+    public static PostImage createPostImage(Long postId, int sequence, String imageUuid) {
+        return PostImage.builder()
+                .postId(postId)
+                .sequence(sequence)
+                .imageUuid(imageUuid)
+                .build();
     }
 
     public PostImageEntity toEntity(PostEntity postEntity) {

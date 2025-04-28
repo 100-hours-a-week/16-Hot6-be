@@ -23,6 +23,16 @@ public class AiImage {
 
     private LocalDateTime createdAt;
 
+    @Builder
+    public AiImage(Long id, Long userId, Long postId, String beforeImagePath, String afterImagePath, LocalDateTime createdAt) {
+        this.id = id;
+        this.userId = userId;
+        this.postId = postId;
+        this.beforeImagePath = beforeImagePath;
+        this.afterImagePath = afterImagePath;
+        this.createdAt = createdAt;
+    }
+
     public static AiImage createAiImage(Long userId, Long postId, String beforeImagePath, String afterImagePath) {
 
         return AiImage.builder()

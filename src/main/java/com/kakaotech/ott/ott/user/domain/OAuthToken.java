@@ -7,7 +7,6 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Builder
 @Getter
 public class OAuthToken {
 
@@ -26,6 +25,20 @@ public class OAuthToken {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @Builder
+    public OAuthToken(Long id, Long userId, String provider, String providerId,
+                      String accessToken, String refreshToken,
+                      LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.userId = userId;
+        this.provider = provider;
+        this.providerId = providerId;
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 
     public static OAuthToken createOauthToken(Long userId, String provider, String providerId, String accessToken,
                                               String refreshToken) {

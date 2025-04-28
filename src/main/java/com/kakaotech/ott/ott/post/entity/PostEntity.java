@@ -5,10 +5,7 @@ import com.kakaotech.ott.ott.postImage.entity.PostImageEntity;
 import com.kakaotech.ott.ott.user.entity.UserEntity;
 import com.kakaotech.ott.ott.util.AuditEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.ArrayList;
@@ -19,6 +16,8 @@ import java.util.List;
 @Getter
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class PostEntity extends AuditEntity {
 
     @Id
@@ -51,22 +50,6 @@ public class PostEntity extends AuditEntity {
 
     @Column(name = "weight", nullable = false)
     private int weight;
-
-
-    @Builder
-    public PostEntity(UserEntity userEntity, String type, String title, String content, List<PostImageEntity> images,
-                      int commentCount, int likeCount, int viewCount, int scrapCount, int weight) {
-        this.userEntity = userEntity;
-        this.type = type;
-        this.title = title;
-        this.content = content;
-        this.images = (images != null) ? images : new ArrayList<>(); // 직접 null 방어 처리
-        this.commentCount = commentCount;
-        this.likeCount = likeCount;
-        this.viewCount = viewCount;
-        this.scrapCount = scrapCount;
-        this.weight = weight;
-    }
 
     public Post toDomain() {
         return Post.builder()

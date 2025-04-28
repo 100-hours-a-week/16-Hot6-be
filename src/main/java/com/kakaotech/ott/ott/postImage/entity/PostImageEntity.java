@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.postImage.entity;
 import com.kakaotech.ott.ott.post.entity.PostEntity;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "images")
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 public class PostImageEntity {
 
@@ -26,14 +29,6 @@ public class PostImageEntity {
 
     @Column(name = "image_uuid", nullable = false)
     private String imageUuid;
-
-    // 나중에 유효성 검사 때 필요
-    @Builder
-    public PostImageEntity(PostEntity postEntity, int sequence, String imageUuid) {
-        this.postEntity = postEntity;
-        this.sequence = sequence;
-        this.imageUuid = imageUuid;
-    }
 
     public PostImage toDomain() {
         return PostImage.builder()

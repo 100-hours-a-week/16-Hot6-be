@@ -6,7 +6,6 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Builder
 @Getter
 public class User {
 
@@ -33,6 +32,24 @@ public class User {
     private LocalDateTime updatedAt;
 
     private LocalDateTime deletedAt;
+
+    @Builder
+    public User(Long id, String email, Role role, String nicknameKakao, String nicknameCommunity,
+                int point, String imagePath, boolean isActive, boolean isVerified,
+                LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
+        this.id = id;
+        this.email = email;
+        this.role = role;
+        this.nicknameKakao = nicknameKakao;
+        this.nicknameCommunity = nicknameCommunity;
+        this.point = point;
+        this.imagePath = imagePath;
+        this.isActive = isActive;
+        this.isVerified = isVerified;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.deletedAt = deletedAt;
+    }
 
     public static User createUser(String email, String nicknameCommunity, String imagePath) {
 

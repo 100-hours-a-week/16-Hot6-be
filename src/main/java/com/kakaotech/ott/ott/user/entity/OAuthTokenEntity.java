@@ -4,6 +4,7 @@ import com.kakaotech.ott.ott.user.domain.OAuthToken;
 import com.kakaotech.ott.ott.util.AuditEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -12,6 +13,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "oauth_tokens")
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)  // 개발자가 new로 객체 생성하는 것을 막기 위해, JPA만 접근 가능
+@AllArgsConstructor
+@Builder
 public class OAuthTokenEntity extends AuditEntity {
 
     @Id
@@ -34,16 +37,6 @@ public class OAuthTokenEntity extends AuditEntity {
     @Column(name = "refresh_token")
     private String refreshToken;
 
-    @Builder
-    public OAuthTokenEntity(Long id, UserEntity userEntity, String provider, String providerId,
-                            String accessToken, String refreshToken) {
-        this.id = id;
-        this.userEntity = userEntity;
-        this.provider = provider;
-        this.providerId = providerId;
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-    }
 
     public OAuthToken toDomain() {
         return OAuthToken.builder()

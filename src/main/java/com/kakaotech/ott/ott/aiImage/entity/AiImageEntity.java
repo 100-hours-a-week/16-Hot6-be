@@ -3,10 +3,7 @@ package com.kakaotech.ott.ott.aiImage.entity;
 import com.kakaotech.ott.ott.aiImage.domain.AiImage;
 import com.kakaotech.ott.ott.user.entity.UserEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -16,6 +13,8 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "ai_images")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Getter
 public class AiImageEntity {
 
@@ -39,15 +38,6 @@ public class AiImageEntity {
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-
-    @Builder
-    public AiImageEntity(UserEntity userEntity, Long postId, String beforeImagePath, String afterImagePath) {
-        this.userEntity = userEntity;
-        this.postId = postId;
-        this.beforeImagePath = beforeImagePath;
-        this.afterImagePath = afterImagePath;
-    }
 
     public AiImage toDomain() {
 

@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 @Getter
-@Builder
 public class Post {
 
     private Long id;
@@ -34,6 +33,24 @@ public class Post {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    @Builder
+    public Post(Long id, Long userId, String type, String title, String content,
+                int commentCount, int likeCount, int viewCount, int scrapCount, int weight,
+                LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.userId = userId;
+        this.type = type;
+        this.title = title;
+        this.content = content;
+        this.commentCount = commentCount;
+        this.likeCount = likeCount;
+        this.viewCount = viewCount;
+        this.scrapCount = scrapCount;
+        this.weight = weight;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 
     public static Post createPost(Long userId, String type, String title, String content) {
         return Post.builder()
@@ -59,8 +76,6 @@ public class Post {
                 .likeCount(this.getLikeCount())
                 .viewCount(this.getViewCount())
                 .build();
-
-
     }
 
 }

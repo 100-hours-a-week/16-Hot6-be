@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.scrap.entity;
+package com.kakaotech.ott.ott.like.entity;
 
-import com.kakaotech.ott.ott.scrap.domain.Scrap;
+import com.kakaotech.ott.ott.like.domain.Like;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -9,13 +9,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "scraps")
 @EntityListeners(AuditingEntityListener.class)
+@Table(name = "likes")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class ScrapEntity {
+public class LikeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,8 +37,8 @@ public class ScrapEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public Scrap toDomain() {
-        return Scrap.builder()
+    public Like toDomain() {
+        return Like.builder()
                 .id(this.id)
                 .userId(this.userId)
                 .type(this.type)

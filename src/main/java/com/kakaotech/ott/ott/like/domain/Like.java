@@ -1,13 +1,13 @@
-package com.kakaotech.ott.ott.scrap.domain;
+package com.kakaotech.ott.ott.like.domain;
 
-import com.kakaotech.ott.ott.scrap.entity.ScrapEntity;
+import com.kakaotech.ott.ott.like.entity.LikeEntity;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
-public class Scrap {
+public class Like {
 
     private final Long id;
     private final Long userId;
@@ -17,7 +17,7 @@ public class Scrap {
     private final LocalDateTime createdAt;
 
     @Builder
-    public Scrap(Long id, Long userId, String type, Long targetId, Boolean isActive, LocalDateTime createdAt) {
+    public Like(Long id, Long userId, String type, Long targetId, Boolean isActive, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
         this.type = type;
@@ -26,17 +26,17 @@ public class Scrap {
         this.createdAt = createdAt;
     }
 
-    public static Scrap createScrap(Long userId, String type, Long targetId) {
-        return Scrap.builder()
+    public static Like createLike(Long userId, String type, Long targetId) {
+        return Like.builder()
                 .userId(userId)
                 .type(type)
                 .targetId(targetId)
-                .isActive(true) // 기본 활성화
+                .isActive(true)  // 기본 활성화
                 .build();
     }
 
-    public ScrapEntity toEntity() {
-        return ScrapEntity.builder()
+    public LikeEntity toEntity() {
+        return LikeEntity.builder()
                 .id(this.id)
                 .userId(this.userId)
                 .type(this.type)

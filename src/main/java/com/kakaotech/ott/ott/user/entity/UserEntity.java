@@ -4,6 +4,7 @@ import com.kakaotech.ott.ott.user.domain.Role;
 import com.kakaotech.ott.ott.user.domain.User;
 import com.kakaotech.ott.ott.util.AuditEntity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,8 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)  // JPA가 엔티티 상태를 감지하고 어떤 리스너를 연결할지 설정하는 것으로 createdAt, updatedAt 자동 등록
 @Table(name = "users")
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Getter
 public class UserEntity extends AuditEntity {
 
@@ -55,21 +58,6 @@ public class UserEntity extends AuditEntity {
     // UserEntity 삭제되면 OAuthEntity도 삭제
     @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OAuthTokenEntity> oauthTokens = new ArrayList<>();
-
-    @Builder
-    public UserEntity(Long id, String email, Role role, String nicknameKakao, String nicknameCommunity, int point,
-                      String imagePath, boolean isActive, boolean isVerified, LocalDateTime deletedAt) {
-        this.id = id;
-        this.email = email;
-        this.role = role;
-        this.nicknameKakao = nicknameKakao;
-        this.nicknameCommunity = nicknameCommunity;
-        this.point = point;
-        this.imagePath = imagePath;
-        this.isActive = isActive;
-        this.isVerified = isVerified;
-        this.deletedAt = deletedAt;
-    }
 
     public User toDomain() {
         return User.builder()
