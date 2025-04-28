@@ -31,7 +31,7 @@ public class UserEntity extends AuditEntity {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false, length = 10)
+    @Column(name = "role", nullable = true, length = 10)
     private Role role;
 
     @Column(name = "nickname_kakao", nullable = false, length = 20)
@@ -52,7 +52,7 @@ public class UserEntity extends AuditEntity {
     @Column(name = "is_verified", nullable = false)
     private boolean isVerified;
 
-    @Column(name = "deleted_at", nullable = false)
+    @Column(name = "deleted_at", nullable = true)
     private LocalDateTime deletedAt;
 
     // UserEntity 삭제되면 OAuthEntity도 삭제
