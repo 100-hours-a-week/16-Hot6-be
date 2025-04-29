@@ -29,7 +29,7 @@ jobs:
         run: ./gradlew clean build -x test
 
       - name: Upload JAR as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-jar
           path: build/libs/*.jar
