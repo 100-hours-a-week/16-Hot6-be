@@ -2,7 +2,7 @@ package com.kakaotech.ott.ott.post.entity;
 
 import com.kakaotech.ott.ott.post.domain.Post;
 import com.kakaotech.ott.ott.postImage.entity.PostImageEntity;
-import com.kakaotech.ott.ott.user.entity.UserEntity;
+import com.kakaotech.ott.ott.user.infrastructure.UserEntity;
 import com.kakaotech.ott.ott.util.AuditEntity;
 import jakarta.persistence.*;
 import lombok.*;

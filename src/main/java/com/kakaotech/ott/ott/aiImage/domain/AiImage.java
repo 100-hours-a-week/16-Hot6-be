@@ -1,7 +1,7 @@
 package com.kakaotech.ott.ott.aiImage.domain;
 
 import com.kakaotech.ott.ott.aiImage.entity.AiImageEntity;
-import com.kakaotech.ott.ott.user.entity.UserEntity;
+import com.kakaotech.ott.ott.user.infrastructure.UserEntity;
 import lombok.Builder;
 import lombok.Getter;
 

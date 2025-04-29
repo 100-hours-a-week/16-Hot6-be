@@ -1,7 +1,7 @@
 package com.kakaotech.ott.ott.aiImage.entity;
 
 import com.kakaotech.ott.ott.aiImage.domain.AiImage;
-import com.kakaotech.ott.ott.user.entity.UserEntity;
+import com.kakaotech.ott.ott.user.infrastructure.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

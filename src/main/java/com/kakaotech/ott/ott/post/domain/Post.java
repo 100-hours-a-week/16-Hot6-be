@@ -1,15 +1,11 @@
 package com.kakaotech.ott.ott.post.domain;
 
 import com.kakaotech.ott.ott.post.entity.PostEntity;
-import com.kakaotech.ott.ott.postImage.domain.PostImage;
-import com.kakaotech.ott.ott.postImage.entity.PostImageEntity;
-import com.kakaotech.ott.ott.user.entity.UserEntity;
+import com.kakaotech.ott.ott.user.infrastructure.UserEntity;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.awt.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 @Getter
 public class Post {
