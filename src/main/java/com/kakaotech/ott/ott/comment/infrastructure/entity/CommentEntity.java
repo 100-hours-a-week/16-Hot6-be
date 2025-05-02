@@ -1,11 +1,9 @@
-package com.kakaotech.ott.ott.comment.entity;
+package com.kakaotech.ott.ott.comment.infrastructure.entity;
 
-import com.kakaotech.ott.ott.comment.domain.Comment;
+import com.kakaotech.ott.ott.comment.domain.model.Comment;
 import com.kakaotech.ott.ott.util.AuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comments")
