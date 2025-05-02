@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.like.entity;
+package com.kakaotech.ott.ott.like.infrastructure.entity;
 
-import com.kakaotech.ott.ott.like.domain.Like;
+import com.kakaotech.ott.ott.like.domain.model.Like;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;

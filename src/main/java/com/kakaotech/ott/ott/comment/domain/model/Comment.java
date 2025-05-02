@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.comment.domain;
+package com.kakaotech.ott.ott.comment.domain.model;
 
-import com.kakaotech.ott.ott.comment.entity.CommentEntity;
+import com.kakaotech.ott.ott.comment.infrastructure.entity.CommentEntity;
 import lombok.Builder;
 import lombok.Getter;
 

@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.post.entity;
+package com.kakaotech.ott.ott.post.infrastructure.entity;
 
-import com.kakaotech.ott.ott.post.domain.Post;
+import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.postImage.entity.PostImageEntity;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import com.kakaotech.ott.ott.util.AuditEntity;

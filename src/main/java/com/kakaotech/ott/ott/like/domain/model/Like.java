@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.like.domain;
+package com.kakaotech.ott.ott.like.domain.model;
 
-import com.kakaotech.ott.ott.like.entity.LikeEntity;
+import com.kakaotech.ott.ott.like.infrastructure.entity.LikeEntity;
 import lombok.Builder;
 import lombok.Getter;
 
