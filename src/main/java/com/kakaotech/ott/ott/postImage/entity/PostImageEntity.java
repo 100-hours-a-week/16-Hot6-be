@@ -1,6 +1,6 @@
 package com.kakaotech.ott.ott.postImage.entity;
 
-import com.kakaotech.ott.ott.post.infrastructure.repositoryImpl.entity.PostEntity;
+import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

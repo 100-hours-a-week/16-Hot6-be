@@ -1,6 +1,6 @@
 package com.kakaotech.ott.ott.post.domain.model;
 
-import com.kakaotech.ott.ott.post.infrastructure.repositoryImpl.entity.PostEntity;
+import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import lombok.Builder;
 import lombok.Getter;

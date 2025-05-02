@@ -1,6 +1,6 @@
 package com.kakaotech.ott.ott.postImage.domain;
 
-import com.kakaotech.ott.ott.post.infrastructure.repositoryImpl.entity.PostEntity;
+import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.postImage.entity.PostImageEntity;
 import lombok.Builder;
 import lombok.Getter;
