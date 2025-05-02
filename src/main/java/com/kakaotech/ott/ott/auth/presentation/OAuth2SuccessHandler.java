@@ -12,6 +12,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Map;
+
 @Component
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
@@ -38,12 +40,16 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 .secure(true)
                 .sameSite("None")
                 .path("/")
-                .maxAge(7 * 24 * 60 * 60)
+                .maxAge(30 * 24 * 60 * 60)
                 .build();
         response.addHeader("Set-Cookie", refreshCookie.toString());
 
-        // 4. accessToken을 URL 파라미터로 redirect
-        String redirectUrl = "https://dev.onthe-top.com/oauth2/callback?accessToken=" + accessToken;
-        response.sendRedirect(redirectUrl);
+        // 4. accessToken은 JSON 형태로 프론트에 응답
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(
+                objectMapper.writeValueAsString(
+                        Map.of("accessToken", accessToken)
+                )
+        );
     }
 }
