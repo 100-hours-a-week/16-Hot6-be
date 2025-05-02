@@ -7,6 +7,7 @@ import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageUploadRequestDto;
+import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.*;
 import com.kakaotech.ott.ott.aiImage.application.service.AiImageService;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
@@ -72,7 +73,8 @@ public class AiImageController {
         }
 
         String imageName = imageUploader.upload(image);
-        FastApiResponseDto fastApiResponseDto = fastApiClient.sendBeforeImageToFastApi(imageName);
+        FastApiRequestDto fastApiRequestDto = new FastApiRequestDto(imageName);
+        FastApiResponseDto fastApiResponseDto = fastApiClient.sendBeforeImageToFastApi(fastApiRequestDto);
 
         if(!fastApiResponseDto.isClassify())
             return ResponseEntity
