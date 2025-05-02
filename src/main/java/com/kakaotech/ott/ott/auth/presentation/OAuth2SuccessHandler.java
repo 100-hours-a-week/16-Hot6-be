@@ -3,7 +3,6 @@ package com.kakaotech.ott.ott.auth.presentation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kakaotech.ott.ott.auth.application.JwtService;
 import com.kakaotech.ott.ott.user.domain.model.CustomOAuth2User;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

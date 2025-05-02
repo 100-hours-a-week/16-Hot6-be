@@ -1,32 +1,32 @@
 package com.kakaotech.ott.ott.user.domain.model;
 
-import com.kakaotech.ott.ott.user.domain.Role;
-import com.kakaotech.ott.ott.user.infrastructure.UserEntity;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
 public class User {
 
-    private final Long id;
-    private final String email;
-    private final Role role;
-    private final String nicknameKakao;
-    private final String nicknameCommunity;
-    private final int point;
-    private final String imagePath;
-    private final boolean isActive;
-    private final boolean isVerified;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
-    private final LocalDateTime deletedAt;
+    private Long id;
+    private String email;
+    private Role role;
+    private String nicknameKakao;
+    private String nicknameCommunity;
+    private int point;
+    private String imagePath;
+    private boolean isActive;
+    private boolean isVerified;
+    private LocalDate aiImageGeneratedDate;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private LocalDateTime deletedAt;
 
     @Builder
     public User(Long id, String email, Role role, String nicknameKakao, String nicknameCommunity,
                 int point, String imagePath, boolean isActive, boolean isVerified,
-                LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
+                LocalDate aiImageGeneratedDate, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
         this.id = id;
         this.email = email;
         this.role = role;
@@ -36,6 +36,7 @@ public class User {
         this.imagePath = imagePath;
         this.isActive = isActive;
         this.isVerified = isVerified;
+        this.aiImageGeneratedDate = aiImageGeneratedDate;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
@@ -51,7 +52,12 @@ public class User {
                 .imagePath(imagePath)
                 .isActive(true)
                 .isVerified(false)
+                .aiImageGeneratedDate(null)
                 .build();
+    }
+
+    public void renewGeneratedDate() {
+        this.aiImageGeneratedDate = LocalDate.now();
     }
 
 }

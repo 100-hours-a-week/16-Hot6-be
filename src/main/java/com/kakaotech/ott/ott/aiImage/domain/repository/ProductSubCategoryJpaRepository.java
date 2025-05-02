@@ -1,0 +1,11 @@
+package com.kakaotech.ott.ott.aiImage.domain.repository;
+
+import com.kakaotech.ott.ott.aiImage.infrastructure.entity.ProductSubCategoryEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface ProductSubCategoryJpaRepository extends JpaRepository<ProductSubCategoryEntity, Long> {
+
+    Optional<ProductSubCategoryEntity> findByName(String subCategoryName);
+}

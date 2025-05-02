@@ -1,6 +1,6 @@
 package com.kakaotech.ott.ott.user.domain.repository;
 
-import com.kakaotech.ott.ott.user.infrastructure.OAuthTokenEntity;
+import com.kakaotech.ott.ott.user.infrastructure.entity.OAuthTokenEntity;
 
 import java.util.Optional;
 
