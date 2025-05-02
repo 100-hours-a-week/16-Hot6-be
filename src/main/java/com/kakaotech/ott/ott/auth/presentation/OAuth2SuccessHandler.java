@@ -6,6 +6,7 @@ import com.kakaotech.ott.ott.user.domain.model.CustomOAuth2User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -31,17 +32,26 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String accessToken = jwtService.createAccessToken(userId);
         String refreshToken = jwtService.createRefreshToken(userId);
 
-        // Refresh Token 저장
-        jwtService.storeRefreshToken(userId, refreshToken); // Redis 또는 DB 저장
+        // ✅ Refresh Token 저장 (DB 또는 Redis)
+        jwtService.storeRefreshToken(userId, refreshToken);
 
-        // 응답 JSON 구성
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", accessToken);
-        tokens.put("refreshToken", refreshToken);
+        // ✅ Access Token은 응답 body에 담아 프론트로 전달
+        Map<String, String> tokenResponse = new HashMap<>();
+        tokenResponse.put("accessToken", accessToken);
 
+        // ✅ Refresh Token은 HttpOnly, Secure 쿠키로 설정
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .path("/") // 필요한 경우 /auth 등으로 제한 가능
+                .maxAge(7 * 24 * 60 * 60) // 예: 7일
+                .build();
+        response.addHeader("Set-Cookie", refreshCookie.toString());
 
+        // ✅ 응답 구성
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json;charset=UTF-8");
-        objectMapper.writeValue(response.getWriter(), tokens);
+        objectMapper.writeValue(response.getWriter(), tokenResponse);
     }
 }
