@@ -23,7 +23,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("로그아웃 완료", null));
     }
 
-    @PostMapping("/reissue")
+    @PostMapping("/token/refresh")
     public ResponseEntity<ApiResponse<String>> reissue(@RequestHeader("Authorization") String bearerToken) {
         String refreshToken = bearerToken.substring(7); // Bearer 부분 떼고
         String newAccessToken = jwtService.reissueAccessToken(refreshToken);
