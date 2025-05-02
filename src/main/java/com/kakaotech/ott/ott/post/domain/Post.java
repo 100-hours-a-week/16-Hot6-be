@@ -1,7 +1,7 @@
 package com.kakaotech.ott.ott.post.domain;
 
 import com.kakaotech.ott.ott.post.entity.PostEntity;
-import com.kakaotech.ott.ott.user.infrastructure.UserEntity;
+import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import lombok.Builder;
 import lombok.Getter;
 

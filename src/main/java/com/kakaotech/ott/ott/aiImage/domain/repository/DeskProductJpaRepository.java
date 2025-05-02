@@ -1,0 +1,11 @@
+package com.kakaotech.ott.ott.aiImage.domain.repository;
+
+import com.kakaotech.ott.ott.aiImage.infrastructure.entity.DeskProductEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface DeskProductJpaRepository extends JpaRepository<DeskProductEntity, Long> {
+
+    List<DeskProductEntity> findByAiImageEntity_Id(Long aiImageId);
+}
