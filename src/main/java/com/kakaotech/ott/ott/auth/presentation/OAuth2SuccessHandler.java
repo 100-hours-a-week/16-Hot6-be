@@ -12,9 +12,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 @Component
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
@@ -28,30 +25,25 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         CustomOAuth2User customUser = (CustomOAuth2User) authentication.getPrincipal();
         Long userId = customUser.getUserId();
 
-        // JWT 발급
+        // 1. JWT 발급
         String accessToken = jwtService.createAccessToken(userId);
         String refreshToken = jwtService.createRefreshToken(userId);
 
-        // ✅ Refresh Token 저장 (DB 또는 Redis)
+        // 2. Refresh Token 저장 (DB or Redis)
         jwtService.storeRefreshToken(userId, refreshToken);
 
-        // ✅ Access Token은 응답 body에 담아 프론트로 전달
-        Map<String, String> tokenResponse = new HashMap<>();
-        tokenResponse.put("accessToken", accessToken);
-
-        // ✅ Refresh Token은 HttpOnly, Secure 쿠키로 설정
+        // 3. Refresh Token을 HttpOnly, Secure 쿠키에 저장
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .path("/") // 필요한 경우 /auth 등으로 제한 가능
-                .maxAge(7 * 24 * 60 * 60) // 예: 7일
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)
                 .build();
         response.addHeader("Set-Cookie", refreshCookie.toString());
 
-        // ✅ 응답 구성
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType("application/json;charset=UTF-8");
-        objectMapper.writeValue(response.getWriter(), tokenResponse);
+        // 4. accessToken을 URL 파라미터로 redirect
+        String redirectUrl = "https://dev.onthe-top.com/oauth2/callback?accessToken=" + accessToken;
+        response.sendRedirect(redirectUrl);
     }
 }
