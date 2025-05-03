@@ -18,7 +18,7 @@ public class FastApiClientImpl implements FastApiClient {
 
     @Override
     public FastApiResponseDto sendBeforeImageToFastApi(FastApiRequestDto fastApiRequestDto) {
-        String url = "http://localhost:8080/classify";
+        String url = "https://dev-ai.onthe-top.com/classify";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

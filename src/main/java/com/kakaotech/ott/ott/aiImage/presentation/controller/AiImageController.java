@@ -74,7 +74,14 @@ public class AiImageController {
 
         String imageName = imageUploader.upload(image);
         FastApiRequestDto fastApiRequestDto = new FastApiRequestDto(imageName);
-        FastApiResponseDto fastApiResponseDto = fastApiClient.sendBeforeImageToFastApi(fastApiRequestDto);
+        FastApiResponseDto fastApiResponseDto;
+        try {
+            fastApiResponseDto = fastApiClient.sendBeforeImageToFastApi(fastApiRequestDto);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error(500, "FastAPI 응답 처리 중 오류가 발생했습니다."));
+        }
 
         if(!fastApiResponseDto.isClassify())
             return ResponseEntity
