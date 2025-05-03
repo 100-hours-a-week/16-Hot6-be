@@ -4,13 +4,16 @@ import com.kakaotech.ott.ott.aiImage.application.service.FastApiClient;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.FastApiResponseDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class FastApiClientImpl implements FastApiClient {
 
@@ -20,11 +23,19 @@ public class FastApiClientImpl implements FastApiClient {
     public FastApiResponseDto sendBeforeImageToFastApi(FastApiRequestDto fastApiRequestDto) {
         String url = "https://dev-ai.onthe-top.com/classify";
 
+        System.out.println(fastApiRequestDto.getInitialImageUrl());
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<FastApiRequestDto> request = new HttpEntity<>(fastApiRequestDto, headers);
 
-        return restTemplate.postForObject(url, request, FastApiResponseDto.class);
+        try {
+            return restTemplate.postForObject(url, request, FastApiResponseDto.class);
+        } catch (HttpServerErrorException e) {
+            log.error("FastAPI 응답 오류 (500): {}", e.getResponseBodyAsString());
+            throw new RuntimeException("FastAPI 호출 중 오류 발생: " + e.getMessage());
+        }
+
     }
 }
