@@ -5,6 +5,7 @@ import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.FastApiResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -19,11 +20,14 @@ public class FastApiClientImpl implements FastApiClient {
 
     private final RestTemplate restTemplate;
 
+    @Value("${cloud.aws.s3.base-url}")
+    private String baseUrl;
+
     @Override
     public FastApiResponseDto sendBeforeImageToFastApi(FastApiRequestDto fastApiRequestDto) {
         String url = "https://dev-ai.onthe-top.com/classify";
 
-        System.out.println(fastApiRequestDto.getInitialImageUrl());
+        fastApiRequestDto.fastApiUrl(baseUrl);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
