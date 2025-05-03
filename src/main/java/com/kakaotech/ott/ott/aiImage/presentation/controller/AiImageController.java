@@ -74,24 +74,16 @@ public class AiImageController {
                     .body(ApiResponse.error(400, "이미지 파일이 비어있습니다."));
         }
 
-        String imageName = imageUploader.upload(image);
-        FastApiRequestDto fastApiRequestDto = new FastApiRequestDto(imageName);
-        FastApiResponseDto fastApiResponseDto;
-        try {
-            fastApiResponseDto = fastApiClient.sendBeforeImageToFastApi(fastApiRequestDto);
-        } catch (Exception e) {
-            log.error("FastAPI 호출 중 오류 발생", e);
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error(500, "FastAPI 응답 처리 중 오류가 발생했습니다."));
-        }
+        boolean isValid = aiImageService.handleImageValidation(image);
 
-        if(!fastApiResponseDto.isClassify())
+        // 유효한 데스크 이미지 아닐 경우
+        if(!isValid) {
+
             return ResponseEntity
                     .badRequest()
-                    .body(ApiResponse.error(400, "올바른 데스크 사진을 입력해주세요.."));
+                    .body(ApiResponse.error(400, "올바른 데스크 사진을 입력해주세요."));
+        }
 
-        // 2. 응답 생성
         return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성 요청이 접수되었습니다.", requestDto.getBeforeImagePath().getName()));
     }
 

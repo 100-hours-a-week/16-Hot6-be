@@ -14,4 +14,8 @@ public class FastApiRequestDto {
 
     @JsonProperty("initial_image_url")
     private String initialImageUrl;
+
+    public void fastApiUrl(String domain) {
+        this.initialImageUrl = domain + this.initialImageUrl;
+    }
 }
