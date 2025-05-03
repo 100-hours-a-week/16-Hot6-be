@@ -16,6 +16,7 @@ import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import com.kakaotech.ott.ott.user.application.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
+@Slf4j
 public class AiImageController {
 
     private final AiImageService aiImageService;
@@ -78,6 +80,7 @@ public class AiImageController {
         try {
             fastApiResponseDto = fastApiClient.sendBeforeImageToFastApi(fastApiRequestDto);
         } catch (Exception e) {
+            log.error("FastAPI 호출 중 오류 발생", e);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error(500, "FastAPI 응답 처리 중 오류가 발생했습니다."));

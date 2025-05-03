@@ -26,7 +26,8 @@ public class S3Uploader implements ImageUploader {
     @Override
     public String upload(MultipartFile image) throws IOException {
         String extension = getExtension(image.getOriginalFilename());
-        String imageName = "assets/images/" + ulid.nextULID() + extension;
+        String ulidName = ulid.nextULID();
+        String imageName = "assets/images/" + ulidName + extension;
 
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentLength(image.getSize());
@@ -36,7 +37,7 @@ public class S3Uploader implements ImageUploader {
                 new PutObjectRequest(bucket, imageName, image.getInputStream(), metadata)
         );
 
-        return amazonS3.getUrl(bucket, imageName).toString();
+        return "https://img.onthe-top.com/" + ulidName + extension;
     }
 
     private String getExtension(String originalName) {
@@ -44,5 +45,16 @@ public class S3Uploader implements ImageUploader {
             return "";
         }
         return originalName.substring(originalName.lastIndexOf("."));
+    }
+
+    @Override
+    public void delete(String imageName) {
+        // imageName은 예: 01H...X2.png 와 같은 키
+        if (amazonS3.doesObjectExist(bucket, imageName)) {
+            amazonS3.deleteObject(bucket, imageName);
+            System.out.println("✅ S3에서 이미지 삭제 완료: " + imageName);
+        } else {
+            System.out.println("⚠️ 삭제 실패 - 해당 파일이 존재하지 않습니다: " + imageName);
+        }
     }
 }
