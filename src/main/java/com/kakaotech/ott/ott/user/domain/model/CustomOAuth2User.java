@@ -14,12 +14,14 @@ public class CustomOAuth2User implements OAuth2User {
     private final Long userId;
     private final String email;
     private final String nickname;
+    private final String imagePath;
     private final Map<String, Object> attributes;
 
     public CustomOAuth2User(User user, Map<String, Object> attributes) {
         this.userId = user.getId();
         this.email = user.getEmail();
         this.nickname = user.getNicknameCommunity(); // 혹은 nicknameKakao
+        this.imagePath = user.getImagePath();
         this.attributes = attributes;
     }
 

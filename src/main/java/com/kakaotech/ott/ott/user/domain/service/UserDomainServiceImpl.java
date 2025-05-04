@@ -22,7 +22,7 @@ public class UserDomainServiceImpl implements UserDomainService {
     public User saveOrGetKakaoUser(Map<String, Object> attributes) {
         String email = extractEmail(attributes);
         String nickname = extractNickname(attributes);
-        String imagePath = "/default/profile.jpg"; // 기본 이미지
+        String imagePath = extractProfileImage(attributes); // ✅ 프로필 이미지 추가
 
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isPresent()) {
@@ -45,5 +45,11 @@ public class UserDomainServiceImpl implements UserDomainService {
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
         return (String) profile.get("nickname");
+    }
+
+    private String extractProfileImage(Map<String, Object> attributes) {
+        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+        return (String) profile.get("profile_image_url");
     }
 }
