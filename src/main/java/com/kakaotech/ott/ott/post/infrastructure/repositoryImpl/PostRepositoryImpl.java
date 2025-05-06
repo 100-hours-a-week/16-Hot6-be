@@ -26,6 +26,7 @@ public class PostRepositoryImpl implements PostRepository {
     private final PostJpaRepository postJpaRepository;
     private final UserJpaRepository userJpaRepository;
 
+
     @Override
     public Post save(Post post) {
 
@@ -77,24 +78,6 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> findAll() {
-
-        return postJpaRepository.findAll()
-                .stream()
-                .map(PostEntity::toDomain)
-                .toList();
-    }
-
-    @Override
-    public List<Post> findAllByUserEntityId(Long userId) {
-
-        return postJpaRepository.findAllByUserEntityId(userId)
-                .stream()
-                .map(PostEntity::toDomain)
-                .toList();
-    }
-
-    @Override
     public void deletePost(Long postId) {
 
         postJpaRepository.deleteById(postId);
@@ -111,5 +94,11 @@ public class PostRepositoryImpl implements PostRepository {
     @Transactional
     public void incrementLikeCount(Long postId, Long delta) {
         postJpaRepository.incrementLikeCount(postId, delta);
+    }
+
+    @Override
+    @Transactional
+    public void incrementScrapCount(Long postId, Long delta) {
+        postJpaRepository.incrementScrapCount(postId, delta);
     }
 }
