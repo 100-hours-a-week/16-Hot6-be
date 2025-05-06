@@ -2,16 +2,13 @@ package com.kakaotech.ott.ott.like.presentation.controller;
 
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.like.application.service.LikeService;
-import com.kakaotech.ott.ott.like.presentation.dto.request.LikeActiveRequestDto;
+import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/likes")
@@ -22,12 +19,23 @@ public class LikeController {
 
     @PostMapping
     public ResponseEntity<ApiResponse> activeLike(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                  @RequestBody @Valid LikeActiveRequestDto likeActiveRequestDto) {
+                                                  @RequestBody @Valid LikeRequestDto likeRequestDto) {
 
         Long userId = userPrincipal.getId();
 
-        likeService.likePost(userId, likeActiveRequestDto);
+        likeService.likePost(userId, likeRequestDto);
 
         return ResponseEntity.ok(ApiResponse.success("좋아요 완료", null));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse> deactiveLike(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                  @RequestBody @Valid LikeRequestDto likeRequestDto) {
+
+        Long userId = userPrincipal.getId();
+
+        likeService.unlikePost(userId, likeRequestDto);
+
+        return ResponseEntity.ok(ApiResponse.success("좋아요 취소 완료", null));
     }
 }
