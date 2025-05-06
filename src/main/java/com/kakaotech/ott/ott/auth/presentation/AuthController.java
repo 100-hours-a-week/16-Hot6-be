@@ -28,6 +28,6 @@ public class AuthController {
         String refreshToken = bearerToken.substring(7); // Bearer 부분 떼고
         String newAccessToken = jwtService.reissueAccessToken(refreshToken);
 
-        return ResponseEntity.ok(ApiResponse.success("액세스 토큰 재발급 완료", newAccessToken));
+        return ResponseEntity.ok(ApiResponse.success("Access Token 재발급 성공", newAccessToken));
     }
 }
