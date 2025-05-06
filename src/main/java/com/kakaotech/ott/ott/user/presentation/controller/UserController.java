@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.user.presentation.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,9 +21,8 @@ public class UserController {
         // ✅ 이미 로그인된 사용자라면 홈으로 리디렉트
         if (authentication != null && authentication.isAuthenticated()
                 && !(authentication.getPrincipal() instanceof String)) {
-            // `anonymousUser` 제외 체크
-            return ResponseEntity.status(302)
-                    .header("Location", "/") // 또는 /mypage 등
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header(HttpHeaders.LOCATION, "https://dev.onthe-top.com/")
                     .build();
         }
 
