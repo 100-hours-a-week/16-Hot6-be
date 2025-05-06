@@ -35,4 +35,10 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
     void incrementLikeCount(@Param("postId") Long postId,
                             @Param("delta") Long delta);
 
+    // 스크랩 카운트 증가·감소용
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE PostEntity p SET p.scrapCount = p.scrapCount + :delta WHERE p.id = :postId")
+    void incrementScrapCount(@Param("postId") Long postId,
+                            @Param("delta") Long delta);
+
 }

@@ -10,10 +10,6 @@ public interface PostRepository {
 
     Post findById(Long postId);
 
-    List<Post> findAll();
-
-    List<Post> findAllByUserEntityId(Long userId);
-
     void deletePost(Long userId);
 
     List<Post> findAllByCursor(int size, Long lastPostId);
@@ -21,4 +17,6 @@ public interface PostRepository {
     void incrementViewCount(Long postId, Long delta);
 
     void incrementLikeCount(Long postId, Long delta);
+
+    void incrementScrapCount(Long postId, Long delta);
 }
