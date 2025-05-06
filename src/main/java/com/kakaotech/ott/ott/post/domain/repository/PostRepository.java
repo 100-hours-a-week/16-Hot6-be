@@ -1,0 +1,22 @@
+package com.kakaotech.ott.ott.post.domain.repository;
+
+import com.kakaotech.ott.ott.post.domain.model.Post;
+
+import java.util.List;
+
+public interface PostRepository {
+
+    Post save(Post post);
+
+    Post findById(Long postId);
+
+    List<Post> findAll();
+
+    List<Post> findAllByUserEntityId(Long userId);
+
+    void deletePost(Long userId);
+
+    List<Post> findAllByCursor(int size, Long lastPostId);
+
+    void incrementViewCount(Long postId, Long delta);
+}

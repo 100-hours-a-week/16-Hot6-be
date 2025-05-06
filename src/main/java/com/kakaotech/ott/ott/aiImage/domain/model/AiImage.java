@@ -39,4 +39,9 @@ public class AiImage {
                 .afterImagePath(afterImagePath)
                 .build();
     }
+
+    // 새로 추가 ▶ 게시글 연결(postId) 변경
+    public void updatePostId(Long postId) {
+        this.postId = postId;
+    }
 }

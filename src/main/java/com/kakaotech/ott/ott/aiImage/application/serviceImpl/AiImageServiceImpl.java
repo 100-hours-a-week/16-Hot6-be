@@ -67,7 +67,7 @@ public class AiImageServiceImpl implements AiImageService {
         user.renewGeneratedDate();
         User generatedUser = userRepository.save(user);
 
-        return aiImageRepository.save(aiImage, user).toDomain();
+        return aiImageRepository.save(aiImage).toDomain();
     }
 
     @Override

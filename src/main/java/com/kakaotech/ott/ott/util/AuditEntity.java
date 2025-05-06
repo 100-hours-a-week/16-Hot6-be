@@ -17,10 +17,10 @@ import java.time.LocalDateTime;
 public abstract class AuditEntity {
 
     @CreatedDate
-    @Column(updatable = false, nullable = false) // 생성일은 업데이트되지 않음
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }

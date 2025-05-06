@@ -35,6 +35,7 @@ public class PostImage {
 
     public PostImageEntity toEntity(PostEntity postEntity) {
         return PostImageEntity.builder()
+                .id(this.id)
                 .postEntity(postEntity)
                 .sequence(this.getSequence())
                 .imageUuid(this.getImageUuid())
