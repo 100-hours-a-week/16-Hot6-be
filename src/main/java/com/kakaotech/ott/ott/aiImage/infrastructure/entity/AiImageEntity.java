@@ -61,4 +61,8 @@ public class AiImageEntity {
                 .build();
     }
 
+    public void setPostId(Long postId) {
+        this.postId = postId;
+    }
+
 }

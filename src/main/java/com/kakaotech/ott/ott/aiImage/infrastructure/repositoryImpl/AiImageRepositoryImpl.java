@@ -7,6 +7,7 @@ import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.infrastructure.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -21,9 +22,20 @@ public class AiImageRepositoryImpl implements AiImageRepository {
 
 
     @Override
-    public AiImageEntity save(AiImage aiImage, User user) {
+    public AiImageEntity save(AiImage aiImage) {
 
-        return aiImageJpaRepository.save(AiImageEntity.from(aiImage, UserEntity.from(user)));
+        UserEntity userEntity = userJpaRepository.findById(aiImage.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 없습니다."));
+
+        AiImageEntity aiImageEntity = (aiImage.getId() != null)
+                ? aiImageJpaRepository.findById(aiImage.getId())
+                .orElseThrow(() -> new EntityNotFoundException("AI 이미지 없음"))
+                : AiImageEntity.from(aiImage, userEntity);
+
+        // 3) postId 변경 반영
+        aiImageEntity.setPostId(aiImage.getPostId());
+
+        return aiImageJpaRepository.save(aiImageEntity);
     }
 
     @Override

@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "images")
+@Table(name = "post_images")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

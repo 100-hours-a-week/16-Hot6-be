@@ -31,6 +31,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+	// Spring Lock
+	implementation "net.javacrumbs.shedlock:shedlock-spring:4.42.0"
+	implementation "net.javacrumbs.shedlock:shedlock-provider-jdbc-template:4.42.0"
+
 	// Spring Security OAuth2 Core
 	implementation 'org.springframework.security:spring-security-oauth2-core'
 
