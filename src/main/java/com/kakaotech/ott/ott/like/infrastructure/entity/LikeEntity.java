@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.like.infrastructure.entity;
 
 import com.kakaotech.ott.ott.like.domain.model.Like;
+import com.kakaotech.ott.ott.like.domain.model.LikeType;
+import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -10,7 +12,12 @@ import java.time.LocalDateTime;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-@Table(name = "likes")
+@Table(name = "likes",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_user_type_target",
+                columnNames = {"user_id", "type", "target_id"}
+        )
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -21,11 +28,13 @@ public class LikeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity userEntity;
 
-    @Column(name = "type", nullable = false, length = 30)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private LikeType type;
 
     @Column(name = "target_id", nullable = false)
     private Long targetId;
@@ -40,11 +49,23 @@ public class LikeEntity {
     public Like toDomain() {
         return Like.builder()
                 .id(this.id)
-                .userId(this.userId)
+                .userId(this.userEntity.getId())
                 .type(this.type)
                 .targetId(this.targetId)
                 .isActive(this.isActive)
                 .createdAt(this.createdAt)
+                .build();
+    }
+
+    public static LikeEntity from(Like like, UserEntity userEntity) {
+
+        return LikeEntity.builder()
+                .id(like.getId())
+                .userEntity(userEntity)
+                .type(like.getType())
+                .targetId(like.getTargetId())
+                .isActive(like.getIsActive())
+                .createdAt(like.getCreatedAt())
                 .build();
     }
 }

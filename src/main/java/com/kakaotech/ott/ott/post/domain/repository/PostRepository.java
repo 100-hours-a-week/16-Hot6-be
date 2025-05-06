@@ -19,4 +19,6 @@ public interface PostRepository {
     List<Post> findAllByCursor(int size, Long lastPostId);
 
     void incrementViewCount(Long postId, Long delta);
+
+    void incrementLikeCount(Long postId, Long delta);
 }
