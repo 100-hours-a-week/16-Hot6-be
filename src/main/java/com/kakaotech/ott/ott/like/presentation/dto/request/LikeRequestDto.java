@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LikeActiveRequestDto {
+public class LikeRequestDto {
 
     @NotNull(message = "좋아요 종류는 필수입니다.")
     private LikeType type;

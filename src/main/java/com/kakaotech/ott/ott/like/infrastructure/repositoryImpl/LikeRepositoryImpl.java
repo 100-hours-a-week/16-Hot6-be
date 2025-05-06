@@ -9,6 +9,7 @@ import com.kakaotech.ott.ott.user.infrastructure.repository.UserJpaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -20,11 +21,13 @@ public class LikeRepositoryImpl implements LikeRepository {
     private final UserJpaRepository userJpaRepository;
 
     @Override
+    @Transactional
     public void deleteByUserEntityIdAndTypeAndTargetId(Long userId, Long postId) {
         likeJpaRepository.deleteByUserEntityIdAndTargetId(userId, postId);
     }
 
     @Override
+    @Transactional
     public Like save(Like like) {
 
         UserEntity userEntity = userJpaRepository.findById(like.getUserId())
@@ -37,6 +40,7 @@ public class LikeRepositoryImpl implements LikeRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean existsByUserIdAndPostId(Long userId, Long postId) {
         return likeJpaRepository.existsByUserEntityIdAndTargetId(userId, postId);
     }
