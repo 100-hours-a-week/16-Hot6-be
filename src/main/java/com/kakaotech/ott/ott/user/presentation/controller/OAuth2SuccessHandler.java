@@ -38,18 +38,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // 2. Refresh Token 저장 (DB or Redis)
         jwtService.storeRefreshToken(userId, refreshToken);
 
-        // 3. Access Token을 HttpOnly, Secure 쿠키로 저장
-        ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
-                .httpOnly(true)              // 클라이언트에서 접근 불가
-                .secure(true)               // HTTPS에서만 동작
-                .sameSite("None")           // 크로스 도메인 쿠키 허용
-                .domain(".onthe-top.com")   // 최상위 도메인
-                .path("/")
-                .maxAge(30 * 60)            // 30분 유효 (Access Token 만료 시간과 맞춤)
-                .build();
-        response.addHeader("Set-Cookie", accessCookie.toString());
-
-        // 4. Refresh Token을 HttpOnly, Secure 쿠키로 저장
+        // 3. Refresh Token을 HttpOnly, Secure 쿠키로 저장
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(true)
@@ -60,7 +49,12 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 .build();
         response.addHeader("Set-Cookie", refreshCookie.toString());
 
-        // 5. 클라이언트를 홈 페이지로 리디렉션
-        response.sendRedirect("https://dev.onthe-top.com/");
+        // 4. Access Token을 JSON 바디로 응답
+        OAuthLoginResponseDto payload = new OAuthLoginResponseDto(accessToken, null);
+        ApiResponse<OAuthLoginResponseDto> apiResponse = ApiResponse.success("OAuth 로그인 성공", payload);
+
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
     }
 }

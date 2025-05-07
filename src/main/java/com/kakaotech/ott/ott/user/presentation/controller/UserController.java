@@ -29,8 +29,8 @@ public class UserController {
                     .build();
         }
 
-        String baseUrl = (forwardedHost != null) ? "https://" + forwardedHost : "https://dev.onthe-top.com";
-        String redirectUrl = baseUrl + "/oauth2/authorization/" + provider;
+        // ✅ 리디렉트 URL을 고정된 주소로 지정
+        String redirectUrl = "https://dev-backend.onthe-top.com/oauth2/authorization/" + provider;
 
         return ResponseEntity.status(302)
                 .header(HttpHeaders.LOCATION, redirectUrl)
