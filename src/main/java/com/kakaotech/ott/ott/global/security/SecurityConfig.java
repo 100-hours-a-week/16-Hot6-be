@@ -1,7 +1,7 @@
 package com.kakaotech.ott.ott.global.security;
 
 
-import com.kakaotech.ott.ott.user.application.service.JwtService;
+import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.user.presentation.controller.OAuth2FailureHandler;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomOAuth2UserService;
 import com.kakaotech.ott.ott.user.presentation.controller.OAuth2SuccessHandler;
@@ -45,6 +45,7 @@ public class SecurityConfig {
                                 endpoint.baseUri("/oauth2/authorization")
                         )
                         .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
+                        .defaultSuccessUrl("https://dev.onthe-top.com", true)
                         .successHandler(successHandler)
                         .failureHandler(failureHandler)
                 )

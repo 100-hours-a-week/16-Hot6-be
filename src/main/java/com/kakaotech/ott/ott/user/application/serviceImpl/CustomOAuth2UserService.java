@@ -7,11 +7,15 @@ import com.kakaotech.ott.ott.user.domain.repository.OAuthTokenRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.OAuthTokenEntity;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
@@ -21,6 +25,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserDomainService userDomainService;
     private final OAuthTokenRepository oAuthTokenRepository;
+    private final RestTemplate restTemplate;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -53,4 +58,5 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // CustomOAuth2User 반환 (JWT 발급할 때 사용됨)
         return new CustomOAuth2User(user, attributes);
     }
+
 }

@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.user.application.service;
+package com.kakaotech.ott.ott.user.application.serviceImpl;
 
 import com.kakaotech.ott.ott.user.domain.repository.RefreshTokenRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.RefreshTokenEntity;

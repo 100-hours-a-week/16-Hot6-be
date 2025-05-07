@@ -1,6 +1,6 @@
 package com.kakaotech.ott.ott.global.security;
 
-import com.kakaotech.ott.ott.user.application.service.JwtService;
+import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

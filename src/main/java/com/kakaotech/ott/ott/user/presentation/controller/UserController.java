@@ -1,14 +1,16 @@
 package com.kakaotech.ott.ott.user.presentation.controller;
 
-import com.kakaotech.ott.ott.user.application.service.JwtService;
+import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
+import com.kakaotech.ott.ott.user.application.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -16,6 +18,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 public class UserController {
 
     private final JwtService jwtService;
+    private final UserService userService;
 
     @GetMapping("/{provider}")
     public ResponseEntity<Void> login(@PathVariable String provider,
@@ -38,11 +41,19 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String bearerToken) {
-        String token = bearerToken.substring(7); // "Bearer " 떼기
-        Long userId = jwtService.extractUserId(token);
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request,
+                                                    HttpServletResponse response,
+                                                    @RequestHeader("Authorization") String bearerToken) {
+        // ✅ JWT Access Token 확인
+        String accessToken = bearerToken.substring(7); // "Bearer " 떼기
+        Long userId = jwtService.extractUserId(accessToken);
 
-        jwtService.logout(userId);
+        // ✅ 클라이언트에서 카카오 Access Token 전달받기
+        String kakaoAccessToken = request.getHeader("Kakao-Access-Token");
+
+        // ✅ 서비스 계층에서 로그아웃 처리
+        userService.logout(userId, response, kakaoAccessToken);
+
 
         return ResponseEntity.ok(ApiResponse.success("로그아웃 완료", null));
     }

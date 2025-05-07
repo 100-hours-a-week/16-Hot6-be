@@ -4,7 +4,9 @@ import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import com.kakaotech.ott.ott.user.application.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -14,6 +16,8 @@ import java.time.LocalDate;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final JwtService jwtService;
+    private final KakaoLogoutServiceImpl kakaoLogoutService;
 
     @Override
     public boolean checkQuota(Long userId) {
@@ -29,5 +33,27 @@ public class UserServiceImpl implements UserService {
 
         return lastGenerated == null || !today.equals(lastGenerated);
 
+    }
+
+    @Override
+    public void logout(Long userId, HttpServletResponse response, String kakaoAccessToken) {
+        // 1️⃣ 서버에서 Refresh Token 삭제 (DB or Redis)
+        jwtService.logout(userId);
+
+        // 2️⃣ 클라이언트의 Refresh Token 쿠키 만료
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", null)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".onthe-top.com")
+                .path("/")
+                .maxAge(0)  // 즉시 만료
+                .build();
+        response.addHeader("Set-Cookie", refreshCookie.toString());
+
+        // 3️⃣ 카카오 서버에서 사용자 로그아웃
+        if (kakaoAccessToken != null) {
+            kakaoLogoutService.logoutFromKakao(kakaoAccessToken);
+        }
     }
 }
