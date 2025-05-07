@@ -41,4 +41,10 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
     void incrementScrapCount(@Param("postId") Long postId,
                             @Param("delta") Long delta);
 
+    // 댓글 카운트 증가·감소용
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE PostEntity p SET p.commentCount = p.commentCount + :delta WHERE p.id = :postId")
+    void incrementCommentCount(@Param("postId") Long postId,
+                             @Param("delta") Long delta);
+
 }

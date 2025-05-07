@@ -1,33 +1,23 @@
 package com.kakaotech.ott.ott.comment.domain.model;
 
-import com.kakaotech.ott.ott.comment.infrastructure.entity.CommentEntity;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Comment {
 
-    private final Long id;
-    private final Long userId;
-    private final Long postId;
-    private final String content;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    private Long id;
+    private Long userId;
+    private Long postId;
+    private String content;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    @Builder
-    public Comment(Long id, Long userId, Long postId, String content, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.userId = userId;
-        this.postId = postId;
-        this.content = content;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-
-    public static Comment created(Long userId, Long postId, String content) {
-        LocalDateTime now = LocalDateTime.now();
+    public static Comment createComment(Long userId, Long postId, String content) {
         return Comment.builder()
                 .userId(userId)
                 .postId(postId)
@@ -35,12 +25,9 @@ public class Comment {
                 .build();
     }
 
-    public CommentEntity toEntity() {
-        return CommentEntity.builder()
-                .id(this.id)
-                .userId(this.userId)
-                .postId(this.postId)
-                .content(this.content)
-                .build();
+    public void updateContent(String content) {
+        if (content != null && !content.isBlank())
+            this.content = content;
     }
+
 }

@@ -19,4 +19,6 @@ public interface PostRepository {
     void incrementLikeCount(Long postId, Long delta);
 
     void incrementScrapCount(Long postId, Long delta);
+
+    void incrementCommentCount(Long postId, Long delta);
 }

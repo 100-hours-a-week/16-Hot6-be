@@ -93,12 +93,21 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     @Transactional
     public void incrementLikeCount(Long postId, Long delta) {
+
         postJpaRepository.incrementLikeCount(postId, delta);
     }
 
     @Override
     @Transactional
     public void incrementScrapCount(Long postId, Long delta) {
+
         postJpaRepository.incrementScrapCount(postId, delta);
+    }
+
+    @Override
+    @Transactional
+    public void incrementCommentCount(Long postId, Long delta) {
+
+        postJpaRepository.incrementCommentCount(postId, delta);
     }
 }
