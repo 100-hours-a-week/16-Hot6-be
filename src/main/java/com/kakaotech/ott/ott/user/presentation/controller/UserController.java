@@ -18,7 +18,7 @@ public class UserController {
     private final JwtService jwtService;
 
 
-    @GetMapping("/auth/{provider}")
+    @GetMapping("/{provider}")
     public ResponseEntity<Void> login(@PathVariable String provider, Authentication authentication) {
         // ✅ 이미 로그인된 사용자라면 홈으로 리디렉트
         if (authentication != null && authentication.isAuthenticated()
