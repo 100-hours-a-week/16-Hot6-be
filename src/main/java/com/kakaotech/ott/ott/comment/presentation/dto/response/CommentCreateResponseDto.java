@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentResponseDto {
+public class CommentCreateResponseDto {
 
     private Long commentId;
 }

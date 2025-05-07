@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentRequestDto {
+public class CommentCreateRequestDto {
 
     @NotBlank(message = "댓글을 입력하세요.")
     private String content;
