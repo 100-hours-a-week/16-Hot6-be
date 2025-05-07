@@ -1,6 +1,6 @@
 package com.kakaotech.ott.ott.postImage.domain;
 
-import com.kakaotech.ott.ott.post.entity.PostEntity;
+import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.postImage.entity.PostImageEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,6 +35,7 @@ public class PostImage {
 
     public PostImageEntity toEntity(PostEntity postEntity) {
         return PostImageEntity.builder()
+                .id(this.id)
                 .postEntity(postEntity)
                 .sequence(this.getSequence())
                 .imageUuid(this.getImageUuid())

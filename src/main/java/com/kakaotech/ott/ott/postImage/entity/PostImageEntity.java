@@ -1,6 +1,6 @@
 package com.kakaotech.ott.ott.postImage.entity;
 
-import com.kakaotech.ott.ott.post.entity.PostEntity;
+import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "images")
+@Table(name = "post_images")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
