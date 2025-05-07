@@ -3,9 +3,7 @@ name: Backend CI & Dev CD
 on:
   push:
     branches:
-      - main
       - dev
-      - feat/dev-cd
 
 jobs:
   build:
@@ -27,7 +25,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew clean build -x test
+        run: ./gradlew bootJar -x test
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -35,12 +33,14 @@ jobs:
           name: backend-jar
           path: build/libs/*.jar
 
-  deploy-dev:
+  deploy:
     name: Deploy to Dev via SSH
     needs: build
-    if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/feat/dev-cd' }}
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'main' && 'main' || 'dev' }}
+    env:
+      DEPLOY_ENV: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+      SECRET_LABELS: ${{ github.ref_name == 'main' && 'backend_shared backend_prod' || 'backend_shared backend_dev' }}
 
     steps:
       - name: Download JAR Artifact
@@ -50,17 +50,28 @@ jobs:
           path: .
 
       - name: Find and rename JAR
-        id: rename
         run: |
-          echo "Searching for downloaded JAR file..."
           JAR_FILE=$(find . -name "*.jar" | head -n 1)
-          if [ -z "$JAR_FILE" ]; then
-            echo "JAR file not found!"
-            exit 1
-          fi
-          echo "Found JAR: $JAR_FILE"
           cp "$JAR_FILE" backend.jar
 
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Generate secrets.properties file
+        run: |
+          mkdir -p ./secrets
+          touch ./secrets/secrets.properties
+
+          for LABEL in $SECRET_LABELS; do
+            gcloud secrets list --filter="labels.env=$LABEL" --format="value(name)" | while read SECRET_NAME; do
+              SECRET_VALUE=$(gcloud secrets versions access latest --secret="$SECRET_NAME")
+              IFS='-' read -r SERVICE KEY ENV <<< "$SECRET_NAME"
+              echo "${KEY}=${SECRET_VALUE}" >> ./secrets/secrets.properties
+            done
+          done
+        
       - name: Set up SSH config for jump server
         run: |
           mkdir -p ~/.ssh
@@ -71,7 +82,7 @@ jobs:
           chmod 600 ~/.ssh/dev_key
 
           cat <<EOF > ~/.ssh/config
-          Host dev-server
+          Host backend-server
               HostName ${{ secrets.SSH_HOST }}
               User ubuntu
               IdentityFile ~/.ssh/dev_key
@@ -87,16 +98,40 @@ jobs:
               UserKnownHostsFile /dev/null
           EOF
 
-      - name: Copy JAR to dev server via jump server
+      - name: Upload backend.jar and secrets.properties to server
         run: |
-          ssh -F ~/.ssh/config dev-server 'mkdir -p ~/backend'
-          scp -F ~/.ssh/config backend.jar dev-server:/home/ubuntu/backend/backend.jar
+          ssh -F ~/.ssh/config backend-server 'mkdir -p ~/backend'
+          scp -F ~/.ssh/config backend.jar backend-server:/home/ubuntu/backend/backend.jar
+          scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.properties
 
-      - name: Restart backend via jump server
+      - name: Restart backend via SSH
         run: |
-          ssh -F ~/.ssh/config dev-server <<'EOF'
+          ssh -F ~/.ssh/config backend-server <<'EOF'
             set -eux
-            pkill -f backend.jar || true
             cd ~/backend
-            nohup java -jar backend.jar > backend.log 2>&1 &
+
+            echo "▶️ [1] 실행 중인 애플리케이션 중지"
+            PID=$(pgrep -f backend || true)
+
+            if [ -n "$PID" ]; then
+              echo "기존 프로세스 종료중 (PID: $PID)"
+              kill "$PID"
+              sleep 5
+            else
+              echo "실행 중인 프로세스 없음"
+            fi
+
+            nohup java -jar /home/ubuntu/backend/backend.jar --spring.profiles.active=dev --spring.config.additional-location=file:/home/ubuntu/backend/secrets.properties > backend.log 2>&1 &
+
+            echo "▶️ [3] 실행 상태 확인"
+            sleep 5
+            NEW_PID=$(pgrep -f backend || true)
+
+            if [ -n "$NEW_PID" ]; then
+              echo "✅ 정상 기동 완료 (PID: $NEW_PID)"
+            else
+              echo "❗ 기동 실패"
+              exit 1
+            fi
           EOF
+
