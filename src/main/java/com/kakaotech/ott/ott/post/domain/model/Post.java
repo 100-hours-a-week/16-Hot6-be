@@ -25,7 +25,9 @@ public class Post {
 
     private int commentCount;
     private int likeCount;
-    private Long viewCount;
+
+    @Builder.Default
+    private Long viewCount = 0L;
     private int scrapCount;
 
     private int weight;
