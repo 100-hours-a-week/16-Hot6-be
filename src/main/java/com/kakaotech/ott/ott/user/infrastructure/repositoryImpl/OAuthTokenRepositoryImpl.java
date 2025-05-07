@@ -1,5 +1,6 @@
-package com.kakaotech.ott.ott.user.infrastructure.repository;
+package com.kakaotech.ott.ott.user.infrastructure.repositoryImpl;
 
+import com.kakaotech.ott.ott.user.domain.repository.OAuthTokenJpaRepository;
 import com.kakaotech.ott.ott.user.domain.repository.OAuthTokenRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.OAuthTokenEntity;
 import lombok.RequiredArgsConstructor;

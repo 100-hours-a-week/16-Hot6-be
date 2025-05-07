@@ -76,6 +76,8 @@ public class AiImageController {
 
         boolean isValid = aiImageService.handleImageValidation(image);
 
+        System.out.println("fastAPI 결과 : " + isValid);
+
         // 유효한 데스크 이미지 아닐 경우
         if(!isValid) {
 

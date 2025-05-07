@@ -1,7 +1,7 @@
-package com.kakaotech.ott.ott.auth.application;
+package com.kakaotech.ott.ott.user.application.service;
 
-import com.kakaotech.ott.ott.auth.domain.RefreshTokenRepository;
-import com.kakaotech.ott.ott.auth.infrastructure.RefreshTokenEntity;
+import com.kakaotech.ott.ott.user.domain.repository.RefreshTokenRepository;
+import com.kakaotech.ott.ott.user.infrastructure.entity.RefreshTokenEntity;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import io.jsonwebtoken.*;

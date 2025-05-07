@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.auth.infrastructure;
+package com.kakaotech.ott.ott.user.infrastructure.entity;
 
 import com.kakaotech.ott.ott.util.AuditEntity;
 import jakarta.persistence.*;

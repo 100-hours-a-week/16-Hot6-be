@@ -1,7 +1,8 @@
-package com.kakaotech.ott.ott.auth.infrastructure;
+package com.kakaotech.ott.ott.user.infrastructure.repositoryImpl;
 
-import com.kakaotech.ott.ott.auth.domain.RefreshTokenJpaRepository;
-import com.kakaotech.ott.ott.auth.domain.RefreshTokenRepository;
+import com.kakaotech.ott.ott.user.domain.repository.RefreshTokenJpaRepository;
+import com.kakaotech.ott.ott.user.domain.repository.RefreshTokenRepository;
+import com.kakaotech.ott.ott.user.infrastructure.entity.RefreshTokenEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

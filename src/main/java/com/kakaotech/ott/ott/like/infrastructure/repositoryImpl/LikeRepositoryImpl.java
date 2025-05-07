@@ -5,13 +5,11 @@ import com.kakaotech.ott.ott.like.domain.repository.LikeJpaRepository;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
 import com.kakaotech.ott.ott.like.infrastructure.entity.LikeEntity;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
-import com.kakaotech.ott.ott.user.infrastructure.repository.UserJpaRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor

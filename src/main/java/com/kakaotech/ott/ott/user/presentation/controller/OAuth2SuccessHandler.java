@@ -1,7 +1,7 @@
-package com.kakaotech.ott.ott.auth.presentation;
+package com.kakaotech.ott.ott.user.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kakaotech.ott.ott.auth.application.JwtService;
+import com.kakaotech.ott.ott.user.application.service.JwtService;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.user.domain.model.CustomOAuth2User;
 import com.kakaotech.ott.ott.user.presentation.dto.response.OAuthLoginResponseDto;
@@ -16,7 +16,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor

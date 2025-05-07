@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.auth.domain;
+package com.kakaotech.ott.ott.user.domain.repository;
 
-import com.kakaotech.ott.ott.auth.infrastructure.RefreshTokenEntity;
+import com.kakaotech.ott.ott.user.infrastructure.entity.RefreshTokenEntity;
 
 import java.util.Optional;
 

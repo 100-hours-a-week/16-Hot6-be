@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.auth.presentation;
+package com.kakaotech.ott.ott.user.presentation.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;

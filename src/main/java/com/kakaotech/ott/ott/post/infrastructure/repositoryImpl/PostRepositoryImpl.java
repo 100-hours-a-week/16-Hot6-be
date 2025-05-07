@@ -6,7 +6,7 @@ import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
-import com.kakaotech.ott.ott.user.infrastructure.repository.UserJpaRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
