@@ -1,6 +1,7 @@
-package com.kakaotech.ott.ott.user.infrastructure.repository;
+package com.kakaotech.ott.ott.user.infrastructure.repositoryImpl;
 
 import com.kakaotech.ott.ott.user.domain.model.User;
+import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import lombok.RequiredArgsConstructor;

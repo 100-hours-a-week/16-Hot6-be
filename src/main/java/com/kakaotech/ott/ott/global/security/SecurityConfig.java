@@ -1,10 +1,10 @@
 package com.kakaotech.ott.ott.global.security;
 
 
-import com.kakaotech.ott.ott.auth.application.JwtService;
-import com.kakaotech.ott.ott.auth.presentation.OAuth2FailureHandler;
+import com.kakaotech.ott.ott.user.application.service.JwtService;
+import com.kakaotech.ott.ott.user.presentation.controller.OAuth2FailureHandler;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomOAuth2UserService;
-import com.kakaotech.ott.ott.auth.presentation.OAuth2SuccessHandler;
+import com.kakaotech.ott.ott.user.presentation.controller.OAuth2SuccessHandler;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

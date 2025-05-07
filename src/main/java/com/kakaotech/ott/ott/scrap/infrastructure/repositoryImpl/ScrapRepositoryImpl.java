@@ -5,7 +5,7 @@ import com.kakaotech.ott.ott.scrap.domain.repository.ScrapJpaRepository;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.scrap.infrastructure.entity.ScrapEntity;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
-import com.kakaotech.ott.ott.user.infrastructure.repository.UserJpaRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.user.infrastructure.repository;
+package com.kakaotech.ott.ott.user.domain.repository;
 
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
