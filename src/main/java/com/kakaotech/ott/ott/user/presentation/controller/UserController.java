@@ -18,7 +18,9 @@ public class UserController {
     private final JwtService jwtService;
 
     @GetMapping("/{provider}")
-    public ResponseEntity<Void> login(@PathVariable String provider, Authentication authentication) {
+    public ResponseEntity<Void> login(@PathVariable String provider,
+                                      Authentication authentication,
+                                      @RequestHeader(value = "X-Forwarded-Host", required = false) String forwardedHost) {
         // ✅ 이미 로그인된 사용자라면 홈으로 리디렉트
         if (authentication != null && authentication.isAuthenticated()
                 && !(authentication.getPrincipal() instanceof String)) {
@@ -27,17 +29,11 @@ public class UserController {
                     .build();
         }
 
-        System.out.println(provider);
-
-        // ✅ 로그인 안 된 경우에만 OAuth2 로그인 흐름 시작
-        String redirectUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/oauth2/authorization/")
-                .path(provider)
-                .build()
-                .toUriString();
+        String baseUrl = (forwardedHost != null) ? "https://" + forwardedHost : "https://dev.onthe-top.com";
+        String redirectUrl = baseUrl + "/oauth2/authorization/" + provider;
 
         return ResponseEntity.status(302)
-                .header("Location", redirectUrl)
+                .header(HttpHeaders.LOCATION, redirectUrl)
                 .build();
     }
 
