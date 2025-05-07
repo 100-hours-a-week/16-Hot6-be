@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @EntityListeners(AuditingEntityListener.class)
-@NoArgsConstructor()
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class PostEntity extends AuditEntity {
@@ -49,8 +49,10 @@ public class PostEntity extends AuditEntity {
     private int commentCount;
     @Column(name = "like_count", nullable = false)
     private int likeCount;
+
+    @Builder.Default
     @Column(name = "view_count", nullable = false)
-    private Long viewCount;
+    private Long viewCount = 0L;
     @Column(name = "scrap_count", nullable = false)
     private int scrapCount;
 

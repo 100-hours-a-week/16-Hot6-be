@@ -69,8 +69,12 @@ public class PostServiceImpl implements PostService {
         Post post = Post.createPost(userId, PostType.AI,
                 aiPostCreateRequestDto.getTitle(), aiPostCreateRequestDto.getContent());
 
-        UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."))
+                .toDomain();
+
+        user.updatePoint(500);
+        User savedUser = userRepository.save(user);
 
         Post savedPost = postRepository.save(post);
 

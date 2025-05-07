@@ -48,7 +48,7 @@ public class User {
                 .role(Role.USER)
                 .nicknameKakao(null)
                 .nicknameCommunity(nicknameCommunity)
-                .point(0)
+                .point(1000)
                 .imagePath(imagePath)
                 .isActive(true)
                 .isVerified(false)
@@ -58,6 +58,10 @@ public class User {
 
     public void renewGeneratedDate() {
         this.aiImageGeneratedDate = LocalDate.now();
+    }
+
+    public void updatePoint(int point) {
+        this.point += point;
     }
 
 }
