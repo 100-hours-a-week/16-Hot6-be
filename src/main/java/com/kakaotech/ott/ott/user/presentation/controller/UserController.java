@@ -17,7 +17,6 @@ public class UserController {
 
     private final JwtService jwtService;
 
-
     @GetMapping("/{provider}")
     public ResponseEntity<Void> login(@PathVariable String provider, Authentication authentication) {
         // ✅ 이미 로그인된 사용자라면 홈으로 리디렉트
@@ -27,6 +26,8 @@ public class UserController {
                     .header(HttpHeaders.LOCATION, "https://dev.onthe-top.com/")
                     .build();
         }
+
+        System.out.println(provider);
 
         // ✅ 로그인 안 된 경우에만 OAuth2 로그인 흐름 시작
         String redirectUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
