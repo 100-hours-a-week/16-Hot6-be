@@ -1,13 +1,16 @@
 package com.kakaotech.ott.ott.comment.application.service;
 
-import com.kakaotech.ott.ott.comment.presentation.dto.request.CommentRequestDto;
-import com.kakaotech.ott.ott.comment.presentation.dto.response.CommentResponseDto;
+import com.kakaotech.ott.ott.comment.presentation.dto.request.CommentCreateRequestDto;
+import com.kakaotech.ott.ott.comment.presentation.dto.response.CommentCreateResponseDto;
+import com.kakaotech.ott.ott.comment.presentation.dto.response.CommentListResponseDto;
 
 public interface CommentService {
 
-    CommentResponseDto createComment(CommentRequestDto commentRequestDto, Long userId, Long postId);
+    CommentCreateResponseDto createComment(CommentCreateRequestDto commentCreateRequestDto, Long userId, Long postId);
 
     void deleteComment(Long userId, Long commentId);
 
-    CommentResponseDto updateComment(CommentRequestDto commentRequestDto, Long commendId, Long userId);
+    CommentCreateResponseDto updateComment(CommentCreateRequestDto commentCreateRequestDto, Long commendId, Long userId);
+
+    CommentListResponseDto findByPostIdCursor(Long userId, Long postId, Long lastCommentId, int size);
 }
