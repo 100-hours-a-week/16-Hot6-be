@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.user.presentation.dto.response;
 
+import com.kakaotech.ott.ott.user.domain.model.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,6 +15,6 @@ public class UserResponseDto {
     private Long id;
     private String nicknameCommunity;
     private String profileImagePath;
-    private String role;
+    private Role role;
 
 }
