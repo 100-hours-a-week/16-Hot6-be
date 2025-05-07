@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -42,8 +43,9 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
+                .domain(".onthe-top.com")     // ← 최상위 도메인(앞에 점 꼭!)
                 .path("/")
-                .maxAge(30 * 24 * 60 * 60)
+                .maxAge(7 * 24 * 60 * 60)
                 .build();
         response.addHeader("Set-Cookie", refreshCookie.toString());
 
@@ -68,7 +70,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 ApiResponse.success("OAuth 로그인 성공", payload);
 
         // 7. 실제 JSON 응답 작성 (변경)
-        response.setStatus(HttpServletResponse.SC_OK);
+        response.setStatus(HttpServletResponse.SC_FOUND);
+        response.setHeader(HttpHeaders.LOCATION, "https://dev.onthe-top.com/");
         response.setCharacterEncoding("UTF-8");                                         // ← 추가
         response.setContentType(MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
         response.getWriter()
