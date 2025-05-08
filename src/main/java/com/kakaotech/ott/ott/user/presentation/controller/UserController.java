@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.user.presentation.controller;
 import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.user.application.service.UserService;
+import com.kakaotech.ott.ott.user.presentation.dto.response.RefreshTokenResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +61,7 @@ public class UserController {
     }
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<ApiResponse<String>> reissue(
+    public ResponseEntity<ApiResponse<RefreshTokenResponseDto>> reissue(
             @CookieValue(name = "refreshToken", required = false) String refreshToken
     ) {
 
@@ -69,6 +70,8 @@ public class UserController {
             throw new AccessDeniedException("Refresh Token 누락");
         }
         String newAccessToken = jwtService.reissueAccessToken(refreshToken);
-        return ResponseEntity.ok(ApiResponse.success("Access Token 재발급 성공", newAccessToken));
+
+        RefreshTokenResponseDto refreshTokenResponseDto = new RefreshTokenResponseDto(newAccessToken);
+        return ResponseEntity.ok(ApiResponse.success("Access Token 재발급 성공", refreshTokenResponseDto));
     }
 }
