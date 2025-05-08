@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,10 +60,13 @@ public class UserController {
     }
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<ApiResponse<String>> reissue(@RequestHeader("Authorization") String bearerToken) {
-        String refreshToken = bearerToken.substring(7); // Bearer 부분 떼고
+    public ResponseEntity<ApiResponse<String>> reissue(
+            @CookieValue(name = "refreshToken", required = false) String refreshToken
+    ) {
+        if (refreshToken == null) {
+            throw new AccessDeniedException("Refresh Token 누락");
+        }
         String newAccessToken = jwtService.reissueAccessToken(refreshToken);
-
         return ResponseEntity.ok(ApiResponse.success("Access Token 재발급 성공", newAccessToken));
     }
 }
