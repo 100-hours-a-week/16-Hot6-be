@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.reply.domain;
+package com.kakaotech.ott.ott.reply.domain.model;
 
-import com.kakaotech.ott.ott.reply.entity.ReplyEntity;
+import com.kakaotech.ott.ott.reply.infrastructure.entity.ReplyEntity;
 import lombok.Builder;
 import lombok.Getter;
 

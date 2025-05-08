@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.reply.presentation.dto.response;
+package com.kakaotech.ott.ott.post.presentation.dto.response;
 
-import com.kakaotech.ott.ott.reply.domain.model.PostType;
+import com.kakaotech.ott.ott.post.domain.model.PostType;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

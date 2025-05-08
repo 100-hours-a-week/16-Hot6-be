@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.reply.presentation.dto.request;
+package com.kakaotech.ott.ott.post.presentation.dto.request;
 
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
