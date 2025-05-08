@@ -37,8 +37,6 @@ public class AiImageController {
     private final AiImageService aiImageService;
     private final ProductDomainService productDomainService;
     private final UserService userService;
-    private final FastApiClient fastApiClient;
-    private final ImageUploader imageUploader;
 
     @GetMapping("/ai-images/upload")
     public ResponseEntity<ApiResponse<CheckAiImageQuotaResponseDto>> checkAiImageQuota(@AuthenticationPrincipal UserPrincipal userPrincipal) {

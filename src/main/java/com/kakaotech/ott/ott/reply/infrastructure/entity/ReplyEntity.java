@@ -1,11 +1,9 @@
-package com.kakaotech.ott.ott.reply.entity;
+package com.kakaotech.ott.ott.reply.infrastructure.entity;
 
-import com.kakaotech.ott.ott.reply.domain.Reply;
+import com.kakaotech.ott.ott.reply.domain.model.Reply;
 import com.kakaotech.ott.ott.util.AuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "replies")
