@@ -16,6 +16,7 @@ public class WebConfig {
                 registry.addMapping("/**")
                         .allowedOriginPatterns("https://*.onthe-top.com", "http://localhost:3000")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                        .allowedHeaders("Authorization", "Content-Type")
                         .allowCredentials(true); // 쿠키 허용 시 true
             }
         };
