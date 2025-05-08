@@ -3,6 +3,8 @@ package com.kakaotech.ott.ott.post.application.serviceImpl;
 import com.kakaotech.ott.ott.aiImage.application.serviceImpl.S3Uploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.like.domain.model.Like;
+import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
 import com.kakaotech.ott.ott.post.application.component.ViewCountAggregator;
 import com.kakaotech.ott.ott.post.application.service.PostService;
 import com.kakaotech.ott.ott.post.domain.model.Post;
@@ -17,6 +19,7 @@ import com.kakaotech.ott.ott.post.presentation.dto.response.PostAuthorResponseDt
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostCreateResponseDto;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostGetResponseDto;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
+import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
@@ -39,6 +42,8 @@ public class PostServiceImpl implements PostService {
     private final AiImageRepository aiImageRepository;
     private final S3Uploader s3Uploader;
     private final ViewCountAggregator viewCountAggregator;
+    private final LikeRepository likeRepository;
+    private final ScrapRepository scrapRepository;
 
     @Override
     @Transactional
@@ -93,6 +98,10 @@ public class PostServiceImpl implements PostService {
                 .map(post -> {
                     UserEntity author = userRepository.findById(post.getUserId())
                             .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."));
+
+                    boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
+                    boolean scrapped = scrapRepository.existsByUserIdAndPostId(userId, post.getId());
+
                     return new PostAllResponseDto.Posts(
                             post.getId(),
                             post.getTitle(),
@@ -103,8 +112,8 @@ public class PostServiceImpl implements PostService {
                             post.getLikeCount(),
                             post.getCommentCount(),
                             post.getCreatedAt(),
-                            false,  // TODO: 실제 liked 여부
-                            false   // TODO: 실제 scrapped 여부
+                            liked,
+                            scrapped
                     );
                 })
                 .toList();
@@ -136,8 +145,8 @@ public class PostServiceImpl implements PostService {
 
         boolean isOwner = post.getUserId().equals(userId);
         // TODO: replace below with actual checks
-        boolean liked = false;
-        boolean scrapped = false;
+        boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
+        boolean scrapped = scrapRepository.existsByUserIdAndPostId(userId, post.getId());
 
         // 3) 엔티티 이미지를 도메인으로 변환
         List<PostImage> imageList = post.getImages()
