@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.user.presentation.controller;
 
 import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.user.domain.model.CustomOAuth2User;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,12 +37,14 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(true)
-                .sameSite("None")
-                .domain("dev.onthe-top.com") // 환경에 맞게 도메인 설정
+                .sameSite("None") // ✅ SameSite 설정
+                .domain(".onthe-top.com")
                 .path("/")
                 .maxAge(Duration.ofDays(7))  // 7일 유효
                 .build();
-        response.addHeader("Set-Cookie", refreshCookie.toString());
+
+        // ✅ Spring ResponseCookie를 사용하여 쿠키 설정
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         // 4. 로그인 성공 후 클라이언트로 리디렉트
         response.setStatus(HttpServletResponse.SC_FOUND);
