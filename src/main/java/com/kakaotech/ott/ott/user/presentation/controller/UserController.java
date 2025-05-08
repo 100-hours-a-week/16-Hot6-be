@@ -30,12 +30,12 @@ public class UserController {
         if (authentication != null && authentication.isAuthenticated()
                 && !(authentication.getPrincipal() instanceof String)) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, "https://dev.onthe-top.com/")
+                    .header(HttpHeaders.LOCATION, "https://onthe-top.com/")
                     .build();
         }
 
         // ✅ 리디렉트 URL을 고정된 주소로 지정
-        String redirectUrl = "https://dev-backend.onthe-top.com/oauth2/authorization/" + provider;
+        String redirectUrl = "https://prod-backend.onthe-top.com/oauth2/authorization/" + provider;
 
         return ResponseEntity.status(302)
                 .header(HttpHeaders.LOCATION, redirectUrl)
