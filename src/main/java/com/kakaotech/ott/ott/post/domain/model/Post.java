@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.post.domain.model;
+package com.kakaotech.ott.ott.reply.domain.model;
 
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import lombok.*;

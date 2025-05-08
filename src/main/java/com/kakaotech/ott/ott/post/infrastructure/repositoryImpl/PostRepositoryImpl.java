@@ -1,9 +1,9 @@
-package com.kakaotech.ott.ott.post.infrastructure.repositoryImpl;
+package com.kakaotech.ott.ott.reply.infrastructure.repositoryImpl;
 
-import com.kakaotech.ott.ott.post.domain.model.Post;
-import com.kakaotech.ott.ott.post.domain.repository.PostJpaRepository;
-import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
-import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
+import com.kakaotech.ott.ott.reply.domain.model.Post;
+import com.kakaotech.ott.ott.reply.domain.repository.PostJpaRepository;
+import com.kakaotech.ott.ott.reply.domain.repository.PostRepository;
+import com.kakaotech.ott.ott.reply.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;

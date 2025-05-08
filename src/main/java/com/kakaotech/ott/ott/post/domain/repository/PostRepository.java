@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.post.domain.repository;
+package com.kakaotech.ott.ott.reply.domain.repository;
 
-import com.kakaotech.ott.ott.post.domain.model.Post;
+import com.kakaotech.ott.ott.reply.domain.model.Post;
 
 import java.util.List;
 

@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.Duration;
 
 @Component
 @RequiredArgsConstructor
@@ -36,9 +37,9 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".onthe-top.com")
+                .domain("dev.onthe-top.com") // 환경에 맞게 도메인 설정
                 .path("/")
-                .maxAge(7 * 24 * 60 * 60)  // 7일 유효
+                .maxAge(Duration.ofDays(7))  // 7일 유효
                 .build();
         response.addHeader("Set-Cookie", refreshCookie.toString());
 

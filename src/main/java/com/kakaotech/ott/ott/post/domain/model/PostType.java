@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.post.domain.model;
+package com.kakaotech.ott.ott.reply.domain.model;
 
 public enum PostType {
     FREE,

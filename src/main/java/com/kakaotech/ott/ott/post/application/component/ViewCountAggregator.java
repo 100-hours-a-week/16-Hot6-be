@@ -1,7 +1,6 @@
 package com.kakaotech.ott.ott.post.application.component;
 
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
-import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
