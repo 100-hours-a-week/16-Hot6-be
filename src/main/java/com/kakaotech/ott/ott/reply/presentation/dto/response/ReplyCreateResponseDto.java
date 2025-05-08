@@ -11,5 +11,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ReplyCreateResponseDto {
 
-    private Long commentId;
+    private Long replyId;
 }
