@@ -63,6 +63,8 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> reissue(
             @CookieValue(name = "refreshToken", required = false) String refreshToken
     ) {
+
+        System.out.println(refreshToken);
         if (refreshToken == null) {
             throw new AccessDeniedException("Refresh Token 누락");
         }
