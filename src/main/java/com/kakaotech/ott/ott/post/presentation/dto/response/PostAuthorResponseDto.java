@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.post.presentation.dto.response;
+package com.kakaotech.ott.ott.reply.presentation.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

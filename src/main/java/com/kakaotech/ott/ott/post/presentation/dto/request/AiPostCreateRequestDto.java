@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.post.presentation.dto.request;
+package com.kakaotech.ott.ott.reply.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;

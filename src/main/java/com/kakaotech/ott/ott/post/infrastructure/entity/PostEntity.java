@@ -1,7 +1,7 @@
-package com.kakaotech.ott.ott.post.infrastructure.entity;
+package com.kakaotech.ott.ott.reply.infrastructure.entity;
 
-import com.kakaotech.ott.ott.post.domain.model.Post;
-import com.kakaotech.ott.ott.post.domain.model.PostType;
+import com.kakaotech.ott.ott.reply.domain.model.Post;
+import com.kakaotech.ott.ott.reply.domain.model.PostType;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import com.kakaotech.ott.ott.postImage.entity.PostImageEntity;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;

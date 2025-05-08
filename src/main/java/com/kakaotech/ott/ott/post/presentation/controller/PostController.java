@@ -1,15 +1,15 @@
-package com.kakaotech.ott.ott.post.presentation.controller;
+package com.kakaotech.ott.ott.reply.presentation.controller;
 
 import com.kakaotech.ott.ott.global.response.ApiResponse;
-import com.kakaotech.ott.ott.post.application.component.ViewCountAggregator;
-import com.kakaotech.ott.ott.post.application.service.PostService;
-import com.kakaotech.ott.ott.post.presentation.dto.request.AiPostCreateRequestDto;
-import com.kakaotech.ott.ott.post.presentation.dto.request.AiPostUpdateRequestDto;
-import com.kakaotech.ott.ott.post.presentation.dto.request.FreePostCreateRequestDto;
-import com.kakaotech.ott.ott.post.presentation.dto.request.FreePostUpdateRequestDto;
-import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
-import com.kakaotech.ott.ott.post.presentation.dto.response.PostCreateResponseDto;
-import com.kakaotech.ott.ott.post.presentation.dto.response.PostGetResponseDto;
+import com.kakaotech.ott.ott.reply.application.component.ViewCountAggregator;
+import com.kakaotech.ott.ott.reply.application.service.PostService;
+import com.kakaotech.ott.ott.reply.presentation.dto.request.AiPostCreateRequestDto;
+import com.kakaotech.ott.ott.reply.presentation.dto.request.AiPostUpdateRequestDto;
+import com.kakaotech.ott.ott.reply.presentation.dto.request.FreePostCreateRequestDto;
+import com.kakaotech.ott.ott.reply.presentation.dto.request.FreePostUpdateRequestDto;
+import com.kakaotech.ott.ott.reply.presentation.dto.response.PostAllResponseDto;
+import com.kakaotech.ott.ott.reply.presentation.dto.response.PostCreateResponseDto;
+import com.kakaotech.ott.ott.reply.presentation.dto.response.PostGetResponseDto;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
