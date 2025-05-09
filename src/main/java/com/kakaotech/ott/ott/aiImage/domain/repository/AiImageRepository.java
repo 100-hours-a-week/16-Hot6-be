@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public interface AiImageRepository {
 
+    AiImage savePost(AiImage aiImage);
+
     AiImage save(AiImage aiImage);
 
     Optional<AiImageEntity> findById(Long userId);
