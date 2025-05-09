@@ -37,7 +37,7 @@ jobs:
     name: Deploy to Dev via SSH
     needs: build
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'main' || 'prod-temp' }}
+    environment: ${{ github.ref_name == 'main' && 'main' || 'prod' }}
     env:
       DEPLOY_ENV: ${{ github.ref_name == 'main' && 'prod' || 'prod-temp' }}
       SECRET_LABELS: ${{ github.ref_name == 'main' && 'backend_shared backend_prod' || 'backend_shared backend_dev' }}
