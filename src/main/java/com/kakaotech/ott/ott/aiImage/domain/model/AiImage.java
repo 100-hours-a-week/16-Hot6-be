@@ -30,18 +30,22 @@ public class AiImage {
         this.createdAt = createdAt;
     }
 
-    public static AiImage createAiImage(Long userId, String beforeImagePath, String afterImagePath) {
+    public static AiImage createAiImage(Long userId, String beforeImagePath) {
 
         return AiImage.builder()
                 .userId(userId)
                 .postId(null)
                 .beforeImagePath(beforeImagePath)
-                .afterImagePath(afterImagePath)
+                .afterImagePath(null)
                 .build();
     }
 
     // 새로 추가 ▶ 게시글 연결(postId) 변경
     public void updatePostId(Long postId) {
         this.postId = postId;
+    }
+
+    public void updateAiImage(String afterImagePath) {
+        this.afterImagePath = afterImagePath;
     }
 }
