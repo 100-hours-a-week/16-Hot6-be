@@ -142,6 +142,9 @@ public class JwtService {
         }
 
         if (!validateToken(refreshToken)) {
+            // ✅ Refresh Token 만료 시 - 로그아웃 처리
+            Long userId = extractUserId(refreshToken);
+            logout(userId); // 로그아웃 처리
             throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         }
 
@@ -156,7 +159,6 @@ public class JwtService {
 
         return createAccessToken(userId); // 새로운 AccessToken 발급
     }
-
 
 
 }
