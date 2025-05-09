@@ -86,6 +86,10 @@ public class AiImageController {
 
         AiImage aiImage = aiImageService.insertAiImage(requestDto);
 
+        System.out.println(requestDto.getInitialImageUrl());
+        System.out.println(requestDto.getProcessedImageUrl());
+        System.out.println(requestDto.getProducts());
+
         List<DeskProduct> deskProduct = productDomainService.createdProduct(requestDto, aiImage, aiImage.getUserId());
         AiImageSaveResponseDto aiImageSaveResponseDto = new AiImageSaveResponseDto(deskProduct.getFirst().getAiImageId());
 

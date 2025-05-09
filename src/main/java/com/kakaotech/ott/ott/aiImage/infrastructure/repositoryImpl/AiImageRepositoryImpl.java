@@ -27,12 +27,24 @@ public class AiImageRepositoryImpl implements AiImageRepository {
 
         // ✅ 1. 기존 Entity 조회 (영속 상태)
         AiImageEntity aiImageEntity = aiImageJpaRepository.findByBeforeImagePath(aiImage.getBeforeImagePath())
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자의 데스크 사진이 존재하지 않습니다."));
+                .orElse(null);
 
-        // ✅ 2. Entity의 값 변경 (Dirty Checking)
-        aiImageEntity.setAfterImagePath(aiImage.getAfterImagePath());
+        if (aiImageEntity == null) {
+            // ✅ 2. 이미지가 없는 경우 새로 생성
+            UserEntity userEntity = userJpaRepository.findById(aiImage.getUserId())
+                    .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
 
-        // ✅ 3. 변경 감지를 통해 자동으로 업데이트
+            aiImageEntity = AiImageEntity.builder()
+                    .userEntity(userEntity)
+                    .beforeImagePath(aiImage.getBeforeImagePath())
+                    .afterImagePath(aiImage.getAfterImagePath())
+                    .build();
+            aiImageJpaRepository.save(aiImageEntity);
+        } else {
+            // ✅ 3. 이미지가 있는 경우 업데이트 (Dirty Checking)
+            aiImageEntity.setAfterImagePath(aiImage.getAfterImagePath());
+        }
+
         return aiImageEntity.toDomain();
     }
 
