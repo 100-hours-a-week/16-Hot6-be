@@ -8,7 +8,9 @@ import java.util.Optional;
 
 public interface AiImageRepository {
 
-    AiImageEntity save(AiImage aiImage);
+    AiImage save(AiImage aiImage);
 
     Optional<AiImageEntity> findById(Long userId);
+
+    AiImage findByBeforeImagePath(String beforeImagePath);
 }

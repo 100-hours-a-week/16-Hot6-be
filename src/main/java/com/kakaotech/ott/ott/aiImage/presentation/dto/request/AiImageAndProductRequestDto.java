@@ -22,3 +22,27 @@ public class AiImageAndProductRequestDto {
     @NotNull(message = "products는 필수입니다.")
     private List<ProductDetailRequestDto> products;
 }
+//{
+//        "initial_image_url": "https://bucket.s3.amazonaws.com/images/test.png",
+//        "processed_image_url": "https://bucket.s3.amazonaws.com/images/test.png",
+//        "products": [
+//        {
+//        "name": "test",
+//        "price": 30000,
+//        "purchase_place": "네이버",
+//        "purchase_url": "https://search.shopping.naver.com/...",
+//        "image_path": "https://.../.jpg",
+//        "main_category": "마우스",
+//        "sub_category": "유선마우스"
+//        },
+//        {
+//        "name": "test",
+//        "price": 20000,
+//        "purchase_place": "DeskProduct - purchase_place",
+//        "purchase_url": "DeskProduct - purchase_url",
+//        "image_path": "DeskProduct - iamge_url",
+//        "main_category": "ProductMainCategory - name",
+//        "sub_category": "ProductSubCategory - name"
+//        }
+//        ]
+//        }

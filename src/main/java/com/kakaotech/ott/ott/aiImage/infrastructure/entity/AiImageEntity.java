@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Getter
+@Setter
 public class AiImageEntity {
 
     @Id
@@ -26,13 +27,13 @@ public class AiImageEntity {
     @JoinColumn(name = "user_id") // FK 컬럼명
     private UserEntity userEntity;
 
-    @Column(name = "post_id", nullable = false)
+    @Column(name = "post_id")
     private Long postId;
 
     @Column(name = "before_image_path", nullable = false)
     private String beforeImagePath;
 
-    @Column(name = "after_image_path", nullable = false)
+    @Column(name = "after_image_path")
     private String afterImagePath;
 
     @CreatedDate
@@ -59,10 +60,6 @@ public class AiImageEntity {
                 .beforeImagePath(aiImage.getBeforeImagePath())
                 .afterImagePath(aiImage.getAfterImagePath())
                 .build();
-    }
-
-    public void setPostId(Long postId) {
-        this.postId = postId;
     }
 
 }

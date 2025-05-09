@@ -1,13 +1,10 @@
 package com.kakaotech.ott.ott.aiImage.presentation.controller;
 
-import com.kakaotech.ott.ott.aiImage.application.service.FastApiClient;
-import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.application.service.ProductDomainService;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageUploadRequestDto;
-import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.*;
 import com.kakaotech.ott.ott.aiImage.application.service.AiImageService;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
@@ -39,7 +36,8 @@ public class AiImageController {
     private final UserService userService;
 
     @GetMapping("/ai-images/upload")
-    public ResponseEntity<ApiResponse<CheckAiImageQuotaResponseDto>> checkAiImageQuota(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+    public ResponseEntity<ApiResponse<CheckAiImageQuotaResponseDto>> checkAiImageQuota(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
         Long userId = userPrincipal.getId();
 
@@ -56,7 +54,11 @@ public class AiImageController {
     }
 
     @PostMapping(value = "/ai-images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<String>> uploadAiImage(@ModelAttribute AiImageUploadRequestDto requestDto) throws IOException {
+    public ResponseEntity<ApiResponse<AiImageSaveResponseDto>> uploadAiImage(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @ModelAttribute AiImageUploadRequestDto requestDto) throws IOException {
+
+        Long userId = userPrincipal.getId();
 
         MultipartFile image = requestDto.getBeforeImagePath();
 
@@ -72,29 +74,19 @@ public class AiImageController {
                     .body(ApiResponse.error(400, "이미지 파일이 비어있습니다."));
         }
 
-        boolean isValid = aiImageService.handleImageValidation(image);
 
-        System.out.println("fastAPI 결과 : " + isValid);
+        AiImageSaveResponseDto aiImageSaveResponseDto = aiImageService.handleImageValidation(image, userId);
 
-        // 유효한 데스크 이미지 아닐 경우
-        if(!isValid) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(ApiResponse.error(400, "올바른 데스크 사진을 입력해주세요."));
-        }
-
-        return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성 요청이 접수되었습니다.", requestDto.getBeforeImagePath().getName()));
+        return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성 요청이 접수되었습니다.", aiImageSaveResponseDto));
     }
 
     @PostMapping("/ai-images/result")
-    public ResponseEntity<ApiResponse<AiImageSaveResponseDto>> receiveResult(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                             @Valid @RequestBody AiImageAndProductRequestDto requestDto) {
-        Long userId = userPrincipal.getId();
+    public ResponseEntity<ApiResponse<AiImageSaveResponseDto>> receiveResult(
+            @Valid @RequestBody AiImageAndProductRequestDto requestDto) {
 
-        AiImage aiImage = aiImageService.createdAiImage(requestDto, userId);
+        AiImage aiImage = aiImageService.insertAiImage(requestDto);
 
-        List<DeskProduct> deskProduct = productDomainService.createdProduct(requestDto, aiImage, userId);
+        List<DeskProduct> deskProduct = productDomainService.createdProduct(requestDto, aiImage, aiImage.getUserId());
         AiImageSaveResponseDto aiImageSaveResponseDto = new AiImageSaveResponseDto(deskProduct.getFirst().getAiImageId());
 
         return ResponseEntity
