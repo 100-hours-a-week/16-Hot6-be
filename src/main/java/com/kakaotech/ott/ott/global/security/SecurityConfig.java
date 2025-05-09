@@ -38,8 +38,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login/**", "/oauth2/**", "/login/oauth2/**", "/api/v1/auth/**").permitAll()
-                        .requestMatchers(request -> isRequestFromSpecificOrigin(request.getHeader("Origin")))
-                        .permitAll()
+                        .requestMatchers("/api/v1/ai-images/result").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
@@ -51,11 +50,6 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtAuthenticationFilter(jwtService, userDetailsService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    // ✅ 특정 Origin에서 오는 요청만 JWT 없이 허용하는 메서드
-    private boolean isRequestFromSpecificOrigin(String origin) {
-        return origin != null && origin.equals("http://10.50.0.3:8000");
     }
 
     // ✅ CORS 정책을 SecurityConfig에서 직접 설정
