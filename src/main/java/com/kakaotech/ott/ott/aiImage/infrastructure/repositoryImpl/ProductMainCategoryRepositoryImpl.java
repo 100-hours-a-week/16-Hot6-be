@@ -22,11 +22,12 @@ public class ProductMainCategoryRepositoryImpl implements ProductMainCategoryRep
     @Override
     public ProductMainCategoryEntity save(ProductMainCategory productMainCategory) {
 
-        return productMainCategoryJpaRepository.save(ProductMainCategoryEntity.from(productMainCategory));
+        return productMainCategoryJpaRepository.findByName(productMainCategory.getName())
+                .orElseGet(() -> productMainCategoryJpaRepository.save(ProductMainCategoryEntity.from(productMainCategory)));
     }
 
     @Override
     public Optional<ProductMainCategoryEntity> findByName(String mainCategoryName) {
-        return Optional.empty();
+        return productMainCategoryJpaRepository.findByName(mainCategoryName);
     }
 }

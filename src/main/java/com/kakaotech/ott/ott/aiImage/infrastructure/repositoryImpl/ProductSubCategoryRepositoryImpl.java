@@ -22,9 +22,8 @@ public class ProductSubCategoryRepositoryImpl implements ProductSubCategoryRepos
     public ProductSubCategoryEntity save(ProductSubCategory productSubCategory, ProductMainCategoryEntity productMainCategoryEntity) {
 
         // 이미 서비스에서 Entity로 변환된 값을 넘기므로 그대로 사용
-        return productSubCategoryJpaRepository.save(
-                ProductSubCategoryEntity.from(productSubCategory, productMainCategoryEntity)
-        );
+        return productSubCategoryJpaRepository.findByMainCategoryAndName(productMainCategoryEntity, productSubCategory.getName())
+                .orElseGet(() -> productSubCategoryJpaRepository.save(ProductSubCategoryEntity.from(productSubCategory, productMainCategoryEntity)));
 
     }
 

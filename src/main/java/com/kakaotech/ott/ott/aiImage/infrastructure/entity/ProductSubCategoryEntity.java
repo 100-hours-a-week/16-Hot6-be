@@ -21,7 +21,7 @@ public class ProductSubCategoryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "main_category_id") // FK 컬럼명
-    private ProductMainCategoryEntity productMainCategoryEntity;
+    private ProductMainCategoryEntity mainCategory;
 
     @Column(name = "name")
     private String name;
@@ -30,7 +30,7 @@ public class ProductSubCategoryEntity {
 
         return ProductSubCategory.builder()
                 .id(this.id)
-                .mainCategoryId(this.productMainCategoryEntity.getId())
+                .mainCategoryId(this.mainCategory.getId())
                 .name(this.name)
                 .build();
     }
@@ -38,7 +38,7 @@ public class ProductSubCategoryEntity {
     public static ProductSubCategoryEntity from(ProductSubCategory productSubCategory, ProductMainCategoryEntity productMainCategoryEntity) {
 
         return ProductSubCategoryEntity.builder()
-                .productMainCategoryEntity(productMainCategoryEntity)
+                .mainCategory(productMainCategoryEntity)
                 .name(productSubCategory.getName())
                 .build();
     }
