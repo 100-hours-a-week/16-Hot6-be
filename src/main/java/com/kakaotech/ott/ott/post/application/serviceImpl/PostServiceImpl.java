@@ -79,9 +79,14 @@ public class PostServiceImpl implements PostService {
                 .toDomain();
 
         user.updatePoint(500);
-        User savedUser = userRepository.save(user);
+        userRepository.save(user);
 
         Post savedPost = postRepository.save(post);
+
+        AiImage aiImage = aiImageRepository.findById(aiPostCreateRequestDto.getAiImageId())
+                .orElseThrow(() -> new EntityNotFoundException("AI 이미지 없음")).toDomain();
+        aiImage.updatePostId(savedPost.getId());
+        aiImageRepository.save(aiImage);
 
         return new PostCreateResponseDto(savedPost.getId());
     }
@@ -239,11 +244,6 @@ public class PostServiceImpl implements PostService {
         if (aiPostUpdateRequestDto.getContent() != null) post.updateContent(aiPostUpdateRequestDto.getContent());
         // 3) 이미지 교체 로직
         if (aiPostUpdateRequestDto.getAiImageId() != null) {
-            // 3) AI 이미지 도메인 로드 → postId 변경 → 저장
-            AiImage aiImage = aiImageRepository.findById(aiPostUpdateRequestDto.getAiImageId())
-                    .orElseThrow(() -> new EntityNotFoundException("AI 이미지 없음")).toDomain();
-            aiImage.updatePostId(postId);
-            AiImage savedImage = aiImageRepository.save(aiImage).toDomain();
         }
 
 
