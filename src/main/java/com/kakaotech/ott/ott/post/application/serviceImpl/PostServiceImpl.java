@@ -86,7 +86,7 @@ public class PostServiceImpl implements PostService {
         AiImage aiImage = aiImageRepository.findById(aiPostCreateRequestDto.getAiImageId())
                 .orElseThrow(() -> new EntityNotFoundException("AI 이미지 없음")).toDomain();
         aiImage.updatePostId(savedPost.getId());
-        aiImageRepository.save(aiImage);
+        aiImageRepository.savePost(aiImage);
 
         return new PostCreateResponseDto(savedPost.getId());
     }

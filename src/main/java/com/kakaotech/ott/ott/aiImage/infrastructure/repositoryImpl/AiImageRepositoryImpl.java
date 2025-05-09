@@ -23,6 +23,21 @@ public class AiImageRepositoryImpl implements AiImageRepository {
 
     @Override
     @Transactional
+    public AiImage savePost(AiImage aiImage) {
+
+        UserEntity userEntity = userJpaRepository.findById(aiImage.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
+
+        AiImageEntity aiImageEntity = aiImageJpaRepository.findById(aiImage.getId())
+                .orElseThrow(() -> new EntityNotFoundException("해당 AI 이미지가 존재하지 않습니다."));
+
+        aiImageEntity.setPostId(aiImage.getPostId());
+
+        return aiImageEntity.toDomain();
+    }
+
+    @Override
+    @Transactional
     public AiImage save(AiImage aiImage) {
 
         // ✅ 1. 기존 Entity 조회 (영속 상태)
