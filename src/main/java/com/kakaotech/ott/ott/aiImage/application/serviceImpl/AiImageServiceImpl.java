@@ -17,6 +17,7 @@ import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -35,6 +36,7 @@ public class AiImageServiceImpl implements AiImageService {
     private final FastApiClient fastApiClient;
 
     @Override
+    @Transactional
     public AiImageSaveResponseDto handleImageValidation(MultipartFile image, Long userId) throws IOException {
         // 1. 이미지 업로드 (S3에 저장 후 퍼블릭 URL 반환)
         String imageUrl = imageUploader.upload(image);
@@ -58,6 +60,7 @@ public class AiImageServiceImpl implements AiImageService {
     }
 
     @Override
+    @Transactional
     public AiImage insertAiImage(AiImageAndProductRequestDto aiImageAndProductRequestDto) {
 
         AiImage aiImage = aiImageRepository.findByBeforeImagePath(aiImageAndProductRequestDto.getInitialImageUrl());
@@ -80,6 +83,7 @@ public class AiImageServiceImpl implements AiImageService {
     }
 
     @Override
+    @Transactional
     public AiImageAndProductResponseDto getAiImage(Long imageId, Long userId) {
         AiImage aiImage = aiImageRepository.findById(imageId)
                 .orElseThrow(() -> new EntityNotFoundException("AI 이미지가 존재하지 않습니다."))

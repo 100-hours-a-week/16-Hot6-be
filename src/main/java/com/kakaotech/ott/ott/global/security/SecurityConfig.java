@@ -38,6 +38,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login/**", "/oauth2/**", "/login/oauth2/**", "/api/v1/auth/**").permitAll()
+                        .requestMatchers(request -> isRequestFromSpecificOrigin(request.getHeader("Origin")))
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth -> oauth
@@ -51,6 +53,11 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // ✅ 특정 Origin에서 오는 요청만 JWT 없이 허용하는 메서드
+    private boolean isRequestFromSpecificOrigin(String origin) {
+        return origin != null && origin.equals("http://10.50.0.3:8000");
+    }
+
     // ✅ CORS 정책을 SecurityConfig에서 직접 설정
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -58,6 +65,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.addAllowedOriginPattern("https://*.onthe-top.com");
         config.addAllowedOriginPattern("http://localhost:3000");
+        config.addAllowedOriginPattern("http://10.50.0.3:8000");
         config.addAllowedMethod("*"); // GET, POST, PUT, DELETE 등 모든 HTTP 메서드 허용
         config.addAllowedHeader("*"); // 모든 헤더 허용
         config.setExposedHeaders(List.of("Authorization", "Set-Cookie")); // 쿠키 및 Authorization 헤더 노출
