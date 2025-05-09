@@ -93,9 +93,7 @@ public class AiImageController {
         List<DeskProduct> deskProduct = productDomainService.createdProduct(requestDto, aiImage, aiImage.getUserId());
         AiImageSaveResponseDto aiImageSaveResponseDto = new AiImageSaveResponseDto(deskProduct.getFirst().getAiImageId());
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)  // 또는 .status(201)
-                .body(ApiResponse.success("AI 이미지 저장이 완료됐습니다.", aiImageSaveResponseDto));
+        return ResponseEntity.ok(ApiResponse.success("AI 이미지 저장이 완료됐습니다.", aiImageSaveResponseDto));
     }
 
     @GetMapping("/ai-images/{imageId}")
