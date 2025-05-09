@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.global.security;
 
 import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomUserDetailsService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,18 +27,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         String token = resolveToken(request);
-        if (token != null && jwtService.validateToken(token)) {
-            Long userId = jwtService.extractUserId(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userId.toString());
-
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            if (token != null) {
+                if (jwtService.validateToken(token)) {
+                    setAuthentication(token, request);
+                } else {
+                    // ✅ 만료된 Access Token 처리 (401 반환)
+                    throw new ExpiredJwtException(null, null, "Access Token Expired");
+                }
+            }
+        } catch (ExpiredJwtException ex) {
+            // ✅ Access Token 만료된 경우 - 401 응답
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"status\":401,\"message\":\"Access Token Expired. Please login again.\"}");
+            return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void setAuthentication(String token, HttpServletRequest request) {
+        Long userId = jwtService.extractUserId(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(userId.toString());
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private String resolveToken(HttpServletRequest request) {

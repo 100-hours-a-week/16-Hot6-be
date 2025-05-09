@@ -102,9 +102,7 @@ public class AiImageController {
 
         AiImageAndProductResponseDto aiImageAndProductResponseDto = aiImageService.getAiImage(imageId, userPrincipal.getId());
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("데스크 이미지 및 추천 제품 조회 성공", aiImageAndProductResponseDto));
+        return ResponseEntity.ok(ApiResponse.success("데스크 이미지 및 추천 제품 조회 성공", aiImageAndProductResponseDto));
     }
 
 }

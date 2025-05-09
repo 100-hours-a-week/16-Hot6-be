@@ -6,9 +6,11 @@ import com.kakaotech.ott.ott.user.presentation.controller.OAuth2FailureHandler;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomOAuth2UserService;
 import com.kakaotech.ott.ott.user.presentation.controller.OAuth2SuccessHandler;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomUserDetailsService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -41,6 +43,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/ai-images/result").permitAll()
                         .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((req, res, ex1) -> {
+                            if (isApiRequest(req)) {
+                                res.setStatus(HttpStatus.UNAUTHORIZED.value());
+                                res.setContentType("application/json;charset=UTF-8");
+                                res.getWriter().write("{\"status\":401,\"message\":\"Unauthorized\"}");
+                            } else {
+                                res.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized");
+                            }
+                        })
+                )
                 .oauth2Login(oauth -> oauth
                         .authorizationEndpoint(endpoint -> endpoint.baseUri("/oauth2/authorization"))
                         .userInfoEndpoint(info -> info.userService(customOAuth2UserService))
@@ -50,6 +63,11 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtAuthenticationFilter(jwtService, userDetailsService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    // ✅ API 요청인지 확인하는 메서드
+    private boolean isApiRequest(HttpServletRequest request) {
+        return request.getRequestURI().startsWith("/api/");
     }
 
     // ✅ CORS 정책을 SecurityConfig에서 직접 설정
