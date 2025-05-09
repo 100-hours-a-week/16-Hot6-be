@@ -48,6 +48,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         // 4. 로그인 성공 후 클라이언트로 리디렉트
         response.setStatus(HttpServletResponse.SC_FOUND);
-        response.setHeader(HttpHeaders.LOCATION, "https://prod.onthe-top.com/oauth-success");
+        response.setHeader(HttpHeaders.LOCATION, "https://onthe-top.com/oauth-success");
     }
 }
