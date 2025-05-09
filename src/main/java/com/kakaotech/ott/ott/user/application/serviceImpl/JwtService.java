@@ -142,7 +142,7 @@ public class JwtService {
         }
 
         if (!validateToken(refreshToken)) {
-            throw new CustomException(ErrorCode.INVALID_ACCESS_TOKEN);
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         }
 
         Long userId = extractUserId(refreshToken);
