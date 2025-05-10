@@ -35,7 +35,6 @@ public class ProductDomainServiceImpl implements ProductDomainService {
 
     @Override
     public List<DeskProduct> createdProduct(AiImageAndProductRequestDto aiImageAndProductRequestDto, AiImage aiImage, Long userId) {
-
         List<DeskProduct> savedDeskProducts = new ArrayList<>();
 
         User user = userRepository.findById(userId)
@@ -45,7 +44,14 @@ public class ProductDomainServiceImpl implements ProductDomainService {
         AiImageEntity aiImageEntity = aiImageRepository.findById(aiImage.getId())
                 .orElseThrow(() -> new EntityNotFoundException("AI 이미지가 없습니다."));
 
-        for (ProductDetailRequestDto product : aiImageAndProductRequestDto.getProducts()) {
+        List<ProductDetailRequestDto> productList = aiImageAndProductRequestDto.getProducts();
+
+        // 제품 리스트가 비어있으면 바로 빈 리스트 반환
+        if (productList == null || productList.isEmpty()) {
+            return savedDeskProducts;
+        }
+
+        for (ProductDetailRequestDto product : productList) {
             String mainCategoryName = product.getMainCategory();
             String subCategoryName = product.getSubCategory();
 
@@ -61,14 +67,14 @@ public class ProductDomainServiceImpl implements ProductDomainService {
                         return productSubCategoryRepository.save(newSubCategory, productMainCategoryEntity);
                     });
 
-            DeskProduct deskProduct = DeskProduct.createDeskProduct(productSubCategoryEntity.getId(), aiImage.getId()
-                    , product.getName(), product.getPrice(), product.getPurchasePlace(), product.getPurchaseUrl()
-                    , 0, 0, product.getImagePath());
+            DeskProduct deskProduct = DeskProduct.createDeskProduct(
+                    productSubCategoryEntity.getId(), aiImage.getId(),
+                    product.getName(), product.getPrice(), product.getPurchasePlace(),
+                    product.getPurchaseUrl(), 0, 0, product.getImagePath()
+            );
 
             DeskProduct generatedDeskProduct = deskProductRepository.save(deskProduct, productSubCategoryEntity, aiImageEntity).toDomain();
-
             savedDeskProducts.add(generatedDeskProduct);
-
         }
 
         return savedDeskProducts;

@@ -86,12 +86,15 @@ public class AiImageController {
 
         AiImage aiImage = aiImageService.insertAiImage(requestDto);
 
-        System.out.println(requestDto.getInitialImageUrl());
-        System.out.println(requestDto.getProcessedImageUrl());
-        System.out.println(requestDto.getProducts());
+        List<DeskProduct> deskProduct = productDomainService.createdProduct(
+                requestDto, aiImage, aiImage.getUserId());
 
-        List<DeskProduct> deskProduct = productDomainService.createdProduct(requestDto, aiImage, aiImage.getUserId());
-        AiImageSaveResponseDto aiImageSaveResponseDto = new AiImageSaveResponseDto(deskProduct.getFirst().getAiImageId());
+        // 예외 방지: 빈 리스트 처리
+        if (deskProduct == null || deskProduct.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.success("AI 이미지 저장에 실패했습니다.", null));
+        }
+
+        AiImageSaveResponseDto aiImageSaveResponseDto = new AiImageSaveResponseDto(deskProduct.get(0).getAiImageId());
 
         return ResponseEntity.ok(ApiResponse.success("AI 이미지 저장이 완료됐습니다.", aiImageSaveResponseDto));
     }
