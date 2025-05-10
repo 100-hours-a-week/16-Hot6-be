@@ -10,7 +10,7 @@ public interface AiImageRepository {
 
     AiImage savePost(AiImage aiImage);
 
-    AiImage save(AiImage aiImage);
+    AiImage saveImage(AiImage aiImage);
 
     Optional<AiImageEntity> findById(Long userId);
 

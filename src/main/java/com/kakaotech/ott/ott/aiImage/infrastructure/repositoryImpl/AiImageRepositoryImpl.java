@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.aiImage.infrastructure.repositoryImpl;
 
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageJpaRepository;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
@@ -38,7 +39,7 @@ public class AiImageRepositoryImpl implements AiImageRepository {
 
     @Override
     @Transactional
-    public AiImage save(AiImage aiImage) {
+    public AiImage saveImage(AiImage aiImage) {
 
         // ✅ 1. 기존 Entity 조회 (영속 상태)
         AiImageEntity aiImageEntity = aiImageJpaRepository.findByBeforeImagePath(aiImage.getBeforeImagePath())
@@ -51,13 +52,21 @@ public class AiImageRepositoryImpl implements AiImageRepository {
 
             aiImageEntity = AiImageEntity.builder()
                     .userEntity(userEntity)
+                    .state(aiImage.getState())
                     .beforeImagePath(aiImage.getBeforeImagePath())
                     .afterImagePath(aiImage.getAfterImagePath())
                     .build();
             aiImageJpaRepository.save(aiImageEntity);
-        } else {
-            // ✅ 3. 이미지가 있는 경우 업데이트 (Dirty Checking)
-            aiImageEntity.setAfterImagePath(aiImage.getAfterImagePath());
+        } else { // ✅ 3. 이미지가 있는 경우 상태 업데이트 (Dirty Checking)
+            aiImageEntity.setState(aiImage.getState());
+
+            if (aiImage.getState().equals(AiImageState.SUCCESS)) {
+                aiImageEntity.setAfterImagePath(aiImage.getAfterImagePath());
+            } else if (aiImage.getState().equals(AiImageState.FAILED)) {
+                aiImageEntity.setAfterImagePath(null);
+            }
+
+            aiImageJpaRepository.saveAndFlush(aiImageEntity); // ✅ Dirty Checking 강제 반영
         }
 
         return aiImageEntity.toDomain();

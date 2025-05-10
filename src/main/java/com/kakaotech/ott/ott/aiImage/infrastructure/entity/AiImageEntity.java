@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.aiImage.infrastructure.entity;
 
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,6 +31,10 @@ public class AiImageEntity {
     @Column(name = "post_id")
     private Long postId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state", length = 30)
+    private AiImageState state;
+
     @Column(name = "before_image_path", nullable = false)
     private String beforeImagePath;
 
@@ -46,6 +51,7 @@ public class AiImageEntity {
                 .id(this.id)
                 .userId(this.userEntity.getId())
                 .postId(this.postId)
+                .state(this.state)
                 .beforeImagePath(this.beforeImagePath)
                 .afterImagePath(this.afterImagePath)
                 .createdAt(this.createdAt)
@@ -57,6 +63,7 @@ public class AiImageEntity {
         return AiImageEntity.builder()
                 .userEntity(userEntity)
                 .postId(aiImage.getPostId())
+                .state(aiImage.getState())
                 .beforeImagePath(aiImage.getBeforeImagePath())
                 .afterImagePath(aiImage.getAfterImagePath())
                 .build();

@@ -54,7 +54,7 @@ public class AiImageServiceImpl implements AiImageService {
         }
 
         AiImage aiImage = AiImage.createAiImage(userId, response.getInitialImageUrl());
-        AiImage savedAiImage = aiImageRepository.save(aiImage);
+        AiImage savedAiImage = aiImageRepository.saveImage(aiImage);
 
         return new AiImageSaveResponseDto(savedAiImage.getId());
     }
@@ -65,7 +65,13 @@ public class AiImageServiceImpl implements AiImageService {
 
         AiImage aiImage = aiImageRepository.findByBeforeImagePath(aiImageAndProductRequestDto.getInitialImageUrl());
 
+        if(aiImageAndProductRequestDto.getProcessedImageUrl() == null) {
+            aiImage.failedState();
+            return aiImageRepository.saveImage(aiImage);
+        }
+
         aiImage.updateAiImage(aiImageAndProductRequestDto.getProcessedImageUrl());
+        aiImage.successState();
 
         User user = userRepository.findById(aiImage.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."))
@@ -73,11 +79,9 @@ public class AiImageServiceImpl implements AiImageService {
 
         user.renewGeneratedDate();
 
-        AiImage savedAiImage = aiImageRepository.save(aiImage);
+        AiImage savedAiImage = aiImageRepository.saveImage(aiImage);
 
         userRepository.save(user);
-
-        System.out.println(savedAiImage.getAfterImagePath());
 
         return savedAiImage;
     }
@@ -103,7 +107,7 @@ public class AiImageServiceImpl implements AiImageService {
                         product.getPrice(), product.getPurchaseUrl(), true, product.getWeight()))
                 .toList();
 
-        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
+        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getState(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
 
         return new AiImageAndProductResponseDto(aiImageResponseDto, productResponseDtos, false, null);
     }
