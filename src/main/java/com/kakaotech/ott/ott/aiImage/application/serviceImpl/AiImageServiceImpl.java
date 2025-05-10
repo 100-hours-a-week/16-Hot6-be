@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.aiImage.application.serviceImpl;
 import com.kakaotech.ott.ott.aiImage.application.service.FastApiClient;
 import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.aiImage.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.aiImage.domain.repository.DeskProductRepository;
@@ -93,6 +94,12 @@ public class AiImageServiceImpl implements AiImageService {
                 .orElseThrow(() -> new EntityNotFoundException("AI 이미지가 존재하지 않습니다."))
                 .toDomain();
 
+        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getState(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
+
+        if(aiImage.getState().equals(AiImageState.FAILED) || aiImage.getState().equals(AiImageState.PENDING)) {
+            return new AiImageAndProductResponseDto(aiImageResponseDto, null);
+        }
+
         List<DeskProductEntity> entities = deskProductRepository.findByAiImageId(imageId);
         if (entities.isEmpty()) {
             throw new EntityNotFoundException("AI 이미지에 대한 상품이 존재하지 않습니다.");
@@ -107,9 +114,7 @@ public class AiImageServiceImpl implements AiImageService {
                         product.getPrice(), product.getPurchaseUrl(), true, product.getWeight()))
                 .toList();
 
-        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getState(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
-
-        return new AiImageAndProductResponseDto(aiImageResponseDto, productResponseDtos, false, null);
+        return new AiImageAndProductResponseDto(aiImageResponseDto, productResponseDtos);
     }
 
 
