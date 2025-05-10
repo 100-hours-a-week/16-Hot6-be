@@ -14,6 +14,8 @@ public class AiImage {
 
     private Long postId;
 
+    private AiImageState state;
+
     private String beforeImagePath;
 
     private String afterImagePath;
@@ -21,10 +23,11 @@ public class AiImage {
     private LocalDateTime createdAt;
 
     @Builder
-    public AiImage(Long id, Long userId, Long postId, String beforeImagePath, String afterImagePath, LocalDateTime createdAt) {
+    public AiImage(Long id, Long userId, Long postId, AiImageState state, String beforeImagePath, String afterImagePath, LocalDateTime createdAt) {
         this.id = id;
         this.userId = userId;
         this.postId = postId;
+        this.state = state;
         this.beforeImagePath = beforeImagePath;
         this.afterImagePath = afterImagePath;
         this.createdAt = createdAt;
@@ -35,6 +38,7 @@ public class AiImage {
         return AiImage.builder()
                 .userId(userId)
                 .postId(null)
+                .state(AiImageState.PENDING)
                 .beforeImagePath(beforeImagePath)
                 .afterImagePath(null)
                 .build();
@@ -47,5 +51,13 @@ public class AiImage {
 
     public void updateAiImage(String afterImagePath) {
         this.afterImagePath = afterImagePath;
+    }
+
+    public void successState() {
+        this.state = AiImageState.SUCCESS;
+    }
+
+    public void failedState() {
+        this.state = AiImageState.FAILED;
     }
 }

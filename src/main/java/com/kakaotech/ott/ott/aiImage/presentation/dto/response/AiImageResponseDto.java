@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.aiImage.presentation.dto.response;
 
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,6 +15,8 @@ import java.time.LocalDateTime;
 public class AiImageResponseDto {
 
     private Long imageId;
+
+    private AiImageState state;
 
     private String imagePath;
 
