@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -15,12 +16,11 @@ public class AiImageAndProductRequestDto {
     @JsonProperty("initial_image_url")
     private String initialImageUrl;
 
-    @NotNull(message = "processed_image_url은 필수입니다.")
     @JsonProperty("processed_image_url")
     private String processedImageUrl;
 
-    @NotNull(message = "products는 필수입니다.")
-    private List<ProductDetailRequestDto> products;
+    @Builder.Default
+    private List<ProductDetailRequestDto> products = new ArrayList<>();
 }
 //{
 //        "initial_image_url": "https://bucket.s3.amazonaws.com/images/test.png",
