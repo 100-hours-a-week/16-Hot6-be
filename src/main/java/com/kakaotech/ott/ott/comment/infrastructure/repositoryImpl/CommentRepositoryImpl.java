@@ -10,7 +10,6 @@ import com.kakaotech.ott.ott.post.domain.repository.PostJpaRepository;
 import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

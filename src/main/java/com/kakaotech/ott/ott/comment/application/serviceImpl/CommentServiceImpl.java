@@ -11,9 +11,7 @@ import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
