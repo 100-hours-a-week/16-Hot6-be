@@ -11,4 +11,6 @@ public interface ProductSubCategoryRepository {
     ProductSubCategoryEntity save(ProductSubCategory productSubCategory, ProductMainCategoryEntity productMainCategoryEntity);
 
     Optional<ProductSubCategoryEntity> findByName(String subCategoryName);
+
+    ProductSubCategory findById(Long subCategoryId);
 }

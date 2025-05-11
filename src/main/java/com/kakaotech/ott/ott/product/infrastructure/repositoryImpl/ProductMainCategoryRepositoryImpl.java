@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.product.infrastructure.serviceImpl;
+package com.kakaotech.ott.ott.product.infrastructure.repositoryImpl;
 
 import com.kakaotech.ott.ott.product.domain.model.ProductMainCategory;
 import com.kakaotech.ott.ott.product.domain.repository.ProductMainCategoryJpaRepository;

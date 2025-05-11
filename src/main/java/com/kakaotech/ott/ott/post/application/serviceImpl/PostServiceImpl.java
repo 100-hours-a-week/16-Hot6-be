@@ -3,7 +3,6 @@ package com.kakaotech.ott.ott.post.application.serviceImpl;
 import com.kakaotech.ott.ott.aiImage.application.serviceImpl.S3Uploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
-import com.kakaotech.ott.ott.like.domain.model.Like;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
 import com.kakaotech.ott.ott.post.application.component.ViewCountAggregator;
 import com.kakaotech.ott.ott.post.application.service.PostService;
@@ -13,12 +12,10 @@ import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.post.presentation.dto.request.AiPostCreateRequestDto;
 import com.kakaotech.ott.ott.post.presentation.dto.request.AiPostUpdateRequestDto;
 import com.kakaotech.ott.ott.post.presentation.dto.request.FreePostUpdateRequestDto;
-import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
+import com.kakaotech.ott.ott.post.presentation.dto.response.*;
 import com.kakaotech.ott.ott.post.presentation.dto.request.FreePostCreateRequestDto;
-import com.kakaotech.ott.ott.post.presentation.dto.response.PostAuthorResponseDto;
-import com.kakaotech.ott.ott.post.presentation.dto.response.PostCreateResponseDto;
-import com.kakaotech.ott.ott.post.presentation.dto.response.PostGetResponseDto;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
+import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
@@ -31,7 +28,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -105,7 +106,7 @@ public class PostServiceImpl implements PostService {
                             .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."));
 
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
-                    boolean scrapped = scrapRepository.existsByUserIdAndPostId(userId, post.getId());
+                    boolean scrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
 
                     return new PostAllResponseDto.Posts(
                             post.getId(),
@@ -149,9 +150,8 @@ public class PostServiceImpl implements PostService {
                 .toDomain();
 
         boolean isOwner = post.getUserId().equals(userId);
-        // TODO: replace below with actual checks
         boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
-        boolean scrapped = scrapRepository.existsByUserIdAndPostId(userId, post.getId());
+        boolean scrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
 
         // 3) 엔티티 이미지를 도메인으로 변환
         List<PostImage> imageList = post.getImages()
@@ -250,4 +250,30 @@ public class PostServiceImpl implements PostService {
         Post savedPost = postRepository.save(post);
         return new PostCreateResponseDto(savedPost.getId());
     }
+
+    @Override
+    public List<PopularSetupDto> getPopularSetups(Long userId) {
+        // 상위 7개 게시글 조회 (단일 조회)
+        List<Post> popularPosts = postRepository.findTop7ByWeight();
+        List<Long> postIds = popularPosts.stream().map(Post::getId).collect(Collectors.toList());
+
+        // AI 이미지 Batch 조회 (Domain Repository)
+        Map<Long, AiImage> aiImageMap = aiImageRepository.findByPostIds(postIds);
+
+        // Scrap 여부 Batch 조회 (Domain Repository)
+        Set<Long> scrappedPostIds = scrapRepository.findScrappedPostIds(userId, postIds);
+
+        // PopularSetupDto 생성
+        return popularPosts.stream()
+                .map(post -> new PopularSetupDto(
+                        post.getId(),
+                        post.getTitle(),
+                        aiImageMap.getOrDefault(post.getId(), null) != null ?
+                                aiImageMap.get(post.getId()).getAfterImagePath() : "",
+                        scrappedPostIds.contains(post.getId())
+                ))
+                .collect(Collectors.toList());
+    }
+
+
 }

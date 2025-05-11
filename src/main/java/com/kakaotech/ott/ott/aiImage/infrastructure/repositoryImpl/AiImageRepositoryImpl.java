@@ -12,7 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -83,5 +86,15 @@ public class AiImageRepositoryImpl implements AiImageRepository {
         return aiImageJpaRepository.findByBeforeImagePath(beforeImagePath)
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자의 데스크 사진이 존재하지 않습니다."))
                 .toDomain();
+    }
+
+    @Override
+    public Map<Long, AiImage> findByPostIds(List<Long> postIds) {
+        List<AiImageEntity> entities = aiImageJpaRepository.findByPostIdIn(postIds);
+        return entities.stream()
+                .collect(Collectors.toMap(
+                        AiImageEntity::getPostId,
+                        AiImageEntity::toDomain
+                ));
     }
 }

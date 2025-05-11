@@ -4,6 +4,7 @@ import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.post.domain.repository.PostJpaRepository;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
+import com.kakaotech.ott.ott.post.presentation.dto.response.PopularSetupDto;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Repository
@@ -109,5 +111,16 @@ public class PostRepositoryImpl implements PostRepository {
     public void incrementCommentCount(Long postId, Long delta) {
 
         postJpaRepository.incrementCommentCount(postId, delta);
+    }
+
+    @Override
+    public List<Post> findTop7ByWeight() {
+        // DB에서 직접 weight 기준 상위 7개 조회 + AI 이미지 JOIN
+        List<PostEntity> entities = postJpaRepository.findTop7ByTypeOrderByWeightDescWithAiImages(PageRequest.of(0, 7));
+
+        // Entity → Domain 변환
+        return entities.stream()
+                .map(PostEntity::toDomain)
+                .collect(Collectors.toList());
     }
 }
