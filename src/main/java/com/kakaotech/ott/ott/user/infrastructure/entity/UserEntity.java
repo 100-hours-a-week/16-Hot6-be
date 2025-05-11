@@ -104,4 +104,17 @@ public class UserEntity extends AuditEntity {
     public void updateNicknameKakao(String nicknameKakao) {
         this.nicknameKakao = nicknameKakao;
     }
+
+    public void updateActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public void updateDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public void updateVerified() {
+        this.isVerified = true;
+    }
+
 }

@@ -6,5 +6,9 @@ public interface UserRepository {
 
     User findById(Long userId);
 
-    User save(User user);
+    User update(User user);
+
+    void delete(User user);
+
+    void certify(User user);
 }

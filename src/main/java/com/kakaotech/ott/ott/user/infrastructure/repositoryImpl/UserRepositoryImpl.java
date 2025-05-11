@@ -7,6 +7,7 @@ import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
@@ -24,7 +25,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User save(User user) {
+    @Transactional
+    public User update(User user) {
 
         UserEntity userEntity = userJpaRepository.findById(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
@@ -38,4 +40,28 @@ public class UserRepositoryImpl implements UserRepository {
 
         return userJpaRepository.save(userEntity).toDomain();
     }
+
+    @Override
+    @Transactional
+    public void delete(User user) {
+
+        UserEntity userEntity = userJpaRepository.findById(user.getId())
+                        .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
+
+        userEntity.updateActive(user.isActive());
+        userEntity.updateDeletedAt(user.getDeletedAt());
+
+    }
+
+    @Override
+    @Transactional
+    public void certify(User user) {
+
+        UserEntity userEntity = userJpaRepository.findById(user.getId())
+                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
+
+        userEntity.updateVerified();
+    }
+
+
 }

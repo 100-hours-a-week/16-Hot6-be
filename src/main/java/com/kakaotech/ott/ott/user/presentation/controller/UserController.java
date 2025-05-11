@@ -4,6 +4,7 @@ import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.user.application.service.UserService;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequestDto;
+import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
@@ -67,5 +68,28 @@ public class UserController {
         UserInfoUpdateResponseDto userInfoUpdateResponseDto = userService.updateUserInfo(userId, userInfoUpdateRequestDto);
 
         return ResponseEntity.ok(ApiResponse.success("회원 정보 수정 성공", userInfoUpdateResponseDto));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse> deleteUser(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+        Long userId = userPrincipal.getId();
+
+        userService.deleteUser(userId);
+
+        return ResponseEntity.ok(ApiResponse.success("회원 탈퇴가 완료되었습니다.", null));
+    }
+
+    @PostMapping("/recommendation-code")
+    public ResponseEntity<ApiResponse> verifiedUser(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody @Valid UserVerifiedRequestDto userVerifiedRequestDto) {
+
+        Long userId = userPrincipal.getId();
+
+        userService.verifiedCode(userId, userVerifiedRequestDto);
+
+        return ResponseEntity.ok(ApiResponse.success("추천인 코드 등록 성공", null));
     }
 }
