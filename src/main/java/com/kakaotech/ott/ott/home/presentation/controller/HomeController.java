@@ -18,7 +18,7 @@ public class HomeController {
     private final PostService postService;
     private final ProductDomainService productDomainService;
 
-    @GetMapping("/")
+    @GetMapping("/main")
     public ResponseEntity<ApiResponse<MainResponseDto>> home(
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
