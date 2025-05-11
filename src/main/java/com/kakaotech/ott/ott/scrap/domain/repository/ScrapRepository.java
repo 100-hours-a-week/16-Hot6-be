@@ -1,6 +1,10 @@
 package com.kakaotech.ott.ott.scrap.domain.repository;
 
 import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
+import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
+
+import java.util.List;
+import java.util.Set;
 
 public interface ScrapRepository {
 
@@ -8,5 +12,7 @@ public interface ScrapRepository {
 
     Scrap save(Scrap scrap);
 
-    boolean existsByUserIdAndPostId(Long userId, Long postId);
+    boolean existsByUserIdAndTypeAndPostId(Long userId, ScrapType scrapType, Long postId);
+
+    Set<Long> findScrappedPostIds(Long userId, List<Long> postIds);
 }

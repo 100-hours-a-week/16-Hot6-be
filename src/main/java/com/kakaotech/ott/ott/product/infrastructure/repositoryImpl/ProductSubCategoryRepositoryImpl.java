@@ -1,10 +1,11 @@
-package com.kakaotech.ott.ott.product.infrastructure.serviceImpl;
+package com.kakaotech.ott.ott.product.infrastructure.repositoryImpl;
 
 import com.kakaotech.ott.ott.product.domain.model.ProductSubCategory;
 import com.kakaotech.ott.ott.product.domain.repository.ProductSubCategoryJpaRepository;
 import com.kakaotech.ott.ott.product.domain.repository.ProductSubCategoryRepository;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductMainCategoryEntity;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductSubCategoryEntity;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -29,5 +30,13 @@ public class ProductSubCategoryRepositoryImpl implements ProductSubCategoryRepos
     public Optional<ProductSubCategoryEntity> findByName(String subCategoryName) {
 
         return productSubCategoryJpaRepository.findByName(subCategoryName);
+    }
+
+    @Override
+    public ProductSubCategory findById(Long subCategoryId) {
+
+        return productSubCategoryJpaRepository.findById(subCategoryId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 카테고리가 존재하지 않습니다."))
+                .toDomain();
     }
 }

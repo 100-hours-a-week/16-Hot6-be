@@ -21,4 +21,6 @@ public interface PostRepository {
     void incrementScrapCount(Long postId, Long delta);
 
     void incrementCommentCount(Long postId, Long delta);
+
+    List<Post> findTop7ByWeight();
 }

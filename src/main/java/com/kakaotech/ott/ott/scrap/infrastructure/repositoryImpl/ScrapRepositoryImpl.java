@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.scrap.infrastructure.repositoryImpl;
 
+import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
+import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapJpaRepository;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.scrap.infrastructure.entity.ScrapEntity;
@@ -10,6 +12,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -39,8 +45,15 @@ public class ScrapRepositoryImpl implements ScrapRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean existsByUserIdAndPostId(Long userId, Long postId) {
-        return scrapJpaRepository.existsByUserEntityIdAndTargetId(userId, postId);
+    public boolean existsByUserIdAndTypeAndPostId(Long userId, ScrapType scrapType, Long postId) {
+        return scrapJpaRepository.existsByUserEntityIdAndTypeAndTargetId(userId, scrapType, postId);
+    }
+
+    @Override
+    public Set<Long> findScrappedPostIds(Long userId, List<Long> postIds) {
+        return scrapJpaRepository.findScrappedPostIds(userId, postIds)
+                .stream()
+                .collect(Collectors.toSet());
     }
 
 }

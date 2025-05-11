@@ -26,7 +26,7 @@ public class ScrapController {
 
         scrapService.likeScrap(userId, scrapRequestDto);
 
-        return ResponseEntity.ok(ApiResponse.success("스크랩 완료", null));
+        return ResponseEntity.ok(ApiResponse.success("게시글 스크랩 완료", null));
     }
 
     @DeleteMapping
@@ -37,6 +37,6 @@ public class ScrapController {
 
         scrapService.unlikeScrap(userId, scrapRequestDto);
 
-        return ResponseEntity.ok(ApiResponse.success("스크랩 취소 완료", null));
+        return ResponseEntity.ok(ApiResponse.success("게시글 스크랩 취소 완료", null));
     }
 }
