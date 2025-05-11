@@ -2,7 +2,6 @@ package com.kakaotech.ott.ott.aiImage.domain.repository;
 
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
-import com.kakaotech.ott.ott.user.domain.model.User;
 import org.springframework.data.domain.Slice;
 
 import java.time.LocalDateTime;
