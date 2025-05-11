@@ -10,7 +10,7 @@ import com.kakaotech.ott.ott.aiImage.application.service.AiImageService;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
-import com.kakaotech.ott.ott.user.application.service.UserService;
+import com.kakaotech.ott.ott.user.application.service.UserAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class AiImageController {
 
     private final AiImageService aiImageService;
     private final ProductDomainService productDomainService;
-    private final UserService userService;
+    private final UserAuthService userAuthService;
 
     @GetMapping("/ai-images/upload")
     public ResponseEntity<ApiResponse<CheckAiImageQuotaResponseDto>> checkAiImageQuota(
@@ -40,7 +40,7 @@ public class AiImageController {
 
         Long userId = userPrincipal.getId();
 
-        boolean checkQuota = userService.checkQuota(userId);
+        boolean checkQuota = userAuthService.checkQuota(userId);
 
         if (!checkQuota)
             return ResponseEntity

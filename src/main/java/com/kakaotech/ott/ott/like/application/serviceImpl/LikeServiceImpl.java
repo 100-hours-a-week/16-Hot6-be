@@ -8,7 +8,7 @@ import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
 import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,14 +19,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class LikeServiceImpl implements LikeService {
 
     private final LikeRepository likeRepository;
-    private final UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
     private final PostRepository postRepository;
 
     @Transactional
     @Override
     public void likePost(Long userId, LikeRequestDto likeRequestDto) {
 
-        User user = userRepository.findById(userId)
+        User user = userAuthRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."))
                 .toDomain();
         Post post = postRepository.findById(likeRequestDto.getTargetId());
@@ -47,7 +47,7 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public void unlikePost(Long userId, LikeRequestDto likeRequestDto) {
 
-        User user = userRepository.findById(userId)
+        User user = userAuthRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."))
                 .toDomain();
 

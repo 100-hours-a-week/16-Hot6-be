@@ -18,7 +18,7 @@ import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +38,7 @@ import java.util.stream.Collectors;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
     private final AiImageRepository aiImageRepository;
     private final S3Uploader s3Uploader;
     private final ViewCountAggregator viewCountAggregator;
@@ -54,7 +53,7 @@ public class PostServiceImpl implements PostService {
         Post post = Post.createPost(userId, PostType.FREE,
                 freePostCreateRequestDto.getTitle(), freePostCreateRequestDto.getContent());
 
-        UserEntity userEntity = userRepository.findById(userId)
+        UserEntity userEntity = userAuthRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
 
         int seq = 1;
@@ -75,12 +74,12 @@ public class PostServiceImpl implements PostService {
         Post post = Post.createPost(userId, PostType.AI,
                 aiPostCreateRequestDto.getTitle(), aiPostCreateRequestDto.getContent());
 
-        User user = userRepository.findById(userId)
+        User user = userAuthRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."))
                 .toDomain();
 
         user.updatePoint(500);
-        userRepository.save(user);
+        userAuthRepository.save(user);
 
         Post savedPost = postRepository.save(post);
 
@@ -102,7 +101,7 @@ public class PostServiceImpl implements PostService {
         // 2) 엔티티 → DTO 매핑
         List<PostAllResponseDto.Posts> dtoList = posts.stream()
                 .map(post -> {
-                    UserEntity author = userRepository.findById(post.getUserId())
+                    UserEntity author = userAuthRepository.findById(post.getUserId())
                             .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."));
 
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
@@ -145,7 +144,7 @@ public class PostServiceImpl implements PostService {
 
         Post post = postRepository.findById(postId);
 
-        User user = userRepository.findById(post.getUserId())
+        User user = userAuthRepository.findById(post.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."))
                 .toDomain();
 
@@ -179,7 +178,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void deletePost(Long userId, Long postId) throws AccessDeniedException {
 
-        UserEntity userEntity = userRepository.findById(userId)
+        UserEntity userEntity = userAuthRepository.findById(userId)
                 .orElseThrow();
 
         Post post = postRepository.findById(postId);
@@ -199,7 +198,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostCreateResponseDto updateFreePost(Long postId, Long userId, FreePostUpdateRequestDto freePostUpdateRequestDto) throws IOException {
 
-        UserEntity userEntity = userRepository.findById(userId)
+        UserEntity userEntity = userAuthRepository.findById(userId)
                 .orElseThrow();
         Post post = postRepository.findById(postId);
 
@@ -232,7 +231,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostCreateResponseDto updateAiPost(Long postId, Long userId, AiPostUpdateRequestDto aiPostUpdateRequestDto) throws IOException {
-        UserEntity userEntity = userRepository.findById(userId)
+        UserEntity userEntity = userAuthRepository.findById(userId)
                 .orElseThrow();
         Post post = postRepository.findById(postId);
 

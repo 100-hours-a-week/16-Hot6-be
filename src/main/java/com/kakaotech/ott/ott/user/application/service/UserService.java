@@ -1,10 +1,10 @@
 package com.kakaotech.ott.ott.user.application.service;
 
-import jakarta.servlet.http.HttpServletResponse;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
+
+import java.time.LocalDateTime;
 
 public interface UserService {
 
-    boolean checkQuota(Long userId);
-
-    void logout(Long userId, HttpServletResponse response, String kakaoAccessToken);
+    MyDeskImageResponseDto getMyDeskWithCursor(Long userId, LocalDateTime createdAtCursor, Long lastId, int size);
 }

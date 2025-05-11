@@ -1,77 +1,48 @@
 package com.kakaotech.ott.ott.user.presentation.controller;
 
-import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.user.application.service.UserService;
-import com.kakaotech.ott.ott.user.presentation.dto.response.RefreshTokenResponseDto;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final JwtService jwtService;
     private final UserService userService;
 
-    @GetMapping("/{provider}")
-    public ResponseEntity<Void> login(@PathVariable String provider,
-                                      Authentication authentication,
-                                      @RequestHeader(value = "X-Forwarded-Host", required = false) String forwardedHost) {
-        // ✅ 이미 로그인된 사용자라면 홈으로 리디렉트
-        if (authentication != null && authentication.isAuthenticated()
-                && !(authentication.getPrincipal() instanceof String)) {
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, "https://dev.onthe-top.com/")
-                    .build();
+    @GetMapping("/me/desks")
+    public ResponseEntity<ApiResponse<MyDeskImageResponseDto>> getMyDesk(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam (value = "createdAtCursor", required = false) LocalDateTime createdAtCursor,
+            @RequestParam (value = "lastId", required = false) Long lastId,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Long userId = userPrincipal.getId();
+
+        // 기본 값 설정
+        if (createdAtCursor == null) {
+            createdAtCursor = LocalDateTime.now();
         }
 
-        // ✅ 리디렉트 URL을 고정된 주소로 지정
-        String redirectUrl = "https://dev-backend.onthe-top.com/oauth2/authorization/" + provider;
-
-        return ResponseEntity.status(302)
-                .header(HttpHeaders.LOCATION, redirectUrl)
-                .build();
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request,
-                                                    HttpServletResponse response,
-                                                    @RequestHeader("Authorization") String bearerToken) {
-        // ✅ JWT Access Token 확인
-        String accessToken = bearerToken.substring(7); // "Bearer " 떼기
-        Long userId = jwtService.extractUserId(accessToken);
-
-        // ✅ 클라이언트에서 카카오 Access Token 전달받기
-        String kakaoAccessToken = request.getHeader("Kakao-Access-Token");
-
-        // ✅ 서비스 계층에서 로그아웃 처리
-        userService.logout(userId, response, kakaoAccessToken);
-
-
-        return ResponseEntity.ok(ApiResponse.success("로그아웃 완료", null));
-    }
-
-    @PostMapping("/token/refresh")
-    public ResponseEntity<ApiResponse<RefreshTokenResponseDto>> reissue(
-            @CookieValue(name = "refreshToken", required = false) String refreshToken
-    ) {
-
-        System.out.println(refreshToken);
-        if (refreshToken == null) {
-            throw new AccessDeniedException("Refresh Token 누락");
+        // lastId가 없으면 기본값 (가장 최신 ID) 설정
+        if (lastId == null) {
+            lastId = Long.MAX_VALUE; // 가장 최신 ID를 의미
         }
-        String newAccessToken = jwtService.reissueAccessToken(refreshToken);
 
-        RefreshTokenResponseDto refreshTokenResponseDto = new RefreshTokenResponseDto(newAccessToken);
-        return ResponseEntity.ok(ApiResponse.success("Access Token 재발급 성공", refreshTokenResponseDto));
+        MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, createdAtCursor, lastId, size);
+
+        return ResponseEntity.ok(ApiResponse.success("나의 데스크 조회 성공", myDeskImageResponseDto));
     }
 }
