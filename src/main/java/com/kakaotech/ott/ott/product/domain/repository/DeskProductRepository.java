@@ -1,9 +1,9 @@
-package com.kakaotech.ott.ott.aiImage.domain.repository;
+package com.kakaotech.ott.ott.product.domain.repository;
 
-import com.kakaotech.ott.ott.aiImage.domain.model.DeskProduct;
+import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
-import com.kakaotech.ott.ott.aiImage.infrastructure.entity.DeskProductEntity;
-import com.kakaotech.ott.ott.aiImage.infrastructure.entity.ProductSubCategoryEntity;
+import com.kakaotech.ott.ott.product.infrastructure.entity.DeskProductEntity;
+import com.kakaotech.ott.ott.product.infrastructure.entity.ProductSubCategoryEntity;
 
 import java.util.List;
 

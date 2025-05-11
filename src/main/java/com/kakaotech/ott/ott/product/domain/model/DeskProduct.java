@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.aiImage.domain.model;
+package com.kakaotech.ott.ott.product.domain.model;
 
 import lombok.Builder;
 import lombok.Getter;

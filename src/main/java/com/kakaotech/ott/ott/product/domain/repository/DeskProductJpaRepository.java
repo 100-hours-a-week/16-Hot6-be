@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.aiImage.domain.repository;
+package com.kakaotech.ott.ott.product.domain.repository;
 
-import com.kakaotech.ott.ott.aiImage.infrastructure.entity.DeskProductEntity;
+import com.kakaotech.ott.ott.product.infrastructure.entity.DeskProductEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

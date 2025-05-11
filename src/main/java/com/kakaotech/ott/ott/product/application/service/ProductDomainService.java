@@ -1,8 +1,7 @@
-package com.kakaotech.ott.ott.aiImage.application.service;
+package com.kakaotech.ott.ott.product.application.service;
 
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
-import com.kakaotech.ott.ott.aiImage.domain.model.DeskProduct;
-import com.kakaotech.ott.ott.aiImage.domain.model.ProductMainCategory;
+import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
 
 import java.util.List;
