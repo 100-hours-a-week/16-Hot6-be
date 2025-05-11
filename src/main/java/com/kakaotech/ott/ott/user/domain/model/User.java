@@ -76,4 +76,16 @@ public class User {
         this.nicknameKakao = nicknameKakao;
     }
 
+    public void updateActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public void updateDeletedAt() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public void updateVerified() {
+        this.isVerified = true;
+    }
+
 }

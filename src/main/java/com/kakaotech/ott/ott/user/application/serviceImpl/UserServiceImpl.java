@@ -2,14 +2,18 @@ package com.kakaotech.ott.ott.user.application.serviceImpl;
 
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.application.service.UserService;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequestDto;
+import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +27,9 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final AiImageRepository aiImageRepository;
+
+    @Value("${verified.code}")
+    private String verifiedCode;
 
     @Override
     public MyInfoResponseDto getMyInfo(Long userId) {
@@ -67,8 +74,39 @@ public class UserServiceImpl implements UserService {
         if(userInfoUpdateRequestDto.getNicknameCommunity() != null) user.updateNicknameCommunity(userInfoUpdateRequestDto.getNicknameCommunity());
         if(userInfoUpdateRequestDto.getNicknameKakao() != null) user.updateNicknameKakao(userInfoUpdateRequestDto.getNicknameKakao());
 
-        User savedUser = userRepository.save(user);
+        User savedUser = userRepository.update(user);
 
         return new UserInfoUpdateResponseDto(savedUser.getImagePath(), savedUser.getNicknameCommunity(), savedUser.getNicknameKakao());
     }
+
+    @Override
+    public void deleteUser(Long userId) {
+
+        User user = userRepository.findById(userId);
+
+        if(!user.isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
+
+        user.updateActive(false);
+        user.updateDeletedAt();
+
+        userRepository.delete(user);
+    }
+
+    @Override
+    public void verifiedCode(Long userId, UserVerifiedRequestDto userVerifiedRequestDto) {
+
+        User user = userRepository.findById(userId);
+
+        if(user.isVerified())
+            throw new CustomException(ErrorCode.USER_ALREADY_AUTHENTICATED);
+
+        if(!userVerifiedRequestDto.getCode().equals(verifiedCode))
+            throw new CustomException(ErrorCode.INVALID_INPUT_CODE);
+
+        user.updateVerified();
+        userRepository.certify(user);
+    }
+
+
 }
