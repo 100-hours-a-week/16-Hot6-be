@@ -6,19 +6,53 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 
-    // 기존 것들
-    ACCESS_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "카카오 access token이 누락되었습니다."),
+    // Token
+    ACCESS_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "카카오 Access token이 누락되었습니다."),
     INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 카카오 access token입니다."),
 
-    // 추가
-    ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Access Token이 만료되었습니다."),
-    ACCESS_TOKEN_INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, "Access Token 서명이 유효하지 않습니다."),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 Refresh token입니다."),
     REFRESH_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "Refresh token이 누락되었습니다."),
-    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Refresh Token이 만료되었습니다."),
-    REFRESH_TOKEN_INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, "Refresh Token 서명이 유효하지 않습니다."),
+    REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Refresh Token이 만료되었습니다. 다시 로그인해 주세요."),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "Refresh Token이 존재하지 않습니다."),
 
+    // User
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 사용자가 존재하지 않습니다."),
+    AUTH_REQUIRED(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다."),
     USER_DELETED(HttpStatus.FORBIDDEN, "탈퇴한 사용자입니다."),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다.");
+    LOGOUT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "로그아웃 처리에 실패했습니다."),
+    USER_ALREADY_AUTHENTICATED(HttpStatus.FORBIDDEN, "이미 추천인 코드를 등록하셨습니다."),
+    INVALID_INPUT_CODE(HttpStatus.BAD_REQUEST, "추천인 코드가 일치하지 않습니다."),
+    DUPLICATE_NICKNAME_COMMUNITY(HttpStatus.CONFLICT, "이미 사용 중인 커뮤니티 닉네임입니다."),
+    USER_FORBIDDEN(HttpStatus.FORBIDDEN, "수정할 권한이 없습니다."),
+
+    // Post
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다."),
+    INVALID_CURSOR(HttpStatus.BAD_REQUEST, "유효하지 않은 lastPostId 값입니다."),
+
+    // AiImage
+    AIIMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 AI 이미지가 존재하지 않습니다."),
+    AI_IMAGE_ALREADY_USED(HttpStatus.CONFLICT, "해당 AI 이미지는 이미 게시물에 연결되어 있습니다."),
+    INVALID_IMAGE(HttpStatus.BAD_REQUEST, "올바른 데스크 이미지가 아닙니다."),
+
+    // Product
+    AI_PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 AI 이미지에 대한 추천 상품이 존재하지 않습니다."),
+
+    // Scrap
+    SCRAP_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 스크랩한 게시글입니다."),
+    SCRAP_NOT_FOUND(HttpStatus.CONFLICT, "스크랩하지 않은 게시글입니다."),
+
+    // Like
+    LIKE_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 좋아요한 게시글입니다."),
+    LIKE_NOT_FOUND(HttpStatus.CONFLICT, "좋아요하지 않은 게시글입니다."),
+
+    // Comment
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글이 존재하지 않습니다."),
+
+    // REPLY
+    REPLY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 대댓글이 존재하지 않습니다."),
+
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
+    INVALID_INPUT(HttpStatus.BAD_REQUEST, "유효하지 않은 값을 입력했습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

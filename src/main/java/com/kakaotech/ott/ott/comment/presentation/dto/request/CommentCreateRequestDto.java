@@ -12,6 +12,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CommentCreateRequestDto {
 
-    @NotBlank(message = "댓글을 입력하세요.")
+    @NotBlank(message = "댓글 내용은 필수 입력 항목입니다.")
     private String content;
 }

@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.scrap.application.serviceImpl;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.scrap.application.service.ScrapService;
@@ -26,15 +28,16 @@ public class ScrapServiceImpl implements ScrapService {
     public void likeScrap(Long userId, ScrapRequestDto scrapRequestDto) {
 
         User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                 .toDomain();
         Post post = postRepository.findById(scrapRequestDto.getTargetId());
 
         boolean exists = scrapRepository.existsByUserIdAndTypeAndPostId(userId, scrapRequestDto.getType(), scrapRequestDto.getTargetId());
 
-        // 이미 좋아요 상태라면 아무 동작 하지 않음
-        if(exists)
-            return;
+        // 이미 스크랩 상태라면 아무 동작 하지 않음
+        if(exists) {
+            throw new CustomException(ErrorCode.SCRAP_ALREADY_EXISTS);
+        }
 
         Scrap scrap = Scrap.createScrap(userId, scrapRequestDto.getType(), scrapRequestDto.getTargetId());
         Scrap savedscrap = scrapRepository.save(scrap);
@@ -47,14 +50,15 @@ public class ScrapServiceImpl implements ScrapService {
     public void unlikeScrap(Long userId, ScrapRequestDto scrapRequestDto) {
 
         User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("사용자를 찾을 수 없습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                 .toDomain();
 
         boolean exists = scrapRepository.existsByUserIdAndTypeAndPostId(userId, scrapRequestDto.getType(), scrapRequestDto.getTargetId());
 
-        // 이미 좋아요 상태라면 아무 동작 하지 않음
-        if(!exists)
-            return;
+        // 이미 스크랩 상태라면 아무 동작 하지 않음
+        if(!exists) {
+            throw new CustomException(ErrorCode.SCRAP_NOT_FOUND);
+        }
 
         scrapRepository.deleteByUserEntityIdAndTypeAndTargetId(userId, scrapRequestDto.getTargetId());
 

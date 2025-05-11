@@ -3,6 +3,8 @@ package com.kakaotech.ott.ott.post.application.serviceImpl;
 import com.kakaotech.ott.ott.aiImage.application.serviceImpl.S3Uploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
 import com.kakaotech.ott.ott.post.application.component.ViewCountAggregator;
 import com.kakaotech.ott.ott.post.application.service.PostService;
@@ -20,7 +22,6 @@ import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +55,7 @@ public class PostServiceImpl implements PostService {
                 freePostCreateRequestDto.getTitle(), freePostCreateRequestDto.getContent());
 
         UserEntity userEntity = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         int seq = 1;
         for (MultipartFile file : freePostCreateRequestDto.getImages()) {
@@ -75,7 +76,7 @@ public class PostServiceImpl implements PostService {
                 aiPostCreateRequestDto.getTitle(), aiPostCreateRequestDto.getContent());
 
         User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                 .toDomain();
 
         user.updatePoint(500);
@@ -84,7 +85,13 @@ public class PostServiceImpl implements PostService {
         Post savedPost = postRepository.save(post);
 
         AiImage aiImage = aiImageRepository.findById(aiPostCreateRequestDto.getAiImageId())
-                .orElseThrow(() -> new EntityNotFoundException("AI 이미지 없음")).toDomain();
+                .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
+                .toDomain();
+
+        if(aiImage.getPostId() != null) {
+            throw new CustomException(ErrorCode.AI_IMAGE_ALREADY_USED);
+        }
+
         aiImage.updatePostId(savedPost.getId());
         aiImageRepository.savePost(aiImage);
 
@@ -95,6 +102,10 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostAllResponseDto getAllPost(Long userId, int size, Long lastPostId) {
 
+        if (lastPostId != null && lastPostId <= 0) {
+            throw new CustomException(ErrorCode.INVALID_CURSOR);
+        }
+
         // 1) 커서 기반으로 size 개만 가져오기
         List<Post> posts = postRepository.findAllByCursor(size, lastPostId);
 
@@ -102,7 +113,7 @@ public class PostServiceImpl implements PostService {
         List<PostAllResponseDto.Posts> dtoList = posts.stream()
                 .map(post -> {
                     UserEntity author = userAuthRepository.findById(post.getUserId())
-                            .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."));
+                            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
                     boolean scrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
@@ -145,7 +156,7 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId);
 
         User user = userAuthRepository.findById(post.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                 .toDomain();
 
         boolean isOwner = post.getUserId().equals(userId);
@@ -184,7 +195,7 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId);
 
         if(!post.getUserId().equals(userId)) {
-            throw new AccessDeniedException("삭제 권한이 없습니다.");
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
 
         for (PostImage img : post.getImages()) {
@@ -198,12 +209,14 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostCreateResponseDto updateFreePost(Long postId, Long userId, FreePostUpdateRequestDto freePostUpdateRequestDto) throws IOException {
 
-        UserEntity userEntity = userAuthRepository.findById(userId)
-                .orElseThrow();
+        User user = userAuthRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
+                .toDomain();
+
         Post post = postRepository.findById(postId);
 
         if (!post.getUserId().equals(userId)) {
-            throw new AccessDeniedException("수정 권한이 없습니다.");
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
         // 2) 변경 가능한 필드 적용
         if (freePostUpdateRequestDto.getTitle() != null) post.updateTitle(freePostUpdateRequestDto.getTitle());
@@ -231,18 +244,34 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostCreateResponseDto updateAiPost(Long postId, Long userId, AiPostUpdateRequestDto aiPostUpdateRequestDto) throws IOException {
-        UserEntity userEntity = userAuthRepository.findById(userId)
-                .orElseThrow();
+        User user = userAuthRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
+                .toDomain();
         Post post = postRepository.findById(postId);
 
         if (!post.getUserId().equals(userId)) {
-            throw new AccessDeniedException("수정 권한이 없습니다.");
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
         // 2) 변경 가능한 필드 적용
         if (aiPostUpdateRequestDto.getTitle() != null) post.updateTitle(aiPostUpdateRequestDto.getTitle());
         if (aiPostUpdateRequestDto.getContent() != null) post.updateContent(aiPostUpdateRequestDto.getContent());
         // 3) 이미지 교체 로직
         if (aiPostUpdateRequestDto.getAiImageId() != null) {
+            AiImage aiImage = aiImageRepository.findById(aiPostUpdateRequestDto.getAiImageId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
+                    .toDomain();
+
+            if(aiImage.getPostId() != null) {
+                throw new CustomException(ErrorCode.AI_IMAGE_ALREADY_USED);
+            }
+
+            AiImage beforeAiImage = aiImageRepository.findByPostId(post.getId());
+            beforeAiImage.updatePostId(null);
+
+            aiImage.updatePostId(post.getId());
+
+            aiImageRepository.savePost(beforeAiImage);
+            aiImageRepository.savePost(aiImage);
         }
 
 

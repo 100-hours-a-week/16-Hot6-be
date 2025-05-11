@@ -8,6 +8,7 @@ import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -41,18 +42,18 @@ public class CommentController {
 
         CommentCreateResponseDto commentCreateResponseDto = commentService.createComment(commentCreateRequestDto, userId, postId);
 
-        return ResponseEntity.ok(ApiResponse.success("댓글 작성 완료", commentCreateResponseDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("댓글 작성 완료", commentCreateResponseDto));
     }
 
     @DeleteMapping("/comments/{commentId}")
-    public ResponseEntity<ApiResponse> deleteComment(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<Void> deleteComment(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                      @PathVariable Long commentId) {
 
         Long userId = userPrincipal.getId();
 
         commentService.deleteComment(commentId, userId);
 
-        return ResponseEntity.ok(ApiResponse.success("댓글 삭제 완료", null));
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/comments/{commentId}")

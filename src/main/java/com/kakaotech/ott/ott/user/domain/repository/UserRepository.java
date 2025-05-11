@@ -11,4 +11,6 @@ public interface UserRepository {
     void delete(User user);
 
     void certify(User user);
+
+    boolean existsByNicknameCommunity(String nicknameCommunity);
 }

@@ -6,6 +6,8 @@ import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
 import com.kakaotech.ott.ott.comment.presentation.dto.request.CommentCreateRequestDto;
 import com.kakaotech.ott.ott.comment.presentation.dto.response.CommentCreateResponseDto;
 import com.kakaotech.ott.ott.comment.presentation.dto.response.CommentListResponseDto;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
@@ -41,11 +43,11 @@ public class CommentServiceImpl implements CommentService {
     public void deleteComment(Long commentId, Long userId) {
 
         User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 아닙니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                 .toDomain();
 
-        if(user.getId() != userId)
-            throw new AccessDeniedException("댓글 작성자가 아닙니다.");
+        if(!user.getId().equals(userId))
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
 
         Comment comment = commentRepository.findById(commentId);
 
@@ -58,13 +60,13 @@ public class CommentServiceImpl implements CommentService {
     public CommentCreateResponseDto updateComment(CommentCreateRequestDto commentCreateRequestDto, Long commentId, Long userId) {
 
         userAuthRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 아닙니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                 .toDomain();
 
         Comment comment = commentRepository.findById(commentId);
 
         if(!comment.getUserId().equals(userId)) {
-            throw new AccessDeniedException("수정 권한이 없습니다.");
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
 
         if (commentCreateRequestDto.getContent() != null) {
@@ -95,7 +97,7 @@ public class CommentServiceImpl implements CommentService {
                         .map(c -> {
                             // 작성자 정보 조회
                             User author = userAuthRepository.findById(c.getUserId())
-                                    .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."))
+                                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                                     .toDomain();
 
                             CommentListResponseDto.AuthorDto authorDto =

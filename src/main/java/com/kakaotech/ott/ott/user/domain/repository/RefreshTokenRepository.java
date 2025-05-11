@@ -9,4 +9,6 @@ public interface RefreshTokenRepository {
     Optional<RefreshTokenEntity> findById(Long userId);
 
     RefreshTokenEntity save(RefreshTokenEntity refreshTokenEntity);
+
+    void delete(Long userId);
 }

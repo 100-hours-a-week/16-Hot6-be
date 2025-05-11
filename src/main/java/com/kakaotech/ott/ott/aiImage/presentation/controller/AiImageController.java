@@ -14,6 +14,7 @@ import com.kakaotech.ott.ott.user.application.service.UserAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,7 +45,7 @@ public class AiImageController {
 
         if (!checkQuota)
             return ResponseEntity
-                    .badRequest()
+                    .status(HttpStatus.FORBIDDEN)
                     .body(ApiResponse.error(403, "오늘은 더 이상 이미지를 생성할 수 없습니다."));
 
         CheckAiImageQuotaResponseDto responseDto = new CheckAiImageQuotaResponseDto(1);
@@ -73,7 +74,6 @@ public class AiImageController {
                     .body(ApiResponse.error(400, "이미지 파일이 비어있습니다."));
         }
 
-
         AiImageSaveResponseDto aiImageSaveResponseDto = aiImageService.handleImageValidation(image, userId);
 
         return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성 요청이 접수되었습니다.", aiImageSaveResponseDto));
@@ -95,7 +95,7 @@ public class AiImageController {
 
         AiImageSaveResponseDto aiImageSaveResponseDto = new AiImageSaveResponseDto(deskProduct.get(0).getAiImageId());
 
-        return ResponseEntity.ok(ApiResponse.success("AI 이미지 저장이 완료됐습니다.", aiImageSaveResponseDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("AI 이미지 저장이 완료됐습니다.", aiImageSaveResponseDto));
     }
 
     @GetMapping("/ai-images/{imageId}")

@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.global.security;
 
 
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.user.presentation.controller.OAuth2FailureHandler;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomOAuth2UserService;
@@ -39,18 +40,25 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // ✅ CSRF 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login/**", "/oauth2/**", "/login/oauth2/**", "/api/v1/auth/**", "/health").permitAll()
-                        .requestMatchers("/api/v1/ai-images/result").permitAll()
+                        .requestMatchers("/login/**", "/oauth2/**", "/login/oauth2/**", "/api/v1/auth/**", "/health", "/api/v1/ai-images/result").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, ex1) -> {
                             if (isApiRequest(req)) {
-                                res.setStatus(HttpStatus.UNAUTHORIZED.value());
+                                res.setStatus(ErrorCode.AUTH_REQUIRED.getHttpStatus().value());
                                 res.setContentType("application/json;charset=UTF-8");
-                                res.getWriter().write("{\"status\":401,\"message\":\"Unauthorized\"}");
+
+                                String jsonResponse = String.format(
+                                        "{\"status\":%d,\"message\":\"%s\",\"code\":\"%s\"}",
+                                        ErrorCode.AUTH_REQUIRED.getHttpStatus().value(),
+                                        ErrorCode.AUTH_REQUIRED.getMessage(),
+                                        ErrorCode.AUTH_REQUIRED.name()
+                                );
+
+                                res.getWriter().write(jsonResponse);
                             } else {
-                                res.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized");
+                                res.sendError(ErrorCode.AUTH_REQUIRED.getHttpStatus().value(), ErrorCode.AUTH_REQUIRED.getMessage());
                             }
                         })
                 )
