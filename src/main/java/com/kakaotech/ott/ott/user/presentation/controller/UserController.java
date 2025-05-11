@@ -3,15 +3,15 @@ package com.kakaotech.ott.ott.user.presentation.controller;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.user.application.service.UserService;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
+import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequestDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -55,5 +55,17 @@ public class UserController {
         MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, createdAtCursor, lastId, size);
 
         return ResponseEntity.ok(ApiResponse.success("나의 데스크 조회 성공", myDeskImageResponseDto));
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<UserInfoUpdateResponseDto>> updateUserInfo(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody @Valid UserInfoUpdateRequestDto userInfoUpdateRequestDto) {
+
+        Long userId = userPrincipal.getId();
+
+        UserInfoUpdateResponseDto userInfoUpdateResponseDto = userService.updateUserInfo(userId, userInfoUpdateRequestDto);
+
+        return ResponseEntity.ok(ApiResponse.success("회원 정보 수정 성공", userInfoUpdateResponseDto));
     }
 }

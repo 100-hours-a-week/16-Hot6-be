@@ -92,4 +92,16 @@ public class UserEntity extends AuditEntity {
                 .deletedAt(user.getDeletedAt())
                 .build();
     }
+
+    public void updateProfileImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public void updateNicknameCommunity(String nicknameCommunity) {
+        this.nicknameCommunity = nicknameCommunity;
+    }
+
+    public void updateNicknameKakao(String nicknameKakao) {
+        this.nicknameKakao = nicknameKakao;
+    }
 }

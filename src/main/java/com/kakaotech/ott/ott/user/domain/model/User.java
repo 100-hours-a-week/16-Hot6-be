@@ -64,4 +64,16 @@ public class User {
         this.point += point;
     }
 
+    public void updateProfileImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public void updateNicknameCommunity(String nicknameCommunity) {
+        this.nicknameCommunity = nicknameCommunity;
+    }
+
+    public void updateNicknameKakao(String nicknameKakao) {
+        this.nicknameKakao = nicknameKakao;
+    }
+
 }
