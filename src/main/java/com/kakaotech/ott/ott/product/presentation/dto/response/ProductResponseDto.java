@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.aiImage.presentation.dto.response;
+package com.kakaotech.ott.ott.product.presentation.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,12 +1,9 @@
-package com.kakaotech.ott.ott.aiImage.infrastructure.repositoryImpl;
+package com.kakaotech.ott.ott.product.infrastructure.serviceImpl;
 
-import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
-import com.kakaotech.ott.ott.aiImage.domain.model.ProductMainCategory;
-import com.kakaotech.ott.ott.aiImage.domain.repository.ProductMainCategoryJpaRepository;
-import com.kakaotech.ott.ott.aiImage.domain.repository.ProductMainCategoryRepository;
-import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
-import com.kakaotech.ott.ott.aiImage.infrastructure.entity.ProductMainCategoryEntity;
-import com.kakaotech.ott.ott.user.domain.model.User;
+import com.kakaotech.ott.ott.product.domain.model.ProductMainCategory;
+import com.kakaotech.ott.ott.product.domain.repository.ProductMainCategoryJpaRepository;
+import com.kakaotech.ott.ott.product.domain.repository.ProductMainCategoryRepository;
+import com.kakaotech.ott.ott.product.infrastructure.entity.ProductMainCategoryEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.aiImage.infrastructure.entity;
+package com.kakaotech.ott.ott.product.infrastructure.entity;
 
-import com.kakaotech.ott.ott.aiImage.domain.model.ProductMainCategory;
+import com.kakaotech.ott.ott.product.domain.model.ProductMainCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,8 +1,8 @@
 package com.kakaotech.ott.ott.aiImage.presentation.controller;
 
-import com.kakaotech.ott.ott.aiImage.application.service.ProductDomainService;
+import com.kakaotech.ott.ott.product.application.service.ProductDomainService;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
-import com.kakaotech.ott.ott.aiImage.domain.model.DeskProduct;
+import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageUploadRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.*;
@@ -14,7 +14,6 @@ import com.kakaotech.ott.ott.user.application.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

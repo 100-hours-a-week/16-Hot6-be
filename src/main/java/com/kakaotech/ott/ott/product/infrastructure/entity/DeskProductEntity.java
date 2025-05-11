@@ -1,6 +1,7 @@
-package com.kakaotech.ott.ott.aiImage.infrastructure.entity;
+package com.kakaotech.ott.ott.product.infrastructure.entity;
 
-import com.kakaotech.ott.ott.aiImage.domain.model.DeskProduct;
+import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
+import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
 import jakarta.persistence.*;
 import lombok.*;
 

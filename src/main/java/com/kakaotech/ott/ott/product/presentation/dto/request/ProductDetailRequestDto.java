@@ -1,4 +1,4 @@
-package com.kakaotech.ott.ott.aiImage.presentation.dto.request;
+package com.kakaotech.ott.ott.product.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
