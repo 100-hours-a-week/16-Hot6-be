@@ -9,9 +9,12 @@ import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,6 +82,15 @@ public class AiImageRepositoryImpl implements AiImageRepository {
     public Optional<AiImageEntity> findById(Long userId) {
 
         return aiImageJpaRepository.findById(userId);
+    }
+
+    @Override
+    public Slice<AiImage> findUserDeskImages(Long userId, LocalDateTime cursorCreatedAt, Long cursorId, int size) {
+        Slice<AiImageEntity> slice = aiImageJpaRepository.findByUserWithCursor(
+                userId, cursorCreatedAt, cursorId, PageRequest.of(0, size)
+        );
+
+        return slice.map(AiImageEntity::toDomain);
     }
 
     @Override

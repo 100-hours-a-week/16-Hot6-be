@@ -1,59 +1,47 @@
 package com.kakaotech.ott.ott.user.application.serviceImpl;
 
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
-import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.user.application.service.UserService;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletResponse;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
-    private final JwtService jwtService;
-    private final KakaoLogoutServiceImpl kakaoLogoutService;
+    private final AiImageRepository aiImageRepository;
+
 
     @Override
-    public boolean checkQuota(Long userId) {
+    public MyDeskImageResponseDto getMyDeskWithCursor(Long userId, LocalDateTime createdAtCursor, Long lastId, int size) {
+        Slice<AiImage> aiImages = aiImageRepository.findUserDeskImages(
+                userId,
+                createdAtCursor,
+                lastId,
+                size
+        );
 
-        LocalDate today = LocalDate.now();
+        List<MyDeskImageResponseDto.ImageDto> imageDtos = aiImages.stream()
+                .map(image -> new MyDeskImageResponseDto.ImageDto(
+                        image.getId(),
+                        image.getBeforeImagePath(),
+                        image.getAfterImagePath(),
+                        image.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
 
-        // 1. 사용자가 존재하지 않으면 예외 발생 (404)
-        UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자를 찾을 수 없습니다."));
-
-        // 2. quota 사용일이 null이면 → 아직 사용 안 함 → 사용 가능
-        LocalDate lastGenerated = userEntity.getAiImageGeneratedDate();
-
-        return lastGenerated == null || !today.equals(lastGenerated);
-
-    }
-
-    @Override
-    public void logout(Long userId, HttpServletResponse response, String kakaoAccessToken) {
-        // 1️⃣ 서버에서 Refresh Token 삭제 (DB or Redis)
-        jwtService.logout(userId);
-
-        // 2️⃣ 클라이언트의 Refresh Token 쿠키 만료
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", null)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .domain("dev.onthe-top.com") // 환경에 맞게 도메인 설정
-                .path("/")
-                .maxAge(0)  // 즉시 만료
-                .build();
-        response.addHeader("Set-Cookie", refreshCookie.toString());
-
-        // 3️⃣ 카카오 서버에서 사용자 로그아웃
-        if (kakaoAccessToken != null) {
-            kakaoLogoutService.logoutFromKakao(kakaoAccessToken);
-        }
+        return new MyDeskImageResponseDto(
+                imageDtos,
+                size,
+                aiImages.hasNext() ? aiImages.getContent().get(aiImages.getNumberOfElements() - 1).getId() : null,
+                aiImages.hasNext()
+        );
     }
 }

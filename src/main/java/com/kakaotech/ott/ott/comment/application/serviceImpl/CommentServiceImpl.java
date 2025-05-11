@@ -8,7 +8,7 @@ import com.kakaotech.ott.ott.comment.presentation.dto.response.CommentCreateResp
 import com.kakaotech.ott.ott.comment.presentation.dto.response.CommentListResponseDto;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
     private final PostRepository postRepository;
 
     @Override
@@ -40,7 +40,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComment(Long commentId, Long userId) {
 
-        User user = userRepository.findById(userId)
+        User user = userAuthRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 아닙니다."))
                 .toDomain();
 
@@ -57,7 +57,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentCreateResponseDto updateComment(CommentCreateRequestDto commentCreateRequestDto, Long commentId, Long userId) {
 
-        userRepository.findById(userId)
+        userAuthRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 아닙니다."))
                 .toDomain();
 
@@ -94,7 +94,7 @@ public class CommentServiceImpl implements CommentService {
                 commentList.stream()
                         .map(c -> {
                             // 작성자 정보 조회
-                            User author = userRepository.findById(c.getUserId())
+                            User author = userAuthRepository.findById(c.getUserId())
                                     .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."))
                                     .toDomain();
 

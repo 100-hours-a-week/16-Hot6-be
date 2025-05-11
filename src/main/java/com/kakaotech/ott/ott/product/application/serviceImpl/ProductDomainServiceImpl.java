@@ -1,6 +1,5 @@
 package com.kakaotech.ott.ott.product.application.serviceImpl;
 
-import com.kakaotech.ott.ott.post.presentation.dto.response.PopularSetupDto;
 import com.kakaotech.ott.ott.product.application.service.ProductDomainService;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
@@ -19,7 +18,7 @@ import com.kakaotech.ott.ott.product.presentation.dto.response.RecommendedItemsD
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,14 +35,14 @@ public class ProductDomainServiceImpl implements ProductDomainService {
     private final ProductSubCategoryRepository productSubCategoryRepository;
     private final DeskProductRepository deskProductRepository;
     private final AiImageRepository aiImageRepository;
-    private final UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
     private final ScrapRepository scrapRepository;
 
     @Override
     public List<DeskProduct> createdProduct(AiImageAndProductRequestDto aiImageAndProductRequestDto, AiImage aiImage, Long userId) {
         List<DeskProduct> savedDeskProducts = new ArrayList<>();
 
-        User user = userRepository.findById(userId)
+        User user = userAuthRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자를 찾을 수 없습니다."))
                 .toDomain();
 

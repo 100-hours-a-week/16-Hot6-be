@@ -2,7 +2,7 @@ package com.kakaotech.ott.ott.user.application.serviceImpl;
 
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,12 +13,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
 
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
         Long id = Long.valueOf(userId);
-        User user = userRepository.findById(id)
+        User user = userAuthRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId)).toDomain();
 
         return UserPrincipal.create(user);

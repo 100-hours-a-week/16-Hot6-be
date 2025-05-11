@@ -15,7 +15,7 @@ import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.*;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductResponseDto;
 import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,7 @@ import java.util.List;
 public class AiImageServiceImpl implements AiImageService {
 
     private final AiImageRepository aiImageRepository;
-    private final UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
 
     private final DeskProductRepository deskProductRepository;
 
@@ -75,7 +75,7 @@ public class AiImageServiceImpl implements AiImageService {
         aiImage.updateAiImage(aiImageAndProductRequestDto.getProcessedImageUrl());
         aiImage.successState();
 
-        User user = userRepository.findById(aiImage.getUserId())
+        User user = userAuthRepository.findById(aiImage.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."))
                 .toDomain();
 
@@ -83,7 +83,7 @@ public class AiImageServiceImpl implements AiImageService {
 
         AiImage savedAiImage = aiImageRepository.saveImage(aiImage);
 
-        userRepository.save(user);
+        userAuthRepository.save(user);
 
         return savedAiImage;
     }

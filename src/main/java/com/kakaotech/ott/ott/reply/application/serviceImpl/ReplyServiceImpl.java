@@ -9,7 +9,7 @@ import com.kakaotech.ott.ott.reply.presentation.dto.request.ReplyCreateRequestDt
 import com.kakaotech.ott.ott.reply.presentation.dto.response.ReplyCreateResponseDto;
 import com.kakaotech.ott.ott.reply.presentation.dto.response.ReplyListResponseDto;
 import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ public class ReplyServiceImpl implements ReplyService {
     private final ReplyRepository replyRepository;
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
 
     @Override
     public ReplyListResponseDto getAllReply(Long userId, Long commentId, Long lastReplyId, int size) {
@@ -44,7 +44,7 @@ public class ReplyServiceImpl implements ReplyService {
         List<ReplyListResponseDto.ReplyResponseDto> replyDtos =
                 replyList.stream()
                         .map(r -> {
-                            User author = userRepository.findById(r.getUserId())
+                            User author = userAuthRepository.findById(r.getUserId())
                                     .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."))
                                     .toDomain();
 
@@ -105,7 +105,7 @@ public class ReplyServiceImpl implements ReplyService {
     @Override
     public void deleteReply(Long replyId, Long userId){
 
-        userRepository.findById(userId)
+        userAuthRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("로그인이 필요합니다."));
 
         Reply reply = replyRepository.findById(replyId);

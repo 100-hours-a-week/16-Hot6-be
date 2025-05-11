@@ -5,7 +5,7 @@ import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 
 import java.util.Optional;
 
-public interface UserRepository {
+public interface UserAuthRepository {
 
     Optional<User> findByEmail(String email);
 
