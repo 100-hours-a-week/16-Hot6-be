@@ -4,8 +4,8 @@ import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.user.application.service.UserService;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +21,17 @@ import java.time.LocalDateTime;
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<MyInfoResponseDto>> getMyInfo(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+        Long userId = userPrincipal.getId();
+
+        MyInfoResponseDto myInfoResponseDto = userService.getMyInfo(userId);
+
+        return ResponseEntity.ok(ApiResponse.success("회원정보 조회 성공", myInfoResponseDto));
+    }
 
     @GetMapping("/me/desks")
     public ResponseEntity<ApiResponse<MyDeskImageResponseDto>> getMyDesk(

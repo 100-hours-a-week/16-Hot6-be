@@ -3,7 +3,10 @@ package com.kakaotech.ott.ott.user.application.serviceImpl;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.user.application.service.UserService;
+import com.kakaotech.ott.ott.user.domain.model.User;
+import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -16,8 +19,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private final UserRepository userRepository;
     private final AiImageRepository aiImageRepository;
 
+    @Override
+    public MyInfoResponseDto getMyInfo(Long userId) {
+
+        User user = userRepository.findById(userId);
+
+        return new MyInfoResponseDto(user.getNicknameCommunity(), user.getNicknameKakao(), user.getImagePath(), user.getPoint(), user.isVerified());
+    }
 
     @Override
     public MyDeskImageResponseDto getMyDeskWithCursor(Long userId, LocalDateTime createdAtCursor, Long lastId, int size) {
