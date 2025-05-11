@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.global.security;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -27,6 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         String token = resolveToken(request);
+
         try {
             if (token != null) {
                 if (jwtService.validateToken(token)) {
@@ -35,6 +38,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // ✅ 만료된 Access Token 처리 (401 반환)
                     throw new ExpiredJwtException(null, null, "Access Token Expired");
                 }
+            } else {
+                throw new CustomException(ErrorCode.ACCESS_TOKEN_REQUIRED);
             }
         } catch (ExpiredJwtException ex) {
             // ✅ Access Token 만료된 경우 - 401 응답

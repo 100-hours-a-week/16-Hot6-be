@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.post.infrastructure.repositoryImpl;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.post.domain.repository.PostJpaRepository;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
@@ -75,7 +77,7 @@ public class PostRepositoryImpl implements PostRepository {
     public Post findById(Long postId) {
 
         return postJpaRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 게시물이 존재하지 않습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND))
                 .toDomain();
     }
 

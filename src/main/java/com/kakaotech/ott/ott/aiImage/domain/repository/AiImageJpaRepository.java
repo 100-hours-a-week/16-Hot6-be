@@ -33,4 +33,7 @@ public interface AiImageJpaRepository extends JpaRepository<AiImageEntity, Long>
     @Query("SELECT a FROM AiImageEntity a WHERE a.postId IN :postIds")
     List<AiImageEntity> findByPostIdIn(@Param("postIds") List<Long> postIds);
 
+    @Query("SELECT a FROM AiImageEntity a WHERE a.postId = :postId")
+    Optional<AiImageEntity> findByPostId(@Param("postId") Long postId);
+
 }

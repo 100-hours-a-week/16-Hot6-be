@@ -23,4 +23,6 @@ public interface AiImageRepository {
     AiImage findByBeforeImagePath(String beforeImagePath);
 
     Map<Long, AiImage> findByPostIds(List<Long> postIds);
+
+    AiImage findByPostId(Long postId);
 }

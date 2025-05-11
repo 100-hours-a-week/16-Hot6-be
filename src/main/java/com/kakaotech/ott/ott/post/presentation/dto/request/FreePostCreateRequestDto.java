@@ -17,10 +17,10 @@ import java.util.List;
 @AllArgsConstructor
 public class FreePostCreateRequestDto {
 
-    @NotBlank(message = "제목은 필수입니다.")
+    @NotBlank(message = "게시글 제목은 필수입니다.")
     private String title;
 
-    @NotBlank(message = "내용은 필수입니다.")
+    @NotBlank(message = "게시글 내용은 필수입니다.")
     private String content;
 
     @NotNull(message = "이미지는 필수입니다.")

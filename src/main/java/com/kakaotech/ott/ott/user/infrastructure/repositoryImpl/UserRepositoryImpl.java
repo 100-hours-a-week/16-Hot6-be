@@ -63,5 +63,11 @@ public class UserRepositoryImpl implements UserRepository {
         userEntity.updateVerified();
     }
 
+    @Override
+    public boolean existsByNicknameCommunity(String nicknameCommunity) {
+
+        return userJpaRepository.existsByNicknameCommunity(nicknameCommunity);
+    }
+
 
 }

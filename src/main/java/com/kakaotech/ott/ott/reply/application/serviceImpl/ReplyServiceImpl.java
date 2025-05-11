@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.reply.application.serviceImpl;
 
 import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.reply.application.service.ReplyService;
 import com.kakaotech.ott.ott.reply.domain.model.Reply;
@@ -45,7 +47,7 @@ public class ReplyServiceImpl implements ReplyService {
                 replyList.stream()
                         .map(r -> {
                             User author = userAuthRepository.findById(r.getUserId())
-                                    .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."))
+                                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                                     .toDomain();
 
                             ReplyListResponseDto.AuthorDto authorDto =
@@ -92,7 +94,7 @@ public class ReplyServiceImpl implements ReplyService {
         Reply reply = replyRepository.findById(replyId);
 
         if(!reply.getUserId().equals(userId))
-            throw new AccessDeniedException("해당 대댓글의 작성자가 아닙니다.");
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
 
         if(replyCreateRequestDto.getContent() != null)
             reply.updateContent(replyCreateRequestDto.getContent());
@@ -106,12 +108,12 @@ public class ReplyServiceImpl implements ReplyService {
     public void deleteReply(Long replyId, Long userId){
 
         userAuthRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("로그인이 필요합니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         Reply reply = replyRepository.findById(replyId);
 
         if(!reply.getUserId().equals(userId))
-            throw new AccessDeniedException("해당 대댓글의 작성자가 아닙니다.");
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
 
         replyRepository.delete(replyId);
 

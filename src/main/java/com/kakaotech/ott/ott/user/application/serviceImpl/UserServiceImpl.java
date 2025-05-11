@@ -36,11 +36,20 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findById(userId);
 
+        if (!user.isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
+
         return new MyInfoResponseDto(user.getNicknameCommunity(), user.getNicknameKakao(), user.getImagePath(), user.getPoint(), user.isVerified());
     }
 
     @Override
     public MyDeskImageResponseDto getMyDeskWithCursor(Long userId, LocalDateTime createdAtCursor, Long lastId, int size) {
+
+        User user = userRepository.findById(userId);
+
+        if (!user.isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
+
         Slice<AiImage> aiImages = aiImageRepository.findUserDeskImages(
                 userId,
                 createdAtCursor,
@@ -70,6 +79,12 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findById(userId);
 
+        if (!user.isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
+
+//        if (userRepository.existsByNicknameCommunity(userInfoUpdateRequestDto.getNicknameCommunity()))
+//            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME_COMMUNITY);
+
         if(userInfoUpdateRequestDto.getProfileImage() != null) user.updateProfileImagePath(userInfoUpdateRequestDto.getProfileImage());
         if(userInfoUpdateRequestDto.getNicknameCommunity() != null) user.updateNicknameCommunity(userInfoUpdateRequestDto.getNicknameCommunity());
         if(userInfoUpdateRequestDto.getNicknameKakao() != null) user.updateNicknameKakao(userInfoUpdateRequestDto.getNicknameKakao());
@@ -97,6 +112,9 @@ public class UserServiceImpl implements UserService {
     public void verifiedCode(Long userId, UserVerifiedRequestDto userVerifiedRequestDto) {
 
         User user = userRepository.findById(userId);
+
+        if(!user.isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
 
         if(user.isVerified())
             throw new CustomException(ErrorCode.USER_ALREADY_AUTHENTICATED);

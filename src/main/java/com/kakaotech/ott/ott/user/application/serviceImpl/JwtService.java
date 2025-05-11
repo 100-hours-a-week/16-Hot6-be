@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.user.application.serviceImpl;
 
 import com.kakaotech.ott.ott.user.domain.repository.RefreshTokenRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.RefreshTokenEntity;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
@@ -27,6 +28,7 @@ public class JwtService {
     private String secretKeyPlain;
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserRepository userRepository;
 
     private Key secretKey;
 
@@ -128,11 +130,12 @@ public class JwtService {
 
     @Transactional
     public void logout(Long userId) {
-        refreshTokenRepository.findById(userId)
-                .ifPresent(entity -> {
-                    entity.updateRefreshToken(null, null); // ❗ refreshToken, 만료일 둘 다 null로
-                    refreshTokenRepository.save(entity);
-                });
+
+        if (!userRepository.findById(userId).isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
+
+
+        refreshTokenRepository.delete(userId);
     }
 
     @Transactional
@@ -151,10 +154,10 @@ public class JwtService {
         Long userId = extractUserId(refreshToken);
 
         RefreshTokenEntity tokenEntity = refreshTokenRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.INVALID_ACCESS_TOKEN));
+                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
 
         if (!refreshToken.equals(tokenEntity.getRefreshToken())) {
-            throw new CustomException(ErrorCode.INVALID_ACCESS_TOKEN);
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         return createAccessToken(userId); // 새로운 AccessToken 발급

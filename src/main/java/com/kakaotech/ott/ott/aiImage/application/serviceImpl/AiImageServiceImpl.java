@@ -4,6 +4,8 @@ import com.kakaotech.ott.ott.aiImage.application.service.FastApiClient;
 import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.product.domain.repository.DeskProductRepository;
@@ -52,7 +54,7 @@ public class AiImageServiceImpl implements AiImageService {
         // 3. 유효하지 않은 경우 이미지 삭제
         if (!response.isClassify()) {
             imageUploader.delete(imageUrl);
-            throw new IllegalArgumentException("올바르지 않은 데스크 이미지입니다.");
+            throw new CustomException(ErrorCode.INVALID_IMAGE);
         }
 
         AiImage aiImage = AiImage.createAiImage(userId, response.getInitialImageUrl());
@@ -76,7 +78,7 @@ public class AiImageServiceImpl implements AiImageService {
         aiImage.successState();
 
         User user = userAuthRepository.findById(aiImage.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                 .toDomain();
 
         user.renewGeneratedDate();
@@ -92,7 +94,7 @@ public class AiImageServiceImpl implements AiImageService {
     @Transactional
     public AiImageAndProductResponseDto getAiImage(Long imageId, Long userId) {
         AiImage aiImage = aiImageRepository.findById(imageId)
-                .orElseThrow(() -> new EntityNotFoundException("AI 이미지가 존재하지 않습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
                 .toDomain();
 
         AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getState(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
@@ -103,7 +105,7 @@ public class AiImageServiceImpl implements AiImageService {
 
         List<DeskProductEntity> entities = deskProductRepository.findByAiImageId(imageId);
         if (entities.isEmpty()) {
-            throw new EntityNotFoundException("AI 이미지에 대한 상품이 존재하지 않습니다.");
+            throw new CustomException(ErrorCode.AI_PRODUCT_NOT_FOUND);
         }
 
         List<DeskProduct> deskProducts = entities.stream()

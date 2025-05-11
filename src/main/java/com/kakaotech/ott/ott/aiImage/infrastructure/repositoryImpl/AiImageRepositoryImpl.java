@@ -5,6 +5,8 @@ import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageJpaRepository;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.EntityNotFoundException;
@@ -33,10 +35,10 @@ public class AiImageRepositoryImpl implements AiImageRepository {
     public AiImage savePost(AiImage aiImage) {
 
         UserEntity userEntity = userJpaRepository.findById(aiImage.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         AiImageEntity aiImageEntity = aiImageJpaRepository.findById(aiImage.getId())
-                .orElseThrow(() -> new EntityNotFoundException("해당 AI 이미지가 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND));
 
         aiImageEntity.setPostId(aiImage.getPostId());
 
@@ -54,7 +56,7 @@ public class AiImageRepositoryImpl implements AiImageRepository {
         if (aiImageEntity == null) {
             // ✅ 2. 이미지가 없는 경우 새로 생성
             UserEntity userEntity = userJpaRepository.findById(aiImage.getUserId())
-                    .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
+                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
             aiImageEntity = AiImageEntity.builder()
                     .userEntity(userEntity)
@@ -96,7 +98,7 @@ public class AiImageRepositoryImpl implements AiImageRepository {
     @Override
     public AiImage findByBeforeImagePath(String beforeImagePath) {
         return aiImageJpaRepository.findByBeforeImagePath(beforeImagePath)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자의 데스크 사진이 존재하지 않습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
                 .toDomain();
     }
 
@@ -108,5 +110,12 @@ public class AiImageRepositoryImpl implements AiImageRepository {
                         AiImageEntity::getPostId,
                         AiImageEntity::toDomain
                 ));
+    }
+
+    @Override
+    public AiImage findByPostId(Long postId) {
+        return aiImageJpaRepository.findByPostId(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
+                .toDomain();
     }
 }
