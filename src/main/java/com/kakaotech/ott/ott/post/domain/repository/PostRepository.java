@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.post.domain.repository;
 
 import com.kakaotech.ott.ott.post.domain.model.Post;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PostRepository {
@@ -12,7 +13,7 @@ public interface PostRepository {
 
     void deletePost(Long userId);
 
-    List<Post> findAllByCursor(int size, Long lastPostId);
+    List<Post> findAllByCursor(int size, Long lastPostId, LocalDateTime lastCreatedAt, String category, String sort);
 
     void incrementViewCount(Long postId, Long delta);
 

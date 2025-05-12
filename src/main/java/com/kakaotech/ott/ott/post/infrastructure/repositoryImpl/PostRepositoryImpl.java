@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.post.infrastructure.repositoryImpl;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.model.Post;
+import com.kakaotech.ott.ott.post.domain.model.PostType;
 import com.kakaotech.ott.ott.post.domain.repository.PostJpaRepository;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,20 +61,6 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public List<Post> findAllByCursor(int size, Long lastPostId) {
-        Pageable pg = PageRequest.of(0, size, Sort.by("id").descending());
-        Page<PostEntity> page;
-        if (lastPostId == null) {
-            page = postJpaRepository.findAllByOrderByIdDesc(pg);
-        } else {
-            page = postJpaRepository.findAllByIdLessThanOrderByIdDesc(lastPostId, pg);
-        }
-        return page.stream()
-                .map(PostEntity::toDomain)
-                .toList();
-    }
-
-    @Override
     public Post findById(Long postId) {
 
         return postJpaRepository.findById(postId)
@@ -84,6 +72,39 @@ public class PostRepositoryImpl implements PostRepository {
     public void deletePost(Long postId) {
 
         postJpaRepository.deleteById(postId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Post> findAllByCursor(int size, Long lastPostId, LocalDateTime lastCreatedAt, String category, String sort) {
+        Pageable pageable = PageRequest.of(0, size);
+
+        if (category == null || "ALL".equalsIgnoreCase(category)) {
+            return switch (sort == null ? "LATEST" : sort.toUpperCase()) {
+                case "LIKE" -> postJpaRepository.findAllPostsByLike(pageable)
+                        .stream().map(PostEntity::toDomain).toList();
+                case "VIEW" -> postJpaRepository.findAllPostsByView(pageable)
+                        .stream().map(PostEntity::toDomain).toList();
+                default -> postJpaRepository.findAllPosts(pageable)
+                        .stream().map(PostEntity::toDomain).toList();
+            };
+        }
+
+        PostType postType = PostType.valueOf(category.toUpperCase());
+
+        if (lastPostId == null) {
+            return switch (sort == null ? "LATEST" : sort.toUpperCase()) {
+                case "LIKE" -> postJpaRepository.findByCategoryByLike(postType, pageable)
+                        .stream().map(PostEntity::toDomain).toList();
+                case "VIEW" -> postJpaRepository.findByCategoryByView(postType, pageable)
+                        .stream().map(PostEntity::toDomain).toList();
+                default -> postJpaRepository.findByCategory(postType, pageable)
+                        .stream().map(PostEntity::toDomain).toList();
+            };
+        }
+
+        return postJpaRepository.findByCategoryAndCursor(postType, lastCreatedAt, lastPostId, pageable)
+                    .stream().map(PostEntity::toDomain).toList();
     }
 
     @Override
