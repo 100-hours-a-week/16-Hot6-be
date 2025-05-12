@@ -6,13 +6,11 @@ import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseD
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
 
-import java.time.LocalDateTime;
-
 public interface UserService {
 
     MyInfoResponseDto getMyInfo(Long userId);
 
-    MyDeskImageResponseDto getMyDeskWithCursor(Long userId, LocalDateTime createdAtCursor, Long lastId, int size);
+    MyDeskImageResponseDto getMyDeskWithCursor(Long userId, Long lastId, int size);
 
     UserInfoUpdateResponseDto updateUserInfo(Long userId, UserInfoUpdateRequestDto userInfoUpdateRequestDto);
 

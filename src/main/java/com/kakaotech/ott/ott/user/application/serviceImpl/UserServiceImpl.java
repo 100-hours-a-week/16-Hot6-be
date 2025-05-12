@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public MyDeskImageResponseDto getMyDeskWithCursor(Long userId, LocalDateTime createdAtCursor, Long lastId, int size) {
+    public MyDeskImageResponseDto getMyDeskWithCursor(Long userId, Long lastId, int size) {
 
         User user = userRepository.findById(userId);
 
@@ -52,7 +52,6 @@ public class UserServiceImpl implements UserService {
 
         Slice<AiImage> aiImages = aiImageRepository.findUserDeskImages(
                 userId,
-                createdAtCursor,
                 lastId,
                 size
         );

@@ -19,12 +19,11 @@ public interface AiImageJpaRepository extends JpaRepository<AiImageEntity, Long>
         SELECT ai 
         FROM AiImageEntity ai 
         WHERE ai.userEntity.id = :userId AND ai.state = 'SUCCESS'
-        AND (ai.createdAt < :cursorCreatedAt OR (ai.createdAt = :cursorCreatedAt AND ai.id < :cursorId))
-        ORDER BY ai.createdAt DESC, ai.id DESC
+        AND ai.id < :cursorId
+        ORDER BY ai.id DESC
     """)
     Slice<AiImageEntity> findByUserWithCursor(
             @Param("userId") Long userId,
-            @Param("cursorCreatedAt") LocalDateTime cursorCreatedAt,
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );

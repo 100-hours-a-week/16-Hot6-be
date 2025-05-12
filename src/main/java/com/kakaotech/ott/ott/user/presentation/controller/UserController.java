@@ -37,23 +37,17 @@ public class UserController {
     @GetMapping("/me/desks")
     public ResponseEntity<ApiResponse<MyDeskImageResponseDto>> getMyDesk(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestParam (value = "createdAtCursor", required = false) LocalDateTime createdAtCursor,
             @RequestParam (value = "lastId", required = false) Long lastId,
             @RequestParam(defaultValue = "10") int size) {
 
         Long userId = userPrincipal.getId();
-
-        // 기본 값 설정
-        if (createdAtCursor == null) {
-            createdAtCursor = LocalDateTime.now();
-        }
 
         // lastId가 없으면 기본값 (가장 최신 ID) 설정
         if (lastId == null) {
             lastId = Long.MAX_VALUE; // 가장 최신 ID를 의미
         }
 
-        MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, createdAtCursor, lastId, size);
+        MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, lastId, size);
 
         return ResponseEntity.ok(ApiResponse.success("나의 데스크 조회 성공", myDeskImageResponseDto));
     }
