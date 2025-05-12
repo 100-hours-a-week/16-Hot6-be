@@ -15,7 +15,7 @@ import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
-public class UserAuthAuthServiceImpl implements UserAuthService {
+public class UserAuthServiceImpl implements UserAuthService {
 
     private final UserAuthRepository userAuthRepository;
     private final JwtService jwtService;
