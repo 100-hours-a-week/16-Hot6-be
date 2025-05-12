@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,10 +28,10 @@ public interface AiImageJpaRepository extends JpaRepository<AiImageEntity, Long>
     );
 
     // Batch 조회 쿼리
-    @Query("SELECT a FROM AiImageEntity a WHERE a.postId IN :postIds")
+    @Query("SELECT a FROM AiImageEntity a WHERE a.postId IN :postIds AND a.state = 'SUCCESS'")
     List<AiImageEntity> findByPostIdIn(@Param("postIds") List<Long> postIds);
 
-    @Query("SELECT a FROM AiImageEntity a WHERE a.postId = :postId")
+    @Query("SELECT a FROM AiImageEntity a WHERE a.postId = :postId AND a.state = 'SUCCESS'")
     Optional<AiImageEntity> findByPostId(@Param("postId") Long postId);
 
 }
