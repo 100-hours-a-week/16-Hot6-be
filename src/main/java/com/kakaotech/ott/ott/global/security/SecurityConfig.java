@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -38,7 +39,14 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // ✅ CSRF 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login/**", "/oauth2/**", "/login/oauth2/**", "/api/v1/auth/**", "/health", "/api/v1/ai-images/result").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/main", "/api/v1/health",
+                                "/api/v1/posts", "/api/v1/posts/{postId}",
+                                "/oauth2/authorization/kakao", "/login/oauth2/code/kakao",
+                                "/api/v1/ai-images/result").permitAll()
+
+                        // ✅ POST 요청 허용
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/kakao", "/api/v1/ai-images/result"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
