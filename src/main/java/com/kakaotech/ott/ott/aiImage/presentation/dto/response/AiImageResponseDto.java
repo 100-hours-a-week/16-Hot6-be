@@ -18,7 +18,13 @@ public class AiImageResponseDto {
 
     private AiImageState state;
 
-    private String imagePath;
+    private String beforeImagePath;
+
+    private String afterImagePath;
 
     private LocalDateTime createdAt;
+
+    public void updateAfterImagePath(String afterImagePath) {
+        this.afterImagePath = afterImagePath;
+    }
 }
