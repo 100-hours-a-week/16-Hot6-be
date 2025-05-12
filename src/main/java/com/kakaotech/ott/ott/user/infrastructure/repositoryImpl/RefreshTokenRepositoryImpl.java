@@ -25,8 +25,18 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
     }
 
     @Override
+    public Optional<RefreshTokenEntity> findByRefreshToken(String refreshToken) {
+        return refreshTokenJpaRepository.findByRefreshToken(refreshToken);
+    }
+
+    @Override
     public void delete(Long userId) {
         refreshTokenJpaRepository.deleteById(userId);
+    }
+
+    @Override
+    public void deleteByRefreshToken(String refreshToken) {
+        refreshTokenJpaRepository.deleteByRefreshToken(refreshToken);
     }
 
 }

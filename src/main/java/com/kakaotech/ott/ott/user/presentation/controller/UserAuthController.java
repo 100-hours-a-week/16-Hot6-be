@@ -12,7 +12,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +27,8 @@ public class UserAuthController {
     public ResponseEntity<Void> login(@PathVariable String provider,
                                       @AuthenticationPrincipal UserPrincipal userPrincipal,
                                       @RequestHeader(value = "X-Forwarded-Host", required = false) String forwardedHost) {
+
+        System.out.println("userPrincipal : " + userPrincipal);
 
         // 이미 로그인된 사용자라면 홈으로 리디렉트
         if (userPrincipal != null) {

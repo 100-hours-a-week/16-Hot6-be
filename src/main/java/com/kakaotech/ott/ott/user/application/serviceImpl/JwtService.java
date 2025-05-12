@@ -29,7 +29,6 @@ public class JwtService {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
-
     private Key secretKey;
 
     private final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 30;       // 30분
@@ -40,50 +39,100 @@ public class JwtService {
         this.secretKey = Keys.hmacShaKeyFor(secretKeyPlain.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Access Token 생성
+     */
     public String createAccessToken(Long userId) {
         return createToken(userId, ACCESS_TOKEN_EXPIRATION);
     }
 
+    /**
+     * Refresh Token 생성 및 DB 저장
+     */
     public String createRefreshToken(Long userId) {
         String refreshToken = createToken(userId, REFRESH_TOKEN_EXPIRATION);
-
-        // 만료시간 계산
         LocalDateTime expirationDate = LocalDateTime.now().plusSeconds(REFRESH_TOKEN_EXPIRATION / 1000);
-
-        // DB에 저장 (없으면 생성, 있으면 업데이트)
-        // JwtService 내부
-        refreshTokenRepository.findById(userId)
-                .ifPresentOrElse(
-                        entity -> {
-                            entity.updateRefreshToken(refreshToken, expirationDate); // ✅ entity 메서드 호출
-                            refreshTokenRepository.save(entity);
-                        },
-                        () -> {
-                            refreshTokenRepository.save(
-                                    RefreshTokenEntity.builder()
-                                            .userId(userId)
-                                            .refreshToken(refreshToken)
-                                            .refreshTokenExpiration(expirationDate)
-                                            .build()
-                            );
-                        }
-                );
-
+        storeRefreshToken(userId, refreshToken, expirationDate);
         return refreshToken;
     }
 
-    private String createToken(Long userId, long expirationTime) {
-        Date now = new Date();
-        Date expiry = new Date(now.getTime() + expirationTime);
+    /**
+     * Refresh Token 저장 또는 갱신
+     */
+    @Transactional
+    public void storeRefreshToken(Long userId, String refreshToken, LocalDateTime expirationDate) {
+        RefreshTokenEntity tokenEntity = refreshTokenRepository.findById(userId)
+                .orElseGet(() -> RefreshTokenEntity.builder().userId(userId).build());
 
-        return Jwts.builder()
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
+        tokenEntity.updateRefreshToken(refreshToken, expirationDate);
+        refreshTokenRepository.save(tokenEntity);
     }
 
+    /**
+     * Refresh Token 만료 시간 갱신 (로그인 시 자동 연장)
+     */
+    @Transactional
+    public void updateRefreshTokenExpiration(String refreshToken) {
+        RefreshTokenEntity tokenEntity = refreshTokenRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+
+        LocalDateTime newExpiration = LocalDateTime.now().plusSeconds(REFRESH_TOKEN_EXPIRATION / 1000);
+        tokenEntity.updateRefreshToken(tokenEntity.getRefreshToken(), newExpiration);
+        refreshTokenRepository.save(tokenEntity);
+
+        log.info("DB에서 Refresh Token 만료 시간 갱신 완료. 새로운 만료 시간: {}", newExpiration);
+    }
+
+    @Transactional
+    public void logout(Long userId) {
+        refreshTokenRepository.delete(userId);
+    }
+
+
+    /**
+     * Refresh Token 삭제 (로그아웃)
+     */
+    @Transactional
+    public void deleteRefreshTokenByValue(String refreshToken) {
+        refreshTokenRepository.deleteByRefreshToken(refreshToken);
+        log.info("DB에서 Refresh Token 삭제 완료.");
+    }
+
+    /**
+     * Access Token 재발급
+     */
+    @Transactional
+    public String reissueAccessToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_REQUIRED);
+        }
+
+        if (!validateToken(refreshToken)) {
+            Long userId = extractUserId(refreshToken);
+            deleteRefreshTokenByValue(refreshToken);
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
+        Long userId = extractUserId(refreshToken);
+        RefreshTokenEntity tokenEntity = refreshTokenRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+
+        if (!refreshToken.equals(tokenEntity.getRefreshToken())) {
+            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // ✅ 새로운 Access Token 생성
+        String newAccessToken = createAccessToken(userId);
+
+        // ✅ Refresh Token 만료 시간 자동 연장
+        updateRefreshTokenExpiration(refreshToken);
+
+        return newAccessToken;
+    }
+
+    /**
+     * JWT 유효성 검증
+     */
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -97,6 +146,9 @@ public class JwtService {
         }
     }
 
+    /**
+     * 사용자 ID 추출
+     */
     public Long extractUserId(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(secretKey)
@@ -106,62 +158,18 @@ public class JwtService {
         return Long.parseLong(claims.getSubject());
     }
 
-    @Transactional
-    public void storeRefreshToken(Long userId, String refreshToken) {
-        LocalDateTime expirationDate = LocalDateTime.now().plusSeconds(REFRESH_TOKEN_EXPIRATION / 1000);
+    /**
+     * JWT 토큰 생성 (공통 메서드)
+     */
+    private String createToken(Long userId, long expirationTime) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expirationTime);
 
-        refreshTokenRepository.findById(userId)
-                .ifPresentOrElse(
-                        entity -> {
-                            entity.updateRefreshToken(refreshToken, expirationDate);
-                            refreshTokenRepository.save(entity);
-                        },
-                        () -> {
-                            refreshTokenRepository.save(
-                                    RefreshTokenEntity.builder()
-                                            .userId(userId)
-                                            .refreshToken(refreshToken)
-                                            .refreshTokenExpiration(expirationDate)
-                                            .build()
-                            );
-                        }
-                );
+        return Jwts.builder()
+                .setSubject(String.valueOf(userId))
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
     }
-
-    @Transactional
-    public void logout(Long userId) {
-
-        if (!userRepository.findById(userId).isActive())
-            throw new CustomException(ErrorCode.USER_DELETED);
-
-
-        refreshTokenRepository.delete(userId);
-    }
-
-    @Transactional
-    public String reissueAccessToken(String refreshToken) {
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            throw new CustomException(ErrorCode.REFRESH_TOKEN_REQUIRED);
-        }
-
-        if (!validateToken(refreshToken)) {
-            // ✅ Refresh Token 만료 시 - 로그아웃 처리
-            Long userId = extractUserId(refreshToken);
-            logout(userId); // 로그아웃 처리
-            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
-        }
-
-        Long userId = extractUserId(refreshToken);
-
-        RefreshTokenEntity tokenEntity = refreshTokenRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
-
-        if (!refreshToken.equals(tokenEntity.getRefreshToken())) {
-            throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
-        }
-
-        return createAccessToken(userId); // 새로운 AccessToken 발급
-    }
-
-
 }
