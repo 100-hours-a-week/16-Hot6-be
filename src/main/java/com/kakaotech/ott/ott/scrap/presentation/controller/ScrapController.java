@@ -1,7 +1,6 @@
 package com.kakaotech.ott.ott.scrap.presentation.controller;
 
 import com.kakaotech.ott.ott.global.response.ApiResponse;
-import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
 import com.kakaotech.ott.ott.scrap.application.service.ScrapService;
 import com.kakaotech.ott.ott.scrap.presentation.dto.request.ScrapRequestDto;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;

@@ -1,8 +1,6 @@
 package com.kakaotech.ott.ott.global.exception;
 
-import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.global.response.ErrorResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +10,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice

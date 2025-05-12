@@ -56,6 +56,7 @@ public class UserEntity extends AuditEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OAuthTokenEntity> oauthTokens = new ArrayList<>();
 

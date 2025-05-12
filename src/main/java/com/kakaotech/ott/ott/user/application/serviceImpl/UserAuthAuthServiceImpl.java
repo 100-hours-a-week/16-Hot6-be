@@ -5,7 +5,6 @@ import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import com.kakaotech.ott.ott.user.application.service.UserAuthService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;

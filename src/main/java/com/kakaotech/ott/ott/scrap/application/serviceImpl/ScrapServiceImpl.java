@@ -10,7 +10,6 @@ import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.scrap.presentation.dto.request.ScrapRequestDto;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

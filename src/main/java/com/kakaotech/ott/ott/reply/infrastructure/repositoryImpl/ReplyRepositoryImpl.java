@@ -10,7 +10,6 @@ import com.kakaotech.ott.ott.reply.domain.repository.ReplyRepository;
 import com.kakaotech.ott.ott.reply.infrastructure.entity.ReplyEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

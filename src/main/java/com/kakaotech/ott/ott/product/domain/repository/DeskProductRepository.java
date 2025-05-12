@@ -1,6 +1,5 @@
 package com.kakaotech.ott.ott.product.domain.repository;
 
-import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
 import com.kakaotech.ott.ott.product.infrastructure.entity.DeskProductEntity;

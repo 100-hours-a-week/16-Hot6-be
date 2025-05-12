@@ -1,6 +1,5 @@
 package com.kakaotech.ott.ott.reply.domain.repository;
 
-import com.kakaotech.ott.ott.comment.infrastructure.entity.CommentEntity;
 import com.kakaotech.ott.ott.reply.infrastructure.entity.ReplyEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -15,7 +15,6 @@ public class UserRepositoryImpl implements UserRepository {
 
     private final UserJpaRepository userJpaRepository;
 
-
     @Override
     public User findById(Long userId) {
 
