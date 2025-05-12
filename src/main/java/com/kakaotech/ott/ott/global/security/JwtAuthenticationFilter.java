@@ -38,8 +38,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // ✅ 만료된 Access Token 처리 (401 반환)
                     throw new ExpiredJwtException(null, null, "Access Token Expired");
                 }
-            } else {
-                throw new CustomException(ErrorCode.ACCESS_TOKEN_REQUIRED);
             }
         } catch (ExpiredJwtException ex) {
             // ✅ Access Token 만료된 경우 - 401 응답
