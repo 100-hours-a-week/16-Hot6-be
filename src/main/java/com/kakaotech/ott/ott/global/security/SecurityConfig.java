@@ -42,7 +42,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/main", "/api/v1/health",
                                 "/api/v1/posts", "/api/v1/posts/{postId}",
                                 "/oauth2/authorization/kakao", "/login/oauth2/code/kakao",
-                                "/api/v1/ai-images/result").permitAll()
+                                "/api/v1/ai-images/result", "/api/v1/auth/kakao").permitAll()
 
                         // ✅ POST 요청 허용
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/kakao", "/api/v1/ai-images/result"
