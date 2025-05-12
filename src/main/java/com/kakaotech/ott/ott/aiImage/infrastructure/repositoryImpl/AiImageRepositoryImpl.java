@@ -28,7 +28,6 @@ public class AiImageRepositoryImpl implements AiImageRepository {
     private final AiImageJpaRepository aiImageJpaRepository;
     private final UserJpaRepository userJpaRepository;
 
-
     @Override
     @Transactional
     public AiImage savePost(AiImage aiImage) {
