@@ -12,14 +12,11 @@ import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -76,7 +73,7 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Post> findAllByCursor(int size, Long lastPostId, LocalDateTime lastCreatedAt, String category, String sort) {
+    public List<Post> findAllByCursor(int size, Long lastPostId, String category, String sort) {
         Pageable pageable = PageRequest.of(0, size);
 
         if (category == null || "ALL".equalsIgnoreCase(category)) {
@@ -103,7 +100,7 @@ public class PostRepositoryImpl implements PostRepository {
             };
         }
 
-        return postJpaRepository.findByCategoryAndCursor(postType, lastCreatedAt, lastPostId, pageable)
+        return postJpaRepository.findByCategoryAndCursor(postType, lastPostId, pageable)
                     .stream().map(PostEntity::toDomain).toList();
     }
 

@@ -108,8 +108,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostAllResponseDto getAllPost(Long userId, LocalDateTime lastCreatedAt, String category, String sort, int size, Long lastPostId) {
-        List<Post> posts = postRepository.findAllByCursor(size, lastPostId, lastCreatedAt, category, sort);
+    public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size, Long lastPostId) {
+        List<Post> posts = postRepository.findAllByCursor(size, lastPostId, category, sort);
 
         List<PostAllResponseDto.Posts> dtoList = posts.stream()
                 .map(post -> {
