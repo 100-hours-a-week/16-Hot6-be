@@ -11,7 +11,6 @@ import com.kakaotech.ott.ott.post.presentation.dto.response.PostGetResponseDto;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PostService {
@@ -20,7 +19,7 @@ public interface PostService {
 
     PostCreateResponseDto createAiPost(AiPostCreateRequestDto aiPostCreateRequestDto, Long userId);
 
-    PostAllResponseDto getAllPost(Long userId, LocalDateTime lastCreatedAt, String category, String sort, int size, Long lastPostId);
+    PostAllResponseDto getAllPost(Long userId, String category, String sort, int size, Long lastPostId);
 
     PostGetResponseDto getPost(Long postId, Long userId);
 

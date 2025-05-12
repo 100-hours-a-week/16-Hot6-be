@@ -38,8 +38,12 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
     Page<PostEntity> findByCategoryByView(@Param("category") PostType category, Pageable pageable);
 
     // 커서 기반 조회
-    @Query("SELECT p FROM PostEntity p WHERE p.type = :category AND (p.createdAt < :lastCreatedAt OR (p.createdAt = :lastCreatedAt AND p.id < :lastPostId)) ORDER BY p.createdAt DESC, p.id DESC")
-    Page<PostEntity> findByCategoryAndCursor(@Param("category") PostType category, @Param("lastCreatedAt") LocalDateTime lastCreatedAt, @Param("lastPostId") Long lastPostId, Pageable pageable);
+    @Query("SELECT p FROM PostEntity p WHERE p.type = :category AND p.id < :lastPostId ORDER BY p.id DESC")
+    Page<PostEntity> findByCategoryAndCursor(
+            @Param("category") PostType category,
+            @Param("lastPostId") Long lastPostId,
+            Pageable pageable
+    );
 
 
     @Modifying

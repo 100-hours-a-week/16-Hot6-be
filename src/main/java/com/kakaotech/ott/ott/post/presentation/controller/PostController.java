@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -34,7 +33,6 @@ public class PostController {
     @GetMapping
     public ResponseEntity<ApiResponse<PostAllResponseDto>> getAllPostS(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestParam(required = false) LocalDateTime lastCreatedAt,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) Long lastPostId,
@@ -42,9 +40,7 @@ public class PostController {
 
         Long userId = userPrincipal.getId();
 
-        lastCreatedAt = (lastCreatedAt != null) ? lastCreatedAt : LocalDateTime.now();
-
-        PostAllResponseDto payload = postService.getAllPost(userId, lastCreatedAt, category, sort, size, lastPostId);
+        PostAllResponseDto payload = postService.getAllPost(userId, category, sort, size, lastPostId);
         return ResponseEntity.ok(ApiResponse.success("게시글 목록 조회 성공", payload));
     }
 
