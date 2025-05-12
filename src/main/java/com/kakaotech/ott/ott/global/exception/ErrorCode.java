@@ -23,7 +23,7 @@ public enum ErrorCode {
     USER_ALREADY_AUTHENTICATED(HttpStatus.FORBIDDEN, "이미 추천인 코드를 등록하셨습니다."),
     INVALID_INPUT_CODE(HttpStatus.BAD_REQUEST, "추천인 코드가 일치하지 않습니다."),
     DUPLICATE_NICKNAME_COMMUNITY(HttpStatus.CONFLICT, "이미 사용 중인 커뮤니티 닉네임입니다."),
-    USER_FORBIDDEN(HttpStatus.FORBIDDEN, "수정할 권한이 없습니다."),
+    USER_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 사용자의 권한이 없습니다."),
 
     // Post
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다."),
