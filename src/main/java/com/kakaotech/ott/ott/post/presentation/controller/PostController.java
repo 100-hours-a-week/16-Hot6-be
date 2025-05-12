@@ -34,11 +34,11 @@ public class PostController {
     @GetMapping
     public ResponseEntity<ApiResponse<PostAllResponseDto>> getAllPostS(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam(required = false) LocalDateTime lastCreatedAt,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String sort,
-            @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Long lastPostId,
-            @RequestParam(required = false) LocalDateTime lastCreatedAt) {
+            @RequestParam(defaultValue = "10") int size) {
 
         Long userId = userPrincipal.getId();
 
