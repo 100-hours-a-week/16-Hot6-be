@@ -1,12 +1,12 @@
 package com.kakaotech.ott.ott.global.security;
 
-import com.kakaotech.ott.ott.global.exception.CustomException;
-import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomUserDetailsService;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,28 +28,47 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String token = resolveToken(request);
+        String accessToken = resolveToken(request);
+        String refreshToken = getRefreshTokenFromCookie(request);
+
+        System.out.println("JWT 인증 필터 - AccessToken : " + accessToken);
+        System.out.println("JWT 인증 필터 - RefreshToken : " + refreshToken);
 
         try {
-            if (token != null) {
-                if (jwtService.validateToken(token)) {
-                    setAuthentication(token, request);
-                } else {
-                    // ✅ 만료된 Access Token 처리 (401 반환)
-                    throw new ExpiredJwtException(null, null, "Access Token Expired");
-                }
+            if (accessToken != null && jwtService.validateToken(accessToken)) {
+                // ✅ 유효한 Access Token이면 인증 설정
+                setAuthentication(accessToken, request);
+            } else if (refreshToken != null && jwtService.validateToken(refreshToken)) {
+                // ✅ Access Token 만료 -> Refresh Token으로 재발급
+                String newAccessToken = jwtService.reissueAccessToken(refreshToken);
+                setAuthentication(newAccessToken, request);
+                jwtService.updateRefreshTokenExpiration(refreshToken); // ✅ DB에서 만료 시간 갱신
+            } else {
+                clearRefreshToken(response);
+                jwtService.deleteRefreshTokenByValue(refreshToken); // ✅ DB에서 Refresh Token 삭제
             }
         } catch (ExpiredJwtException ex) {
-            // ✅ Access Token 만료된 경우 - 401 응답
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write("{\"status\":401,\"message\":\"Access Token Expired. Please login again.\"}");
-            return;
+            System.out.println("JWT 인증 필터 - Access Token 만료");
+            if (refreshToken != null && jwtService.validateToken(refreshToken)) {
+                String newAccessToken = jwtService.reissueAccessToken(refreshToken);
+                setAuthentication(newAccessToken, request);
+                jwtService.updateRefreshTokenExpiration(refreshToken); // ✅ DB에서 만료 시간 갱신
+            } else {
+                clearRefreshToken(response);
+                jwtService.deleteRefreshTokenByValue(refreshToken); // ✅ DB에서 Refresh Token 삭제
+            }
+        } catch (JwtException ex) {
+            System.out.println("JWT 인증 필터 - JWT 검증 실패");
+            clearRefreshToken(response);
+            jwtService.deleteRefreshTokenByValue(refreshToken); // ✅ DB에서 Refresh Token 삭제
         }
 
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * 사용자 인증 설정 (SecurityContext)
+     */
     private void setAuthentication(String token, HttpServletRequest request) {
         Long userId = jwtService.extractUserId(token);
         UserDetails userDetails = userDetailsService.loadUserByUsername(userId.toString());
@@ -61,8 +80,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
+    /**
+     * Access Token 헤더에서 추출
+     */
     private String resolveToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
         return (bearer != null && bearer.startsWith("Bearer ")) ? bearer.substring(7) : null;
+    }
+
+    /**
+     * Refresh Token 쿠키에서 추출
+     */
+    private String getRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 클라이언트에서 Refresh Token 쿠키 삭제
+     */
+    private void clearRefreshToken(HttpServletResponse response) {
+        Cookie expiredCookie = new Cookie("refreshToken", null);
+        expiredCookie.setMaxAge(0);
+        expiredCookie.setPath("/");
+        expiredCookie.setHttpOnly(true);
+        expiredCookie.setSecure(true);
+        response.addCookie(expiredCookie);
     }
 }

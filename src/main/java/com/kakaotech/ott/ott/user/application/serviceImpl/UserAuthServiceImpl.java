@@ -41,6 +41,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Transactional
     public void logout(Long userId, HttpServletResponse response, String kakaoAccessToken) {
         try {
+
             // 서버에서 Refresh Token 삭제 (DB or Redis)
             jwtService.logout(userId);
 

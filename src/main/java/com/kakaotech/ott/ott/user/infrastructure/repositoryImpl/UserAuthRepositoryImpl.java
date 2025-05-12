@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class UserAuthAuthRepositoryImpl implements UserAuthRepository {
+public class UserAuthRepositoryImpl implements UserAuthRepository {
 
     private final UserJpaRepository userJpaRepository;
 

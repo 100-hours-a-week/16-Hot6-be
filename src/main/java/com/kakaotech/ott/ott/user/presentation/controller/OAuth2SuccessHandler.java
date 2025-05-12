@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -29,24 +30,28 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // 1. JWT 발급
         String refreshToken = jwtService.createRefreshToken(userId);
 
-        // 2. Refresh Token 저장 (DB or Redis)
-        jwtService.storeRefreshToken(userId, refreshToken);
+        // 2. Refresh Token 만료 시간 설정
+        LocalDateTime expirationDate = LocalDateTime.now().plusDays(7);
 
-        // 3. Refresh Token을 HttpOnly, Secure 쿠키로 저장
+        // 3. Refresh Token 저장 (DB)
+        jwtService.storeRefreshToken(userId, refreshToken, expirationDate);
+
+        // 4. Refresh Token을 HttpOnly, Secure 쿠키로 저장
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None") // ✅ SameSite 설정
                 .domain(".onthe-top.com")
                 .path("/")
-                .maxAge(Duration.ofDays(7))  // 7일 유효
+                .maxAge(Duration.ofDays(7))  // ✅ 클라이언트 쿠키 만료 시간과 DB 만료 시간 일치
                 .build();
 
         // ✅ Spring ResponseCookie를 사용하여 쿠키 설정
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-        // 4. 로그인 성공 후 클라이언트로 리디렉트
+        // 5. 로그인 성공 후 클라이언트로 리디렉트
         response.setStatus(HttpServletResponse.SC_FOUND);
         response.setHeader(HttpHeaders.LOCATION, "https://dev.onthe-top.com/oauth-success");
     }
+
 }

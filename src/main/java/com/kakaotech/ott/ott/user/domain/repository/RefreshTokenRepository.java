@@ -10,5 +10,9 @@ public interface RefreshTokenRepository {
 
     RefreshTokenEntity save(RefreshTokenEntity refreshTokenEntity);
 
+    Optional<RefreshTokenEntity> findByRefreshToken(String refreshToken);
+
     void delete(Long userId);
+
+    void deleteByRefreshToken(String refreshToken);
 }
