@@ -61,7 +61,6 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("자유 게시판 게시글 작성 완료", postCreateResponseDto));
     }
 
-
     @PostMapping("/ai")
     public ResponseEntity<ApiResponse<PostCreateResponseDto>> createAiPost(
             @AuthenticationPrincipal UserPrincipal userPrincipal,

@@ -6,6 +6,7 @@ import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
+import com.kakaotech.ott.ott.post.application.component.ImageLoaderManager;
 import com.kakaotech.ott.ott.post.application.component.ViewCountAggregator;
 import com.kakaotech.ott.ott.post.application.service.PostService;
 import com.kakaotech.ott.ott.post.domain.model.Post;
@@ -45,6 +46,7 @@ public class PostServiceImpl implements PostService {
     private final ViewCountAggregator viewCountAggregator;
     private final LikeRepository likeRepository;
     private final ScrapRepository scrapRepository;
+    private final ImageLoaderManager imageLoaderManager;
 
     @Override
     @Transactional
@@ -163,10 +165,7 @@ public class PostServiceImpl implements PostService {
         boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
         boolean scrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
 
-        // 3) 엔티티 이미지를 도메인으로 변환
-        List<PostImage> imageList = post.getImages()
-                .stream()
-                .toList();
+        List<?> imageUrls = imageLoaderManager.loadImages(post.getType(), postId);
 
         return new PostGetResponseDto(
                 post.getId(),
@@ -180,7 +179,7 @@ public class PostServiceImpl implements PostService {
                 scrapped,
                 liked,
                 isOwner,
-                imageList,
+                imageUrls,
                 post.getCreatedAt()
         );
     }

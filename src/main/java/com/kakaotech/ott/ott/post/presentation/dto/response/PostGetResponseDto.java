@@ -38,7 +38,7 @@ public class PostGetResponseDto {
 
     private boolean isOwner;
 
-    private List<PostImage> imageUrls;
+    private List<?> imageUrls;
 
     private LocalDateTime createdAt;
 }
