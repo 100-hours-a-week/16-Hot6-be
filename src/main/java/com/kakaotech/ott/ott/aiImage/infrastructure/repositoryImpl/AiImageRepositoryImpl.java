@@ -15,7 +15,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -85,9 +84,9 @@ public class AiImageRepositoryImpl implements AiImageRepository {
     }
 
     @Override
-    public Slice<AiImage> findUserDeskImages(Long userId, LocalDateTime cursorCreatedAt, Long cursorId, int size) {
+    public Slice<AiImage> findUserDeskImages(Long userId, Long cursorId, int size) {
         Slice<AiImageEntity> slice = aiImageJpaRepository.findByUserWithCursor(
-                userId, cursorCreatedAt, cursorId, PageRequest.of(0, size)
+                userId, cursorId, PageRequest.of(0, size)
         );
 
         return slice.map(AiImageEntity::toDomain);
