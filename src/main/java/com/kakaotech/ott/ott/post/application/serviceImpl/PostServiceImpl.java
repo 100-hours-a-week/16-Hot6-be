@@ -24,6 +24,7 @@ import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +49,9 @@ public class PostServiceImpl implements PostService {
     private final ScrapRepository scrapRepository;
     private final ImageLoaderManager imageLoaderManager;
 
+    @Value("${cloud.aws.s3.base-url}")
+    private String baseUrl;
+
     @Override
     @Transactional
     public PostCreateResponseDto createFreePost(FreePostCreateRequestDto freePostCreateRequestDto, Long userId)
@@ -61,7 +65,8 @@ public class PostServiceImpl implements PostService {
 
         int seq = 1;
         for (MultipartFile file : freePostCreateRequestDto.getImages()) {
-            String url = s3Uploader.upload(file);
+            String url = baseUrl + s3Uploader.upload(file);
+            
             post.addImage(PostImage.createPostImage(post.getId(), seq++, url));
         }
 
@@ -120,6 +125,11 @@ public class PostServiceImpl implements PostService {
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
                     boolean scrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
 
+                    String thumbnailImage = switch (post.getType()) {
+                        case AI -> aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
+                        case FREE -> post.getImages().get(0).getImageUuid();
+                    };
+
                     return new PostAllResponseDto.Posts(
                             post.getId(),
                             post.getTitle(),
@@ -127,6 +137,7 @@ public class PostServiceImpl implements PostService {
                                     author.getNicknameCommunity(),
                                     author.getImagePath()
                             ),
+                            thumbnailImage,
                             post.getLikeCount(),
                             post.getCommentCount(),
                             post.getCreatedAt(),
@@ -232,7 +243,8 @@ public class PostServiceImpl implements PostService {
 
             int seq = 1;
             for (MultipartFile file : freePostUpdateRequestDto.getImages()) {
-                String url = s3Uploader.upload(file);
+                String url = baseUrl + s3Uploader.upload(file);
+                System.out.println(url);
                 post.addImage(PostImage.createPostImage(post.getId(), seq++, url));
             }
         }

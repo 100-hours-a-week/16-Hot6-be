@@ -96,6 +96,10 @@ public class AiImageServiceImpl implements AiImageService {
                 .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
                 .toDomain();
 
+        if (!aiImage.getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
+        }
+
         AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getState(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
 
         if(aiImage.getState().equals(AiImageState.FAILED) || aiImage.getState().equals(AiImageState.PENDING)) {

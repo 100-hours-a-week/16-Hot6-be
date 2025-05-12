@@ -19,6 +19,7 @@ public class PostAllResponseDto {
         private final Long postId;
         private final String title;
         private final PostAuthorResponseDto author;
+        private final String thumbnailUrl;
         private final int likeCount;
         private final int commentCount;
 
