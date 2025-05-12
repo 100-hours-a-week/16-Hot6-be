@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.aiImage.presentation.dto.response;
 
+import com.kakaotech.ott.ott.product.presentation.dto.response.ProductResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,11 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 public class AiImageAndProductResponseDto {
 
-    private AiImageResponseDto aiImageResponseDto;
+    private AiImageResponseDto image;
 
     private List<ProductResponseDto> products;
 
-    private boolean hasNext;
-
-    private String nextCursor;
 }

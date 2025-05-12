@@ -1,59 +1,131 @@
 package com.kakaotech.ott.ott.user.application.serviceImpl;
 
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
-import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.application.service.UserService;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletResponse;
+import com.kakaotech.ott.ott.user.domain.model.User;
+import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequestDto;
+import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final JwtService jwtService;
-    private final KakaoLogoutServiceImpl kakaoLogoutService;
+    private final AiImageRepository aiImageRepository;
+
+    @Value("${verified.code}")
+    private String verifiedCode;
 
     @Override
-    public boolean checkQuota(Long userId) {
+    public MyInfoResponseDto getMyInfo(Long userId) {
 
-        LocalDate today = LocalDate.now();
+        User user = userRepository.findById(userId);
 
-        // 1. 사용자가 존재하지 않으면 예외 발생 (404)
-        UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자를 찾을 수 없습니다."));
+        if (!user.isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
 
-        // 2. quota 사용일이 null이면 → 아직 사용 안 함 → 사용 가능
-        LocalDate lastGenerated = userEntity.getAiImageGeneratedDate();
-
-        return lastGenerated == null || !today.equals(lastGenerated);
-
+        return new MyInfoResponseDto(user.getNicknameCommunity(), user.getNicknameKakao(), user.getImagePath(), user.getPoint(), user.isVerified());
     }
 
     @Override
-    public void logout(Long userId, HttpServletResponse response, String kakaoAccessToken) {
-        // 1️⃣ 서버에서 Refresh Token 삭제 (DB or Redis)
-        jwtService.logout(userId);
+    public MyDeskImageResponseDto getMyDeskWithCursor(Long userId, LocalDateTime createdAtCursor, Long lastId, int size) {
 
-        // 2️⃣ 클라이언트의 Refresh Token 쿠키 만료
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", null)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("None")
-                .domain("onthe-top.com") // 환경에 맞게 도메인 설정
-                .path("/")
-                .maxAge(0)  // 즉시 만료
-                .build();
-        response.addHeader("Set-Cookie", refreshCookie.toString());
 
-        // 3️⃣ 카카오 서버에서 사용자 로그아웃
-        if (kakaoAccessToken != null) {
-            kakaoLogoutService.logoutFromKakao(kakaoAccessToken);
-        }
+        User user = userRepository.findById(userId);
+
+        if (!user.isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
+
+        Slice<AiImage> aiImages = aiImageRepository.findUserDeskImages(
+                userId,
+                createdAtCursor,
+                lastId,
+                size
+        );
+
+        List<MyDeskImageResponseDto.ImageDto> imageDtos = aiImages.stream()
+                .map(image -> new MyDeskImageResponseDto.ImageDto(
+                        image.getId(),
+                        image.getBeforeImagePath(),
+                        image.getAfterImagePath(),
+                        image.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+
+        return new MyDeskImageResponseDto(
+                imageDtos,
+                size,
+                aiImages.hasNext() ? aiImages.getContent().get(aiImages.getNumberOfElements() - 1).getId() : null,
+                aiImages.hasNext()
+        );
     }
+
+    @Override
+    public UserInfoUpdateResponseDto updateUserInfo(Long userId, UserInfoUpdateRequestDto userInfoUpdateRequestDto) {
+
+        User user = userRepository.findById(userId);
+
+        if (!user.isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
+
+//        if (userRepository.existsByNicknameCommunity(userInfoUpdateRequestDto.getNicknameCommunity()))
+//            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME_COMMUNITY);
+
+        if(userInfoUpdateRequestDto.getProfileImage() != null) user.updateProfileImagePath(userInfoUpdateRequestDto.getProfileImage());
+        if(userInfoUpdateRequestDto.getNicknameCommunity() != null) user.updateNicknameCommunity(userInfoUpdateRequestDto.getNicknameCommunity());
+        if(userInfoUpdateRequestDto.getNicknameKakao() != null) user.updateNicknameKakao(userInfoUpdateRequestDto.getNicknameKakao());
+
+        User savedUser = userRepository.update(user);
+
+        return new UserInfoUpdateResponseDto(savedUser.getImagePath(), savedUser.getNicknameCommunity(), savedUser.getNicknameKakao());
+    }
+
+    @Override
+    public void deleteUser(Long userId) {
+
+        User user = userRepository.findById(userId);
+
+        if(!user.isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
+
+        user.updateActive(false);
+        user.updateDeletedAt();
+
+        userRepository.delete(user);
+    }
+
+    @Override
+    public void verifiedCode(Long userId, UserVerifiedRequestDto userVerifiedRequestDto) {
+
+        User user = userRepository.findById(userId);
+
+        if(!user.isActive())
+            throw new CustomException(ErrorCode.USER_DELETED);
+
+        if(user.isVerified())
+            throw new CustomException(ErrorCode.USER_ALREADY_AUTHENTICATED);
+
+        if(!userVerifiedRequestDto.getCode().equals(verifiedCode))
+            throw new CustomException(ErrorCode.INVALID_INPUT_CODE);
+
+        user.updateVerified();
+        userRepository.certify(user);
+    }
+
+
 }

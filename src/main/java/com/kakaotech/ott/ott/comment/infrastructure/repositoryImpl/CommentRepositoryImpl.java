@@ -4,11 +4,12 @@ import com.kakaotech.ott.ott.comment.domain.model.Comment;
 import com.kakaotech.ott.ott.comment.domain.repository.CommentJpaRepository;
 import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
 import com.kakaotech.ott.ott.comment.infrastructure.entity.CommentEntity;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.repository.PostJpaRepository;
 import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,10 +33,10 @@ public class CommentRepositoryImpl implements CommentRepository {
     public Comment save(Comment comment) {
 
         UserEntity userEntity = userJpaRepository.findById(comment.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         PostEntity postEntity = postJpaRepository.findById(comment.getPostId())
-                .orElseThrow(() -> new EntityNotFoundException("해당 게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         CommentEntity commentEntity = CommentEntity.from(comment, userEntity, postEntity);
 
@@ -53,7 +54,7 @@ public class CommentRepositoryImpl implements CommentRepository {
     public Comment findById(Long commentId) {
 
         return commentJpaRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException("댓글이 존재하지 않습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND))
                 .toDomain();
     }
 

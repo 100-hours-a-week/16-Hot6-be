@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.reply.application.serviceImpl;
 
 import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.reply.application.service.ReplyService;
 import com.kakaotech.ott.ott.reply.domain.model.Reply;
@@ -9,7 +11,7 @@ import com.kakaotech.ott.ott.reply.presentation.dto.request.ReplyCreateRequestDt
 import com.kakaotech.ott.ott.reply.presentation.dto.response.ReplyCreateResponseDto;
 import com.kakaotech.ott.ott.reply.presentation.dto.response.ReplyListResponseDto;
 import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +29,7 @@ public class ReplyServiceImpl implements ReplyService {
     private final ReplyRepository replyRepository;
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
 
     @Override
     public ReplyListResponseDto getAllReply(Long userId, Long commentId, Long lastReplyId, int size) {
@@ -44,8 +46,8 @@ public class ReplyServiceImpl implements ReplyService {
         List<ReplyListResponseDto.ReplyResponseDto> replyDtos =
                 replyList.stream()
                         .map(r -> {
-                            User author = userRepository.findById(r.getUserId())
-                                    .orElseThrow(() -> new EntityNotFoundException("작성자를 찾을 수 없습니다."))
+                            User author = userAuthRepository.findById(r.getUserId())
+                                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                                     .toDomain();
 
                             ReplyListResponseDto.AuthorDto authorDto =
@@ -92,7 +94,7 @@ public class ReplyServiceImpl implements ReplyService {
         Reply reply = replyRepository.findById(replyId);
 
         if(!reply.getUserId().equals(userId))
-            throw new AccessDeniedException("해당 대댓글의 작성자가 아닙니다.");
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
 
         if(replyCreateRequestDto.getContent() != null)
             reply.updateContent(replyCreateRequestDto.getContent());
@@ -105,13 +107,13 @@ public class ReplyServiceImpl implements ReplyService {
     @Override
     public void deleteReply(Long replyId, Long userId){
 
-        userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("로그인이 필요합니다."));
+        userAuthRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         Reply reply = replyRepository.findById(replyId);
 
         if(!reply.getUserId().equals(userId))
-            throw new AccessDeniedException("해당 대댓글의 작성자가 아닙니다.");
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
 
         replyRepository.delete(replyId);
 

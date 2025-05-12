@@ -6,6 +6,7 @@ import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -25,17 +26,17 @@ public class LikeController {
 
         likeService.likePost(userId, likeRequestDto);
 
-        return ResponseEntity.ok(ApiResponse.success("좋아요 완료", null));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("좋아요 완료", null));
     }
 
     @DeleteMapping
-    public ResponseEntity<ApiResponse> deactiveLike(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<Void> deactiveLike(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                   @RequestBody @Valid LikeRequestDto likeRequestDto) {
 
         Long userId = userPrincipal.getId();
 
         likeService.unlikePost(userId, likeRequestDto);
 
-        return ResponseEntity.ok(ApiResponse.success("좋아요 취소 완료", null));
+        return ResponseEntity.noContent().build();
     }
 }

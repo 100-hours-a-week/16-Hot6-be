@@ -8,6 +8,7 @@ import com.kakaotech.ott.ott.reply.presentation.dto.response.ReplyListResponseDt
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ public class ReplyController {
         Long userId = userPrincipal.getId();
 
         ReplyListResponseDto replyListResponseDto = replyService.getAllReply(userId, commentId, lastReplyId, size);
-        return ResponseEntity.ok(ApiResponse.success("대댓글 조회 완료", replyListResponseDto));
+        return ResponseEntity.ok(ApiResponse.success("답글 목록 조회 성공", replyListResponseDto));
     }
 
     @PostMapping("/comments/{commentId}/replies")
@@ -42,7 +43,7 @@ public class ReplyController {
 
         ReplyCreateResponseDto replyCreateResponseDto = replyService.createReply(replyCreateRequestDto, userId, commentId);
 
-        return ResponseEntity.ok(ApiResponse.success("대댓글 작성 완료", replyCreateResponseDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("답글 작성 완료", replyCreateResponseDto));
     }
 
     @PatchMapping("/replies/{repliesId}")

@@ -1,10 +1,22 @@
 package com.kakaotech.ott.ott.user.application.service;
 
-import jakarta.servlet.http.HttpServletResponse;
+import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequestDto;
+import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
+
+import java.time.LocalDateTime;
 
 public interface UserService {
 
-    boolean checkQuota(Long userId);
+    MyInfoResponseDto getMyInfo(Long userId);
 
-    void logout(Long userId, HttpServletResponse response, String kakaoAccessToken);
+    MyDeskImageResponseDto getMyDeskWithCursor(Long userId, LocalDateTime createdAtCursor, Long lastId, int size);
+
+    UserInfoUpdateResponseDto updateUserInfo(Long userId, UserInfoUpdateRequestDto userInfoUpdateRequestDto);
+
+    void deleteUser(Long userId);
+
+    void verifiedCode(Long userId, UserVerifiedRequestDto userVerifiedRequestDto);
 }

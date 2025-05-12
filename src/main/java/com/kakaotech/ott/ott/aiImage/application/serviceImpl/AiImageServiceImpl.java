@@ -3,23 +3,24 @@ package com.kakaotech.ott.ott.aiImage.application.serviceImpl;
 import com.kakaotech.ott.ott.aiImage.application.service.FastApiClient;
 import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
-import com.kakaotech.ott.ott.aiImage.domain.model.DeskProduct;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
-import com.kakaotech.ott.ott.aiImage.domain.repository.DeskProductRepository;
-import com.kakaotech.ott.ott.aiImage.infrastructure.entity.DeskProductEntity;
+import com.kakaotech.ott.ott.product.domain.repository.DeskProductRepository;
+import com.kakaotech.ott.ott.product.infrastructure.entity.DeskProductEntity;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
 
 import com.kakaotech.ott.ott.aiImage.application.service.AiImageService;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
-import com.kakaotech.ott.ott.aiImage.presentation.dto.response.AiImageAndProductResponseDto;
-import com.kakaotech.ott.ott.aiImage.presentation.dto.response.AiImageResponseDto;
-import com.kakaotech.ott.ott.aiImage.presentation.dto.response.FastApiResponseDto;
-import com.kakaotech.ott.ott.aiImage.presentation.dto.response.ProductResponseDto;
+import com.kakaotech.ott.ott.aiImage.presentation.dto.response.*;
+import com.kakaotech.ott.ott.product.presentation.dto.response.ProductResponseDto;
 import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ import java.util.List;
 public class AiImageServiceImpl implements AiImageService {
 
     private final AiImageRepository aiImageRepository;
-    private final UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
 
     private final DeskProductRepository deskProductRepository;
 
@@ -38,7 +39,8 @@ public class AiImageServiceImpl implements AiImageService {
     private final FastApiClient fastApiClient;
 
     @Override
-    public boolean handleImageValidation(MultipartFile image) throws IOException {
+    @Transactional
+    public AiImageSaveResponseDto handleImageValidation(MultipartFile image, Long userId) throws IOException {
         // 1. 이미지 업로드 (S3에 저장 후 퍼블릭 URL 반환)
         String imageUrl = imageUploader.upload(image);
 
@@ -46,39 +48,69 @@ public class AiImageServiceImpl implements AiImageService {
         FastApiRequestDto request = new FastApiRequestDto(imageUrl);
         FastApiResponseDto response = fastApiClient.sendBeforeImageToFastApi(request);
 
+        System.out.println("fastApi 결과 : " + response.isClassify());
+
         // 3. 유효하지 않은 경우 이미지 삭제
         if (!response.isClassify()) {
             imageUploader.delete(imageUrl);
-            return false;
+            throw new CustomException(ErrorCode.INVALID_IMAGE);
         }
 
-        return true;
+        AiImage aiImage = AiImage.createAiImage(userId, response.getInitialImageUrl());
+        AiImage savedAiImage = aiImageRepository.saveImage(aiImage);
+
+        return new AiImageSaveResponseDto(savedAiImage.getId());
     }
 
     @Override
-    public AiImage createdAiImage(AiImageAndProductRequestDto aiImageAndProductRequestDto, Long userId) {
+    @Transactional
+    public AiImage insertAiImage(AiImageAndProductRequestDto aiImageAndProductRequestDto) {
 
-        AiImage aiImage = AiImage.createAiImage(userId, aiImageAndProductRequestDto.getInitialImageUrl(), aiImageAndProductRequestDto.getProcessedImageUrl());
+        AiImage aiImage = aiImageRepository.findByBeforeImagePath(aiImageAndProductRequestDto.getInitialImageUrl());
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자를 찾을 수 없습니다."))
+        if(aiImageAndProductRequestDto.getProcessedImageUrl() == null) {
+            aiImage.failedState();
+            return aiImageRepository.saveImage(aiImage);
+        }
+
+        aiImage.updateAiImage(aiImageAndProductRequestDto.getProcessedImageUrl());
+        aiImage.successState();
+
+        User user = userAuthRepository.findById(aiImage.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                 .toDomain();
 
         user.renewGeneratedDate();
-        User generatedUser = userRepository.save(user);
 
-        return aiImageRepository.save(aiImage).toDomain();
+        AiImage savedAiImage = aiImageRepository.saveImage(aiImage);
+
+        userAuthRepository.save(user);
+
+        return savedAiImage;
     }
 
     @Override
+    @Transactional
     public AiImageAndProductResponseDto getAiImage(Long imageId, Long userId) {
         AiImage aiImage = aiImageRepository.findById(imageId)
-                .orElseThrow(() -> new EntityNotFoundException("AI 이미지가 존재하지 않습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
                 .toDomain();
+
+        if (!aiImage.getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
+        }
+
+        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
+
+        if(aiImage.getState().equals(AiImageState.FAILED) || aiImage.getState().equals(AiImageState.PENDING)) {
+            return new AiImageAndProductResponseDto(aiImageResponseDto, null);
+        }
+
+        aiImageResponseDto.updateAfterImagePath(aiImage.getAfterImagePath());
 
         List<DeskProductEntity> entities = deskProductRepository.findByAiImageId(imageId);
         if (entities.isEmpty()) {
-            throw new EntityNotFoundException("AI 이미지에 대한 상품이 존재하지 않습니다.");
+            throw new CustomException(ErrorCode.AI_PRODUCT_NOT_FOUND);
         }
 
         List<DeskProduct> deskProducts = entities.stream()
@@ -90,9 +122,7 @@ public class AiImageServiceImpl implements AiImageService {
                         product.getPrice(), product.getPurchaseUrl(), true, product.getWeight()))
                 .toList();
 
-        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
-
-        return new AiImageAndProductResponseDto(aiImageResponseDto, productResponseDtos, false, null);
+        return new AiImageAndProductResponseDto(aiImageResponseDto, productResponseDtos);
     }
 
 

@@ -47,4 +47,15 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
     void incrementCommentCount(@Param("postId") Long postId,
                              @Param("delta") Long delta);
 
+    // weight 기준 상위 7개 조회 (JPQL 사용, AI 이미지 LEFT JOIN)
+    @Query("""
+      SELECT DISTINCT p 
+      FROM PostEntity p 
+      LEFT JOIN FETCH p.postImages 
+      LEFT JOIN AiImageEntity ai ON ai.postId = p.id 
+      WHERE p.type = 'AI' 
+      ORDER BY p.weight DESC
+    """)
+    List<PostEntity> findTop7ByTypeOrderByWeightDescWithAiImages(Pageable pageable);
+
 }

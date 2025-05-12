@@ -13,6 +13,7 @@ import com.kakaotech.ott.ott.post.presentation.dto.response.PostGetResponseDto;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -57,9 +58,8 @@ public class PostController {
         Long userId = userPrincipal.getId();
         PostCreateResponseDto postCreateResponseDto = postService.createFreePost(freePostCreateRequestDto, userId);
 
-        return ResponseEntity.ok(ApiResponse.success("자유 게시판 게시글 작성 완료", postCreateResponseDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("자유 게시판 게시글 작성 완료", postCreateResponseDto));
     }
-
 
     @PostMapping("/ai")
     public ResponseEntity<ApiResponse<PostCreateResponseDto>> createAiPost(
@@ -69,7 +69,7 @@ public class PostController {
         Long userId = userPrincipal.getId();
         PostCreateResponseDto postCreateResponseDto = postService.createAiPost(aiPostCreateRequestDto, userId);
 
-        return ResponseEntity.ok(ApiResponse.success("AI 게시판 게시글 작성 완료", postCreateResponseDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("AI 게시판 게시글 작성 완료", postCreateResponseDto));
     }
 
     @PatchMapping("/free/{postId}")

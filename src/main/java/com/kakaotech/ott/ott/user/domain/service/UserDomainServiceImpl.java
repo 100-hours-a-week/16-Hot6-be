@@ -1,6 +1,6 @@
 package com.kakaotech.ott.ott.user.domain.service;
 
-import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.user.application.service.UserDomainService;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserDomainServiceImpl implements UserDomainService {
 
-    private final UserRepository userRepository;
+    private final UserAuthRepository userAuthRepository;
 
     /**
      * OAuth로 전달된 사용자 정보를 기반으로 사용자 저장 또는 조회
@@ -24,7 +24,7 @@ public class UserDomainServiceImpl implements UserDomainService {
         String nickname = extractNickname(attributes);
         String imagePath = extractProfileImage(attributes); // ✅ 프로필 이미지 추가
 
-        Optional<User> optionalUser = userRepository.findByEmail(email);
+        Optional<User> optionalUser = userAuthRepository.findByEmail(email);
         if (optionalUser.isPresent()) {
             return optionalUser.get();
         }
@@ -33,7 +33,7 @@ public class UserDomainServiceImpl implements UserDomainService {
         User user = User.createUser(email, nickname, imagePath);
 
         // 저장 후 반환
-        return userRepository.save(user);
+        return userAuthRepository.save(user);
     }
 
     private String extractEmail(Map<String, Object> attributes) {

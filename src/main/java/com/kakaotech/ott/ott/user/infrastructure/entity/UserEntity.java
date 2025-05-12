@@ -56,6 +56,7 @@ public class UserEntity extends AuditEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Builder.Default
     @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OAuthTokenEntity> oauthTokens = new ArrayList<>();
 
@@ -92,4 +93,29 @@ public class UserEntity extends AuditEntity {
                 .deletedAt(user.getDeletedAt())
                 .build();
     }
+
+    public void updateProfileImagePath(String imagePath) {
+        this.imagePath = imagePath;
+    }
+
+    public void updateNicknameCommunity(String nicknameCommunity) {
+        this.nicknameCommunity = nicknameCommunity;
+    }
+
+    public void updateNicknameKakao(String nicknameKakao) {
+        this.nicknameKakao = nicknameKakao;
+    }
+
+    public void updateActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public void updateDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public void updateVerified() {
+        this.isVerified = true;
+    }
+
 }

@@ -1,15 +1,16 @@
 package com.kakaotech.ott.ott.user.domain.repository;
 
 import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
-
-import java.util.Optional;
 
 public interface UserRepository {
 
-    Optional<User> findByEmail(String email);
+    User findById(Long userId);
 
-    Optional<UserEntity> findById(Long userId);
+    User update(User user);
 
-    User save(User user);
+    void delete(User user);
+
+    void certify(User user);
+
+    boolean existsByNicknameCommunity(String nicknameCommunity);
 }

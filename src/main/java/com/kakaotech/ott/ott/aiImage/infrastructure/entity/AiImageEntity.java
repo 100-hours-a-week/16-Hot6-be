@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.aiImage.infrastructure.entity;
 
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Getter
+@Setter
 public class AiImageEntity {
 
     @Id
@@ -26,13 +28,17 @@ public class AiImageEntity {
     @JoinColumn(name = "user_id") // FK 컬럼명
     private UserEntity userEntity;
 
-    @Column(name = "post_id", nullable = false)
+    @Column(name = "post_id")
     private Long postId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state", length = 30)
+    private AiImageState state;
 
     @Column(name = "before_image_path", nullable = false)
     private String beforeImagePath;
 
-    @Column(name = "after_image_path", nullable = false)
+    @Column(name = "after_image_path")
     private String afterImagePath;
 
     @CreatedDate
@@ -45,6 +51,7 @@ public class AiImageEntity {
                 .id(this.id)
                 .userId(this.userEntity.getId())
                 .postId(this.postId)
+                .state(this.state)
                 .beforeImagePath(this.beforeImagePath)
                 .afterImagePath(this.afterImagePath)
                 .createdAt(this.createdAt)
@@ -56,13 +63,10 @@ public class AiImageEntity {
         return AiImageEntity.builder()
                 .userEntity(userEntity)
                 .postId(aiImage.getPostId())
+                .state(aiImage.getState())
                 .beforeImagePath(aiImage.getBeforeImagePath())
                 .afterImagePath(aiImage.getAfterImagePath())
                 .build();
-    }
-
-    public void setPostId(Long postId) {
-        this.postId = postId;
     }
 
 }

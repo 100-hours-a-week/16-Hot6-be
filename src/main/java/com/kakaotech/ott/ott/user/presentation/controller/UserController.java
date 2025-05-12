@@ -1,77 +1,96 @@
 package com.kakaotech.ott.ott.user.presentation.controller;
 
-import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.user.application.service.UserService;
-import com.kakaotech.ott.ott.user.presentation.dto.response.RefreshTokenResponseDto;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
+import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequestDto;
+import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
 
-    private final JwtService jwtService;
     private final UserService userService;
 
-    @GetMapping("/{provider}")
-    public ResponseEntity<Void> login(@PathVariable String provider,
-                                      Authentication authentication,
-                                      @RequestHeader(value = "X-Forwarded-Host", required = false) String forwardedHost) {
-        // ✅ 이미 로그인된 사용자라면 홈으로 리디렉트
-        if (authentication != null && authentication.isAuthenticated()
-                && !(authentication.getPrincipal() instanceof String)) {
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, "https://onthe-top.com/")
-                    .build();
-        }
 
-        // ✅ 리디렉트 URL을 고정된 주소로 지정
-        String redirectUrl = "https://prod-backend.onthe-top.com/oauth2/authorization/" + provider;
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<MyInfoResponseDto>> getMyInfo(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        return ResponseEntity.status(302)
-                .header(HttpHeaders.LOCATION, redirectUrl)
-                .build();
+        Long userId = userPrincipal.getId();
+
+        MyInfoResponseDto myInfoResponseDto = userService.getMyInfo(userId);
+
+        return ResponseEntity.ok(ApiResponse.success("회원정보 조회 성공", myInfoResponseDto));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request,
-                                                    HttpServletResponse response,
-                                                    @RequestHeader("Authorization") String bearerToken) {
-        // ✅ JWT Access Token 확인
-        String accessToken = bearerToken.substring(7); // "Bearer " 떼기
-        Long userId = jwtService.extractUserId(accessToken);
+    @GetMapping("/me/desks")
+    public ResponseEntity<ApiResponse<MyDeskImageResponseDto>> getMyDesk(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam (value = "createdAtCursor", required = false) LocalDateTime createdAtCursor,
+            @RequestParam (value = "lastId", required = false) Long lastId,
+            @RequestParam(defaultValue = "10") int size) {
 
-        // ✅ 클라이언트에서 카카오 Access Token 전달받기
-        String kakaoAccessToken = request.getHeader("Kakao-Access-Token");
+        Long userId = userPrincipal.getId();
 
-        // ✅ 서비스 계층에서 로그아웃 처리
-        userService.logout(userId, response, kakaoAccessToken);
+        // 기본 값 설정
+        if (createdAtCursor == null) {
+            createdAtCursor = LocalDateTime.now();
+        }
 
+        // lastId가 없으면 기본값 (가장 최신 ID) 설정
+        if (lastId == null) {
+            lastId = Long.MAX_VALUE; // 가장 최신 ID를 의미
+        }
 
-        return ResponseEntity.ok(ApiResponse.success("로그아웃 완료", null));
+        MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, createdAtCursor, lastId, size);
+
+        return ResponseEntity.ok(ApiResponse.success("나의 데스크 조회 성공", myDeskImageResponseDto));
     }
 
-    @PostMapping("/token/refresh")
-    public ResponseEntity<ApiResponse<RefreshTokenResponseDto>> reissue(
-            @CookieValue(name = "refreshToken", required = false) String refreshToken
-    ) {
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<UserInfoUpdateResponseDto>> updateUserInfo(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody @Valid UserInfoUpdateRequestDto userInfoUpdateRequestDto) {
 
-        System.out.println(refreshToken);
-        if (refreshToken == null) {
-            throw new AccessDeniedException("Refresh Token 누락");
-        }
-        String newAccessToken = jwtService.reissueAccessToken(refreshToken);
+        Long userId = userPrincipal.getId();
 
-        RefreshTokenResponseDto refreshTokenResponseDto = new RefreshTokenResponseDto(newAccessToken);
-        return ResponseEntity.ok(ApiResponse.success("Access Token 재발급 성공", refreshTokenResponseDto));
+        UserInfoUpdateResponseDto userInfoUpdateResponseDto = userService.updateUserInfo(userId, userInfoUpdateRequestDto);
+
+        return ResponseEntity.ok(ApiResponse.success("회원 정보 수정 성공", userInfoUpdateResponseDto));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse> deleteUser(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+        Long userId = userPrincipal.getId();
+
+        userService.deleteUser(userId);
+
+        return ResponseEntity.ok(ApiResponse.success("회원 탈퇴가 완료되었습니다.", null));
+    }
+
+    @PostMapping("/recommendation-code")
+    public ResponseEntity<ApiResponse> verifiedUser(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody @Valid UserVerifiedRequestDto userVerifiedRequestDto) {
+
+        Long userId = userPrincipal.getId();
+
+        userService.verifiedCode(userId, userVerifiedRequestDto);
+
+        return ResponseEntity.ok(ApiResponse.success("추천인 코드 등록 성공", null));
     }
 }

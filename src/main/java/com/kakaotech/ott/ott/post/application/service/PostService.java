@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.post.application.service;
 import com.kakaotech.ott.ott.post.presentation.dto.request.AiPostCreateRequestDto;
 import com.kakaotech.ott.ott.post.presentation.dto.request.AiPostUpdateRequestDto;
 import com.kakaotech.ott.ott.post.presentation.dto.request.FreePostUpdateRequestDto;
+import com.kakaotech.ott.ott.post.presentation.dto.response.PopularSetupDto;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
 import com.kakaotech.ott.ott.post.presentation.dto.request.FreePostCreateRequestDto;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostCreateResponseDto;
@@ -10,6 +11,7 @@ import com.kakaotech.ott.ott.post.presentation.dto.response.PostGetResponseDto;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 
 public interface PostService {
 
@@ -26,4 +28,6 @@ public interface PostService {
     PostCreateResponseDto updateFreePost(Long postId, Long userId, FreePostUpdateRequestDto freePostUpdateRequestDto) throws IOException;
 
     PostCreateResponseDto updateAiPost(Long postId, Long userId, AiPostUpdateRequestDto aiPostUpdateRequestDto) throws IOException;
+
+    List<PopularSetupDto> getPopularSetups(Long userId);
 }

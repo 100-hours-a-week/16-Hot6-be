@@ -2,13 +2,14 @@ package com.kakaotech.ott.ott.reply.infrastructure.repositoryImpl;
 
 import com.kakaotech.ott.ott.comment.domain.repository.CommentJpaRepository;
 import com.kakaotech.ott.ott.comment.infrastructure.entity.CommentEntity;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.reply.domain.model.Reply;
 import com.kakaotech.ott.ott.reply.domain.repository.ReplyJpaRepository;
 import com.kakaotech.ott.ott.reply.domain.repository.ReplyRepository;
 import com.kakaotech.ott.ott.reply.infrastructure.entity.ReplyEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -45,10 +46,10 @@ public class ReplyRepositoryImpl implements ReplyRepository {
     public Reply save(Reply reply) {
 
         UserEntity userEntity = userJpaRepository.findById(reply.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         CommentEntity commentEntity = commentJpaRepository.findById(reply.getCommentId())
-                .orElseThrow(() -> new EntityNotFoundException("해당 댓글이 존재하지 않습니다."));
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
         ReplyEntity replyEntity = ReplyEntity.from(reply, userEntity, commentEntity);
 
@@ -65,7 +66,7 @@ public class ReplyRepositoryImpl implements ReplyRepository {
     public Reply findById(Long replyId) {
 
         return replyJpaRepository.findById(replyId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 대댓글이 존재하지 않습니다."))
+                .orElseThrow(() -> new CustomException(ErrorCode.REPLY_NOT_FOUND))
                 .toDomain();
     }
 }
