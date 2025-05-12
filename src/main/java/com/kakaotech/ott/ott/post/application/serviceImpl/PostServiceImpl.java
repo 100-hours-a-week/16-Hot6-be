@@ -31,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -107,16 +108,9 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostAllResponseDto getAllPost(Long userId, int size, Long lastPostId) {
+    public PostAllResponseDto getAllPost(Long userId, LocalDateTime lastCreatedAt, String category, String sort, int size, Long lastPostId) {
+        List<Post> posts = postRepository.findAllByCursor(size, lastPostId, lastCreatedAt, category, sort);
 
-        if (lastPostId != null && lastPostId <= 0) {
-            throw new CustomException(ErrorCode.INVALID_CURSOR);
-        }
-
-        // 1) 커서 기반으로 size 개만 가져오기
-        List<Post> posts = postRepository.findAllByCursor(size, lastPostId);
-
-        // 2) 엔티티 → DTO 매핑
         List<PostAllResponseDto.Posts> dtoList = posts.stream()
                 .map(post -> {
                     UserEntity author = userAuthRepository.findById(post.getUserId())
@@ -133,10 +127,7 @@ public class PostServiceImpl implements PostService {
                     return new PostAllResponseDto.Posts(
                             post.getId(),
                             post.getTitle(),
-                            new PostAuthorResponseDto(
-                                    author.getNicknameCommunity(),
-                                    author.getImagePath()
-                            ),
+                            new PostAuthorResponseDto(author.getNicknameCommunity(), author.getImagePath()),
                             thumbnailImage,
                             post.getLikeCount(),
                             post.getCommentCount(),
@@ -147,17 +138,10 @@ public class PostServiceImpl implements PostService {
                 })
                 .toList();
 
-        // 3) 다음 페이지 유무 및 커서 계산
         boolean hasNext = dtoList.size() == size;
-        Long nextLastId = hasNext
-                ? dtoList.get(dtoList.size() - 1).getPostId()
-                : null;
+        Long nextLastId = hasNext ? dtoList.get(dtoList.size() - 1).getPostId() : null;
 
-        PostAllResponseDto.Pagination pagination =
-                new PostAllResponseDto.Pagination(size, nextLastId, hasNext);
-
-        return new PostAllResponseDto(dtoList, pagination);
-
+        return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, hasNext));
     }
 
     @Override

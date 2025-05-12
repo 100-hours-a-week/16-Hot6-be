@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.post.domain.repository;
 
+import com.kakaotech.ott.ott.post.domain.model.PostType;
 import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,11 +21,26 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
     @EntityGraph(attributePaths = {"userEntity", "postImages"})
     Optional<PostEntity> findById(Long id);
 
-    // 첫 조회(마지막 커서가 없을 때) – 가장 최근 게시글 size개
-    Page<PostEntity> findAllByOrderByIdDesc(Pageable pageable);
+    // 전체 조회
+    @Query("SELECT p FROM PostEntity p ORDER BY p.createdAt DESC")
+    Page<PostEntity> findAllPosts(Pageable pageable);
+    @Query("SELECT p FROM PostEntity p ORDER BY p.likeCount DESC, p.createdAt DESC")
+    Page<PostEntity> findAllPostsByLike(Pageable pageable);
+    @Query("SELECT p FROM PostEntity p ORDER BY p.viewCount DESC, p.createdAt DESC")
+    Page<PostEntity> findAllPostsByView(Pageable pageable);
 
-    // 이후 조회(커서가 있을 때) – id < lastPostId 인 게시글 size개
-    Page<PostEntity> findAllByIdLessThanOrderByIdDesc(Long lastPostId, Pageable pageable);
+    // 카테고리별 조회
+    @Query("SELECT p FROM PostEntity p WHERE p.type = :category ORDER BY p.createdAt DESC")
+    Page<PostEntity> findByCategory(@Param("category") PostType category, Pageable pageable);
+    @Query("SELECT p FROM PostEntity p WHERE p.type = :category ORDER BY p.likeCount DESC, p.createdAt DESC")
+    Page<PostEntity> findByCategoryByLike(@Param("category") PostType category, Pageable pageable);
+    @Query("SELECT p FROM PostEntity p WHERE p.type = :category ORDER BY p.viewCount DESC, p.createdAt DESC")
+    Page<PostEntity> findByCategoryByView(@Param("category") PostType category, Pageable pageable);
+
+    // 커서 기반 조회
+    @Query("SELECT p FROM PostEntity p WHERE p.type = :category AND (p.createdAt < :lastCreatedAt OR (p.createdAt = :lastCreatedAt AND p.id < :lastPostId)) ORDER BY p.createdAt DESC, p.id DESC")
+    Page<PostEntity> findByCategoryAndCursor(@Param("category") PostType category, @Param("lastCreatedAt") LocalDateTime lastCreatedAt, @Param("lastPostId") Long lastPostId, Pageable pageable);
+
 
     @Modifying
     @Query("UPDATE PostEntity p SET p.viewCount = p.viewCount + :delta WHERE p.id = :postId")
