@@ -18,7 +18,7 @@ public interface AiImageJpaRepository extends JpaRepository<AiImageEntity, Long>
     @Query("""
         SELECT ai 
         FROM AiImageEntity ai 
-        WHERE ai.userEntity.id = :userId 
+        WHERE ai.userEntity.id = :userId AND ai.state = 'SUCCESS'
         AND (ai.createdAt < :cursorCreatedAt OR (ai.createdAt = :cursorCreatedAt AND ai.id < :cursorId))
         ORDER BY ai.createdAt DESC, ai.id DESC
     """)
