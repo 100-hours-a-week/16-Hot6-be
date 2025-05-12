@@ -1,15 +1,16 @@
-name: Backend CI & Dev CD
+name: Backend CI & Dev/Prod CD
 
 on:
   push:
     branches:
       - dev
+      - main
 
 jobs:
   build:
     name: Build Backend
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'main' || 'dev' }}
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
 
     steps:
       - name: Checkout repository
@@ -34,10 +35,10 @@ jobs:
           path: build/libs/*.jar
 
   deploy:
-    name: Deploy to Dev via SSH
+    name: Deploy to Dev/Prod via SSH
     needs: build
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'main' || 'dev' }}
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
     env:
       DEPLOY_ENV: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
       SECRET_LABELS: ${{ github.ref_name == 'main' && 'backend_shared backend_prod' || 'backend_shared backend_dev' }}
@@ -106,7 +107,7 @@ jobs:
 
       - name: Restart backend via SSH
         run: |
-          ssh -F ~/.ssh/config backend-server <<'EOF'
+          ssh -F ~/.ssh/config backend-server "DEPLOY_ENV=${{ env.DEPLOY_ENV }} bash -s" <<'EOF'
             set -eux
             cd ~/backend
 
@@ -121,10 +122,14 @@ jobs:
               echo "실행 중인 프로세스 없음"
             fi
 
-            nohup java -jar /home/ubuntu/backend/backend.jar --spring.profiles.active=dev --spring.config.additional-location=file:/home/ubuntu/backend/secrets.properties > backend.log 2>&1 &
+            echo "▶️ 애플리케이션 재시작"
+            nohup java -jar backend.jar \
+              --spring.profiles.active=$DEPLOY_ENV \
+              --spring.config.additional-location=file:/home/ubuntu/backend/secrets.properties \
+              > backend.log 2>&1 &
 
             echo "▶️ [3] 실행 상태 확인"
-            sleep 5
+            sleep 10
             NEW_PID=$(pgrep -f backend || true)
 
             if [ -n "$NEW_PID" ]; then
@@ -134,4 +139,3 @@ jobs:
               exit 1
             fi
           EOF
-
