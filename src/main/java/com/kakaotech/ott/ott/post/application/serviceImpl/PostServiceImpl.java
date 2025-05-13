@@ -32,9 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -284,16 +282,19 @@ public class PostServiceImpl implements PostService {
         Map<Long, AiImage> aiImageMap = aiImageRepository.findByPostIds(postIds);
 
         // Scrap 여부 Batch 조회 (Domain Repository)
-        Set<Long> scrappedPostIds = scrapRepository.findScrappedPostIds(userId, postIds);
+        Set<Long> scrappedPostIds = (userId != null)
+                ? new HashSet<>(scrapRepository.findScrappedPostIds(userId, postIds))
+                : Collections.emptySet();
 
         // PopularSetupDto 생성
         return popularPosts.stream()
                 .map(post -> new PopularSetupDto(
                         post.getId(),
                         post.getTitle(),
-                        aiImageMap.getOrDefault(post.getId(), null) != null ?
-                                aiImageMap.get(post.getId()).getAfterImagePath() : "",
-                        scrappedPostIds.contains(post.getId())
+                        Optional.ofNullable(aiImageMap.get(post.getId()))
+                                .map(AiImage::getAfterImagePath)
+                                .orElse(""),
+                        (userId != null) && scrappedPostIds.contains(post.getId())
                 ))
                 .collect(Collectors.toList());
     }
