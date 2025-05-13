@@ -17,6 +17,8 @@ public class RecommendedItemsDto {
 
     private String imageUrl;
 
+    private String purchaseUrl;
+
     private String seller;
 
     private String subCategory;

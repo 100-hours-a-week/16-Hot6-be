@@ -92,6 +92,7 @@ public class ProductDomainServiceImpl implements ProductDomainService {
                         deskProduct.getId(),
                         deskProduct.getName(),
                         deskProduct.getImagePath(),
+                        deskProduct.getPurchaseUrl(),
                         deskProduct.getPurchasePlace(),
                         productSubCategoryRepository.findById(deskProduct.getSubCategoryId()).getName(),
                         (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.PRODUCT, deskProduct.getId())
