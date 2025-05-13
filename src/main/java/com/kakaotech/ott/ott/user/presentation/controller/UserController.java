@@ -38,7 +38,8 @@ public class UserController {
     public ResponseEntity<ApiResponse<MyDeskImageResponseDto>> getMyDesk(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam (value = "lastId", required = false) Long lastId,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(value = "type", required = false) String type) {
 
         Long userId = userPrincipal.getId();
 
@@ -47,7 +48,7 @@ public class UserController {
             lastId = Long.MAX_VALUE; // 가장 최신 ID를 의미
         }
 
-        MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, lastId, size);
+        MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, lastId, size, type);
 
         return ResponseEntity.ok(ApiResponse.success("나의 데스크 조회 성공", myDeskImageResponseDto));
     }
