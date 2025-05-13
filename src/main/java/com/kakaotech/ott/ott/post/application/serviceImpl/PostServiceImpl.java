@@ -60,8 +60,7 @@ public class PostServiceImpl implements PostService {
         Post post = Post.createPost(userId, PostType.FREE,
                 freePostCreateRequestDto.getTitle(), freePostCreateRequestDto.getContent());
 
-        UserEntity userEntity = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = userAuthRepository.findById(userId);
 
         if (freePostCreateRequestDto.getImages() != null) {
             int seq = 1;
@@ -84,9 +83,7 @@ public class PostServiceImpl implements PostService {
         Post post = Post.createPost(userId, PostType.AI,
                 aiPostCreateRequestDto.getTitle(), aiPostCreateRequestDto.getContent());
 
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
 
         user.updatePoint(500);
         userAuthRepository.save(user);
@@ -114,8 +111,7 @@ public class PostServiceImpl implements PostService {
 
         List<PostAllResponseDto.Posts> dtoList = posts.stream()
                 .map(post -> {
-                    UserEntity author = userAuthRepository.findById(post.getUserId())
-                            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                    User author = userAuthRepository.findById(post.getUserId());
 
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
                     boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
@@ -153,9 +149,7 @@ public class PostServiceImpl implements PostService {
 
         Post post = postRepository.findById(postId);
 
-        User user = userAuthRepository.findById(post.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(post.getUserId());
 
         boolean isOwner = post.getUserId().equals(userId);
         boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
@@ -185,8 +179,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void deletePost(Long userId, Long postId) throws AccessDeniedException {
 
-        UserEntity userEntity = userAuthRepository.findById(userId)
-                .orElseThrow();
+        User user = userAuthRepository.findById(userId);
 
         Post post = postRepository.findById(postId);
 
@@ -205,9 +198,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostCreateResponseDto updateFreePost(Long postId, Long userId, FreePostUpdateRequestDto freePostUpdateRequestDto) throws IOException {
 
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
 
         Post post = postRepository.findById(postId);
 
@@ -274,9 +265,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostCreateResponseDto updateAiPost(Long postId, Long userId, AiPostUpdateRequestDto aiPostUpdateRequestDto) throws IOException {
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
         Post post = postRepository.findById(postId);
 
         if (!post.getUserId().equals(userId)) {

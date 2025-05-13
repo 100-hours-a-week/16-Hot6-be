@@ -42,9 +42,7 @@ public class ProductDomainServiceImpl implements ProductDomainService {
     public List<DeskProduct> createdProduct(AiImageAndProductRequestDto aiImageAndProductRequestDto, AiImage aiImage, Long userId) {
         List<DeskProduct> savedDeskProducts = new ArrayList<>();
 
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 사용자를 찾을 수 없습니다."))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
 
         AiImageEntity aiImageEntity = aiImageRepository.findById(aiImage.getId())
                 .orElseThrow(() -> new EntityNotFoundException("AI 이미지가 없습니다."));

@@ -27,9 +27,7 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public void likePost(Long userId, LikeRequestDto likeRequestDto) {
 
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
 
         Post post = postRepository.findById(likeRequestDto.getTargetId());
 
@@ -50,9 +48,7 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public void unlikePost(Long userId, LikeRequestDto likeRequestDto) {
 
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
 
         boolean exists = likeRepository.existsByUserIdAndPostId(userId, likeRequestDto.getTargetId());
 
