@@ -22,27 +22,27 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
     Optional<PostEntity> findById(Long id);
 
     // 최신순 조회 (커서 기반)
-    @Query("SELECT p FROM PostEntity p WHERE (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.id DESC")
+    @Query("SELECT DISTINCT p FROM PostEntity p WHERE (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.id DESC")
     Page<PostEntity> findAllPosts(@Param("lastPostId") Long lastPostId, Pageable pageable);
 
     // 좋아요 순 조회 (커서 기반)
-    @Query("SELECT p FROM PostEntity p WHERE (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.likeCount DESC, p.id DESC")
+    @Query("SELECT DISTINCT p FROM PostEntity p WHERE (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.likeCount DESC, p.id DESC")
     Page<PostEntity> findAllPostsByLike(@Param("lastPostId") Long lastPostId, Pageable pageable);
 
     // 조회수 순 조회 (커서 기반)
-    @Query("SELECT p FROM PostEntity p WHERE (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.viewCount DESC, p.id DESC")
+    @Query("SELECT DISTINCT p FROM PostEntity p WHERE (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.viewCount DESC, p.id DESC")
     Page<PostEntity> findAllPostsByView(@Param("lastPostId") Long lastPostId, Pageable pageable);
 
     // 카테고리별 최신순 조회 (커서 기반)
-    @Query("SELECT p FROM PostEntity p WHERE p.type = :category AND (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.id DESC")
+    @Query("SELECT DISTINCT p FROM PostEntity p WHERE p.type = :category AND (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.id DESC")
     Page<PostEntity> findByCategory(@Param("category") PostType category, @Param("lastPostId") Long lastPostId, Pageable pageable);
 
     // 카테고리별 좋아요 순 조회 (커서 기반)
-    @Query("SELECT p FROM PostEntity p WHERE p.type = :category AND (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.likeCount DESC, p.id DESC")
+    @Query("SELECT DISTINCT p FROM PostEntity p WHERE p.type = :category AND (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.likeCount DESC, p.id DESC")
     Page<PostEntity> findByCategoryByLike(@Param("category") PostType category, @Param("lastPostId") Long lastPostId, Pageable pageable);
 
     // 카테고리별 조회수 순 조회 (커서 기반)
-    @Query("SELECT p FROM PostEntity p WHERE p.type = :category AND (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.viewCount DESC, p.id DESC")
+    @Query("SELECT DISTINCT p FROM PostEntity p WHERE p.type = :category AND (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.viewCount DESC, p.id DESC")
     Page<PostEntity> findByCategoryByView(@Param("category") PostType category, @Param("lastPostId") Long lastPostId, Pageable pageable);
 
     @Modifying
