@@ -122,7 +122,7 @@ public class PostServiceImpl implements PostService {
 
                     String thumbnailImage = switch (post.getType()) {
                         case AI -> aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
-                        case FREE -> post.getImages().get(0).getImageUuid();
+                        case FREE -> post.getImages().isEmpty() ? "" : post.getImages().get(0).getImageUuid();
                     };
 
                     return new PostAllResponseDto.Posts(
