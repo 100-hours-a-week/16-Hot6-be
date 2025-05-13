@@ -25,6 +25,7 @@ import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -62,11 +63,13 @@ public class PostServiceImpl implements PostService {
         UserEntity userEntity = userAuthRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
-        int seq = 1;
-        for (MultipartFile file : freePostCreateRequestDto.getImages()) {
-            String url = baseUrl + s3Uploader.upload(file);
-            
-            post.addImage(PostImage.createPostImage(post.getId(), seq++, url));
+        if (freePostCreateRequestDto.getImages() != null) {
+            int seq = 1;
+            for (MultipartFile file : freePostCreateRequestDto.getImages()) {
+                String url = baseUrl + s3Uploader.upload(file);
+
+                post.addImage(PostImage.createPostImage(post.getId(), seq++, url));
+            }
         }
 
         Post savedPost = postRepository.save(post);
@@ -154,6 +157,9 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                 .toDomain();
 
+        System.out.println("userId : " + userId);
+        System.out.println("postUserId : " + post.getUserId());
+
         boolean isOwner = post.getUserId().equals(userId);
         boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
         boolean scrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
@@ -213,24 +219,57 @@ public class PostServiceImpl implements PostService {
         // 2) 변경 가능한 필드 적용
         if (freePostUpdateRequestDto.getTitle() != null) post.updateTitle(freePostUpdateRequestDto.getTitle());
         if (freePostUpdateRequestDto.getContent() != null) post.updateContent(freePostUpdateRequestDto.getContent());
-        // 3) 이미지 교체 로직
-        if (freePostUpdateRequestDto.getImages() != null) {
 
-            for (PostImage img : post.getImages()) {
-                s3Uploader.delete(img.getImageUuid());
-            }
+        // 이미지 목록 처리
+        List<PostImage> updatedImages = new ArrayList<>();
+        List<PostImage> currentImages = post.getImages() != null ? post.getImages() : new ArrayList<>(); // 기존 이미지가 없을 수 있음
 
-            // 기존 이미지 전부 삭제
-            post.clearImages();
+        // 1. 기존 이미지 유지 (Sequence 기반)
+        if (freePostUpdateRequestDto.getExistingImageIds() != null && !freePostUpdateRequestDto.getExistingImageIds().isEmpty()) {
+            List<Integer> existingSequences = freePostUpdateRequestDto.getExistingImageIds().stream()
+                    .map(Integer::parseInt) // 문자열 -> 정수 변환
+                    .collect(Collectors.toList());
 
-            int seq = 1;
-            for (MultipartFile file : freePostUpdateRequestDto.getImages()) {
-                String url = baseUrl + s3Uploader.upload(file);
-                System.out.println(url);
-                post.addImage(PostImage.createPostImage(post.getId(), seq++, url));
+            // 기존 이미지 중 유지할 이미지 선별 (시퀀스 기준)
+            for (Integer sequence : existingSequences) {
+                currentImages.stream()
+                        .filter(img -> img.getSequence() == sequence) // 시퀀스 값으로 비교
+                        .findFirst()
+                        .ifPresent(updatedImages::add);
             }
         }
 
+        // 2. 새로 추가할 이미지 처리 (MultipartFile)
+        if (freePostUpdateRequestDto.getImages() != null && !freePostUpdateRequestDto.getImages().isEmpty()) {
+            int seq = updatedImages.size() + 1;
+            for (MultipartFile file : freePostUpdateRequestDto.getImages()) {
+                String url = baseUrl + s3Uploader.upload(file);
+                updatedImages.add(PostImage.createPostImage(post.getId(), seq++, url));
+            }
+        }
+
+        // 3. 기존 이미지 중 제거된 이미지 삭제 (S3에서 제거)
+        if (!currentImages.isEmpty()) {
+            for (PostImage img : currentImages) {
+                if (updatedImages.stream().noneMatch(updated -> updated.getSequence() == img.getSequence())) {
+                    s3Uploader.delete(img.getImageUuid());
+                }
+            }
+        }
+
+        // 4. 게시글 이미지 목록 갱신
+        post.clearImages(); // 기존 이미지 모두 제거
+
+        // 5. 시퀀스 값 다시 설정 후 저장
+        if (!updatedImages.isEmpty()) {
+            int seq = 1;
+            for (PostImage img : updatedImages) {
+                img.setSequence(seq++); // 시퀀스를 순차적으로 다시 설정
+                post.addImage(img);
+            }
+        }
+
+        // 저장
         Post savedPost = postRepository.save(post);
         return new PostCreateResponseDto(savedPost.getId());
     }
