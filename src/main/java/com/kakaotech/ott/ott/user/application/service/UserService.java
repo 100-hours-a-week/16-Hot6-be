@@ -10,7 +10,7 @@ public interface UserService {
 
     MyInfoResponseDto getMyInfo(Long userId);
 
-    MyDeskImageResponseDto getMyDeskWithCursor(Long userId, Long lastId, int size);
+    MyDeskImageResponseDto getMyDeskWithCursor(Long userId, Long lastId, int size, String type);
 
     UserInfoUpdateResponseDto updateUserInfo(Long userId, UserInfoUpdateRequestDto userInfoUpdateRequestDto);
 
