@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
     // Token
-    ACCESS_TOKEN_REQUIRED(HttpStatus.BAD_REQUEST, "카카오 Access token이 누락되었습니다."),
     INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 카카오 access token입니다."),
 
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 Refresh token입니다."),
