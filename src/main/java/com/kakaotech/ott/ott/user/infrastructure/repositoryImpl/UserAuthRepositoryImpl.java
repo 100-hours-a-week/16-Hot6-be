@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.user.infrastructure.repositoryImpl;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
@@ -22,8 +24,11 @@ public class UserAuthRepositoryImpl implements UserAuthRepository {
     }
 
     @Override
-    public Optional<UserEntity> findById(Long userId) {
-        return userJpaRepository.findById(userId);
+    public User findById(Long userId) {
+
+        return userJpaRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
+                .toDomain();
     }
 
     @Override

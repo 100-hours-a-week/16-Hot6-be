@@ -26,9 +26,7 @@ public class ScrapServiceImpl implements ScrapService {
     @Override
     public void likeScrap(Long userId, ScrapRequestDto scrapRequestDto) {
 
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
         Post post = postRepository.findById(scrapRequestDto.getTargetId());
 
         boolean exists = scrapRepository.existsByUserIdAndTypeAndPostId(userId, scrapRequestDto.getType(), scrapRequestDto.getTargetId());
@@ -48,9 +46,7 @@ public class ScrapServiceImpl implements ScrapService {
     @Override
     public void unlikeScrap(Long userId, ScrapRequestDto scrapRequestDto) {
 
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
 
         boolean exists = scrapRepository.existsByUserIdAndTypeAndPostId(userId, scrapRequestDto.getType(), scrapRequestDto.getTargetId());
 
