@@ -118,7 +118,7 @@ public class PostServiceImpl implements PostService {
                             .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
-                    boolean scrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+                    boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
 
                     String thumbnailImage = switch (post.getType()) {
                         case AI -> aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
@@ -157,12 +157,10 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
                 .toDomain();
 
-        System.out.println("userId : " + userId);
-        System.out.println("postUserId : " + post.getUserId());
-
         boolean isOwner = post.getUserId().equals(userId);
         boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
-        boolean scrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+        boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+
 
         List<?> imageUrls = imageLoaderManager.loadImages(post.getType(), postId);
 
