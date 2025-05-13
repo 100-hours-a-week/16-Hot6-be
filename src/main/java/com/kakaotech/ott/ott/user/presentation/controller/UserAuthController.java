@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.user.presentation.controller;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.user.application.service.UserAuthService;
@@ -10,8 +11,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,16 +67,30 @@ public class UserAuthController {
 
     @PostMapping("/token/refresh")
     public ResponseEntity<ApiResponse<RefreshTokenResponseDto>> reissue(
-            @CookieValue(name = "refreshToken", required = false) String refreshToken
-    ) {
+            HttpServletResponse response,
+            @CookieValue(name = "refreshToken", required = false) String refreshToken) {
+        try {
+            String newAccessToken = jwtService.reissueAccessToken(refreshToken);
 
-        if (refreshToken == null) {
-            throw new AccessDeniedException("Refresh Token 누락");
+            RefreshTokenResponseDto refreshTokenResponseDto = new RefreshTokenResponseDto(newAccessToken);
+
+            return ResponseEntity.ok(ApiResponse.success("Access Token 재발급 성공", refreshTokenResponseDto));
+        } catch (CustomException customException) {
+
+            // 클라이언트의 Refresh Token 쿠키 만료
+            ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", null)
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite("None")
+                    .domain("dev.onthe-top.com") // 환경에 맞게 도메인 설정
+                    .path("/")
+                    .maxAge(0)  // 즉시 만료
+                    .build();
+            response.addHeader("Set-Cookie", refreshCookie.toString());
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error(401, customException.getMessage()));
         }
 
-        String newAccessToken = jwtService.reissueAccessToken(refreshToken);
-
-        RefreshTokenResponseDto refreshTokenResponseDto = new RefreshTokenResponseDto(newAccessToken);
-        return ResponseEntity.ok(ApiResponse.success("Access Token 재발급 성공", refreshTokenResponseDto));
     }
 }
