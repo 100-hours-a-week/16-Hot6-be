@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -30,11 +29,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // 1. JWT 발급
         String refreshToken = jwtService.createRefreshToken(userId);
 
-        // 2. Refresh Token 만료 시간 설정
-        LocalDateTime expirationDate = LocalDateTime.now().plusDays(7);
-
         // 3. Refresh Token 저장 (DB)
-        jwtService.storeRefreshToken(userId, refreshToken, expirationDate);
+        jwtService.storeRefreshToken(userId, refreshToken);
 
         // 4. Refresh Token을 HttpOnly, Secure 쿠키로 저장
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)

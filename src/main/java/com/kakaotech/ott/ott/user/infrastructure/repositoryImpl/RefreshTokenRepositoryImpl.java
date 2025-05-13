@@ -5,6 +5,7 @@ import com.kakaotech.ott.ott.user.domain.repository.RefreshTokenRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.RefreshTokenEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -20,6 +21,7 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
     }
 
     @Override
+    @Transactional
     public RefreshTokenEntity save(RefreshTokenEntity refreshTokenEntity) {
         return refreshTokenJpaRepository.save(refreshTokenEntity);
     }
@@ -30,11 +32,13 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
     }
 
     @Override
+    @Transactional
     public void delete(Long userId) {
         refreshTokenJpaRepository.deleteById(userId);
     }
 
     @Override
+    @Transactional
     public void deleteByRefreshToken(String refreshToken) {
         refreshTokenJpaRepository.deleteByRefreshToken(refreshToken);
     }

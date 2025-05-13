@@ -59,7 +59,7 @@ public class UserAuthController {
         String kakaoAccessToken = request.getHeader("Kakao-Access-Token");
 
         // ✅ 서비스 계층에서 로그아웃 처리
-        userAuthService.logout(userId, response, kakaoAccessToken);
+        userAuthService.logout(userId, request, response, kakaoAccessToken);
 
 
         return ResponseEntity.ok(ApiResponse.success("로그아웃 완료", null));
