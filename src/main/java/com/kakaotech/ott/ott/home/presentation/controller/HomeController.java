@@ -24,7 +24,7 @@ public class HomeController {
     public ResponseEntity<ApiResponse<MainResponseDto>> home(
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        Long userId = userPrincipal.getId();
+        Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
 
         MainResponseDto mainResponseDto = new MainResponseDto(
                 postService.getPopularSetups(userId),
