@@ -17,22 +17,30 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
+    private final List<String> publicUrls; // ✅ SecurityConfig에서 주입
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+        String requestURI = request.getRequestURI();
+        String method = request.getMethod();
+
+        // ✅ 인증이 필요하지 않은 URL은 필터를 통과
+        if (isPublicUrl(requestURI, method)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String accessToken = resolveToken(request);
         String refreshToken = getRefreshTokenFromCookie(request);
-
-        System.out.println("JWT 인증 필터 - AccessToken : " + accessToken);
-        System.out.println("JWT 인증 필터 - RefreshToken : " + refreshToken);
 
         try {
             if (accessToken != null && jwtService.validateToken(accessToken)) {
@@ -64,6 +72,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isPublicUrl(String requestURI, String method) {
+        // ✅ GET 요청에 대한 공용 URL
+        if (method.equals("GET") && publicUrls.stream().anyMatch(requestURI::startsWith)) {
+            return true;
+        }
+
+        // ✅ POST 요청에 대한 공용 URL
+        if (method.equals("POST") && requestURI.equals("/api/v1/ai-images/result")) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
