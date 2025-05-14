@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.user.application.serviceImpl;
 
+import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
@@ -16,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,9 +29,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final AiImageRepository aiImageRepository;
+    private final ImageUploader imageUploader;
 
     @Value("${verified.code}")
     private String verifiedCode;
+
+    @Value("${cloud.aws.s3.base-url}")
+    private String baseUrl;
 
     @Override
     public MyInfoResponseDto getMyInfo(Long userId) {
@@ -74,7 +81,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserInfoUpdateResponseDto updateUserInfo(Long userId, UserInfoUpdateRequestDto userInfoUpdateRequestDto) {
+    public UserInfoUpdateResponseDto updateUserInfo(Long userId, UserInfoUpdateRequestDto userInfoUpdateRequestDto) throws IOException {
 
         User user = userRepository.findById(userId);
 
@@ -84,9 +91,28 @@ public class UserServiceImpl implements UserService {
 //        if (userRepository.existsByNicknameCommunity(userInfoUpdateRequestDto.getNicknameCommunity()))
 //            throw new CustomException(ErrorCode.DUPLICATE_NICKNAME_COMMUNITY);
 
-        if(userInfoUpdateRequestDto.getProfileImage() != null) user.updateProfileImagePath(userInfoUpdateRequestDto.getProfileImage());
-        if(userInfoUpdateRequestDto.getNicknameCommunity() != null) user.updateNicknameCommunity(userInfoUpdateRequestDto.getNicknameCommunity());
-        if(userInfoUpdateRequestDto.getNicknameKakao() != null) user.updateNicknameKakao(userInfoUpdateRequestDto.getNicknameKakao());
+        if(userInfoUpdateRequestDto.getProfileImagePath() != null) {
+
+            MultipartFile afterProfileImage = userInfoUpdateRequestDto.getProfileImagePath();
+
+            String beforeProfileImage = user.getImagePath();
+            imageUploader.delete(beforeProfileImage);
+
+            String afterProfileImageUrl = baseUrl + imageUploader.upload(afterProfileImage);
+
+            user.updateProfileImagePath(afterProfileImageUrl);
+        }
+        if(userInfoUpdateRequestDto.getNicknameCommunity() != null) {
+            user.updateNicknameCommunity(userInfoUpdateRequestDto.getNicknameCommunity());
+        }
+        // 카카오 닉네임 변경 (인증된 사용자만)
+        if (userInfoUpdateRequestDto.getNicknameKakao() != null) {
+            if (user.isVerified()) {
+                user.updateNicknameKakao(userInfoUpdateRequestDto.getNicknameKakao());
+            } else {
+                throw new CustomException(ErrorCode.USER_NOT_VERIFIED);
+            }
+        }
 
         User savedUser = userRepository.update(user);
 

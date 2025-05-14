@@ -30,12 +30,9 @@ public class UserRepositoryImpl implements UserRepository {
         UserEntity userEntity = userJpaRepository.findById(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
 
-        if(!user.getImagePath().equals(userEntity.getImagePath()))
-            userEntity.updateProfileImagePath(user.getImagePath());
-        if(!user.getNicknameCommunity().equals(userEntity.getNicknameCommunity()))
-            userEntity.updateNicknameCommunity(user.getNicknameCommunity());
-        if(!user.getNicknameKakao().equals(userEntity.getNicknameKakao()))
-            userEntity.updateNicknameKakao(user.getNicknameKakao());
+        userEntity.updateProfileImagePath(user.getImagePath());
+        userEntity.updateNicknameCommunity(user.getNicknameCommunity());
+        userEntity.updateNicknameKakao(user.getNicknameKakao());
 
         return userJpaRepository.save(userEntity).toDomain();
     }
