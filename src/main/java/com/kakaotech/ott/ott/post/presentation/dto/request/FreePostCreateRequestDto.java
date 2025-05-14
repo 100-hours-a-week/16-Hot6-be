@@ -17,6 +17,7 @@ import java.util.List;
 public class FreePostCreateRequestDto {
 
     @NotBlank(message = "게시글 제목은 필수입니다.")
+    @Size(min = 2, max = 35, message = "게시글 제목은 2자 이상 35자 이하로 입력해주세요.")
     private String title;
 
     @NotBlank(message = "게시글 내용은 필수입니다.")

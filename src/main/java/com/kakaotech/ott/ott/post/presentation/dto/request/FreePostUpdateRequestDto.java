@@ -17,7 +17,9 @@ import java.util.List;
 @ValidImageCount
 public class FreePostUpdateRequestDto {
 
+    @Size(min = 2, max = 35, message = "게시글 제목은 2자 이상 35자 이하로 입력해주세요.")
     private String title;
+
     private String content;
 
     private List<String> existingImageIds; // 유지할 기존 이미지 ID 목록
