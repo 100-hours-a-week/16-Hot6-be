@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 @RestController
@@ -53,10 +54,10 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success("나의 데스크 조회 성공", myDeskImageResponseDto));
     }
 
-    @PatchMapping("/me")
+    @PatchMapping(value = "/me", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<UserInfoUpdateResponseDto>> updateUserInfo(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestBody @Valid UserInfoUpdateRequestDto userInfoUpdateRequestDto) {
+            @Valid @ModelAttribute UserInfoUpdateRequestDto userInfoUpdateRequestDto) throws IOException {
 
         Long userId = userPrincipal.getId();
 
