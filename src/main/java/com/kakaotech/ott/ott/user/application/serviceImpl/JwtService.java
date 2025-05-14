@@ -67,7 +67,6 @@ public class JwtService {
 
         Long userId = extractUserId(refreshToken);
         String newAccessToken = createAccessToken(userId);
-        updateRefreshTokenExpiration(refreshToken);
 
         return newAccessToken;
     }

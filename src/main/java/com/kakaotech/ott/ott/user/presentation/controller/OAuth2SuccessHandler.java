@@ -2,6 +2,8 @@ package com.kakaotech.ott.ott.user.presentation.controller;
 
 import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.user.domain.model.CustomOAuth2User;
+import com.kakaotech.ott.ott.user.domain.repository.RefreshTokenRepository;
+import com.kakaotech.ott.ott.user.infrastructure.entity.RefreshTokenEntity;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +15,14 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtService jwtService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -26,11 +30,15 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         CustomOAuth2User customUser = (CustomOAuth2User) authentication.getPrincipal();
         Long userId = customUser.getUserId();
 
-        // 1. JWT 발급
-        String refreshToken = jwtService.createRefreshToken(userId);
+        // Refresh Token 존재 여부 확인
+        Optional<RefreshTokenEntity> existingToken = refreshTokenRepository.findById(userId);
 
-        // 3. Refresh Token 저장 (DB)
-        jwtService.storeRefreshToken(userId, refreshToken);
+        String refreshToken;
+        if (existingToken.isPresent()) {
+            refreshToken = existingToken.get().getRefreshToken();
+        } else {
+            refreshToken = jwtService.createRefreshToken(userId);
+        }
 
         // 4. Refresh Token을 HttpOnly, Secure 쿠키로 저장
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
