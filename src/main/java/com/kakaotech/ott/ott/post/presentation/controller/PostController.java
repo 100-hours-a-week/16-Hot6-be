@@ -80,6 +80,7 @@ public class PostController {
             @Valid @ModelAttribute FreePostUpdateRequestDto freePostUpdateRequestDto) throws IOException {
 
         Long userId = userPrincipal.getId();
+
         PostCreateResponseDto postCreateResponseDto = postService.updateFreePost(postId, userId, freePostUpdateRequestDto);
 
         return ResponseEntity.ok(ApiResponse.success("게시글 수정 완료", postCreateResponseDto));

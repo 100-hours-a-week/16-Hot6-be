@@ -137,4 +137,11 @@ public class PostRepositoryImpl implements PostRepository {
                 .map(PostEntity::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void batchUpdateWeights() {
+        postJpaRepository.batchUpdateWeights();
+    }
+
+
 }
