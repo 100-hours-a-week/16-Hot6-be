@@ -196,8 +196,14 @@ public class PostServiceImpl implements PostService {
             throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
 
-        for (PostImage img : post.getImages()) {
-            s3Uploader.delete(img.getImageUuid());
+        if(post.getType().equals(PostType.FREE)) {
+            for (PostImage img : post.getImages()) {
+                s3Uploader.delete(img.getImageUuid());
+            }
+        } else {
+            AiImage aiImage = aiImageRepository.findByPostId(postId);
+            aiImage.updatePostId(null);
+            aiImageRepository.updatePostId(aiImage);
         }
 
         postRepository.deletePost(postId);
