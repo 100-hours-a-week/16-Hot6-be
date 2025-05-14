@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.post.application.serviceImpl;
 import com.kakaotech.ott.ott.aiImage.application.serviceImpl.S3Uploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
@@ -48,6 +49,7 @@ public class PostServiceImpl implements PostService {
     private final LikeRepository likeRepository;
     private final ScrapRepository scrapRepository;
     private final ImageLoaderManager imageLoaderManager;
+    private final CommentRepository commentRepository;
 
     @Value("${cloud.aws.s3.base-url}")
     private String baseUrl;
@@ -115,6 +117,9 @@ public class PostServiceImpl implements PostService {
 
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
                     boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+                    int commentCount = commentRepository.findByPostId(post.getId());
+                    int scrapCount = scrapRepository.findByPostId(post.getId());
+                    int likeCount = likeRepository.findByPostId(post.getId());
 
                     String thumbnailImage = switch (post.getType()) {
                         case AI -> aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
@@ -129,8 +134,8 @@ public class PostServiceImpl implements PostService {
                                     : "알 수 없음",
                                     author.getImagePath()),
                             thumbnailImage,
-                            post.getLikeCount(),
-                            post.getCommentCount(),
+                            likeCount,
+                            commentCount,
                             post.getCreatedAt(),
                             liked,
                             scrapped
@@ -160,6 +165,9 @@ public class PostServiceImpl implements PostService {
 
         List<?> imageUrls = imageLoaderManager.loadImages(post.getType(), postId);
 
+        int commentCount = commentRepository.findByPostId(post.getId());
+        int likeCount = likeRepository.findByPostId(post.getId());
+
         return new PostGetResponseDto(
                 post.getId(),
                 post.getTitle(),
@@ -169,8 +177,8 @@ public class PostServiceImpl implements PostService {
                         ? user.getNicknameCommunity()
                         : "알 수 없음",
                         user.getImagePath()),
-                post.getLikeCount(),
-                post.getCommentCount(),
+                likeCount,
+                commentCount,
                 post.getViewCount(),
                 scrapped,
                 liked,
