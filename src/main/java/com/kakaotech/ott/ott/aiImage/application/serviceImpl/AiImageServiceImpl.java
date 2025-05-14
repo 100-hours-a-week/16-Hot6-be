@@ -76,9 +76,7 @@ public class AiImageServiceImpl implements AiImageService {
         aiImage.updateAiImage(aiImageAndProductRequestDto.getProcessedImageUrl());
         aiImage.successState();
 
-        User user = userAuthRepository.findById(aiImage.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(aiImage.getUserId());
 
         user.renewGeneratedDate();
 

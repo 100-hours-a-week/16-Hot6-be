@@ -10,4 +10,5 @@ public interface LikeRepository {
 
     boolean existsByUserIdAndPostId(Long userId, Long postId);
 
+    int findByPostId(Long postId);
 }

@@ -55,4 +55,9 @@ public class ScrapRepositoryImpl implements ScrapRepository {
                 .collect(Collectors.toSet());
     }
 
+    @Override
+    public int findByPostId(Long postId, ScrapType type) {
+        return scrapJpaRepository.countByPostId(postId);
+    }
+
 }

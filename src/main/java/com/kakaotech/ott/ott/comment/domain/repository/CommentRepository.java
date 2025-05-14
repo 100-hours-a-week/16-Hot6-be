@@ -12,5 +12,7 @@ public interface CommentRepository {
 
     Comment findById(Long commentId);
 
+    int findByPostId(Long postId);
+
     List<Comment> findByPostIdCursor(Long postId, Long lastCommentId, int size);
 }

@@ -16,7 +16,7 @@ public interface AiImageRepository {
 
     Optional<AiImageEntity> findById(Long userId);
 
-    Slice<AiImage> findUserDeskImages(Long userId, Long cursorId, int size);
+    Slice<AiImage> findUserDeskImages(Long userId, Long cursorId, int size, String type);
 
     AiImage findByBeforeImagePath(String beforeImagePath);
 

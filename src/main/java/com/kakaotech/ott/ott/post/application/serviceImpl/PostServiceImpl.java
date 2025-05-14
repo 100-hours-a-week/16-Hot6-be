@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.post.application.serviceImpl;
 import com.kakaotech.ott.ott.aiImage.application.serviceImpl.S3Uploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
@@ -22,7 +23,6 @@ import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
-import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,10 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,6 +46,7 @@ public class PostServiceImpl implements PostService {
     private final LikeRepository likeRepository;
     private final ScrapRepository scrapRepository;
     private final ImageLoaderManager imageLoaderManager;
+    private final CommentRepository commentRepository;
 
     @Value("${cloud.aws.s3.base-url}")
     private String baseUrl;
@@ -61,14 +59,15 @@ public class PostServiceImpl implements PostService {
         Post post = Post.createPost(userId, PostType.FREE,
                 freePostCreateRequestDto.getTitle(), freePostCreateRequestDto.getContent());
 
-        UserEntity userEntity = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = userAuthRepository.findById(userId);
 
-        int seq = 1;
-        for (MultipartFile file : freePostCreateRequestDto.getImages()) {
-            String url = baseUrl + s3Uploader.upload(file);
-            
-            post.addImage(PostImage.createPostImage(post.getId(), seq++, url));
+        if (freePostCreateRequestDto.getImages() != null) {
+            int seq = 1;
+            for (MultipartFile file : freePostCreateRequestDto.getImages()) {
+                String url = baseUrl + s3Uploader.upload(file);
+
+                post.addImage(PostImage.createPostImage(post.getId(), seq++, url));
+            }
         }
 
         Post savedPost = postRepository.save(post);
@@ -83,11 +82,9 @@ public class PostServiceImpl implements PostService {
         Post post = Post.createPost(userId, PostType.AI,
                 aiPostCreateRequestDto.getTitle(), aiPostCreateRequestDto.getContent());
 
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
 
-        user.updatePoint(500);
+        user.updatePoint(200);
         userAuthRepository.save(user);
 
         Post savedPost = postRepository.save(post);
@@ -113,24 +110,28 @@ public class PostServiceImpl implements PostService {
 
         List<PostAllResponseDto.Posts> dtoList = posts.stream()
                 .map(post -> {
-                    UserEntity author = userAuthRepository.findById(post.getUserId())
-                            .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+                    User author = userAuthRepository.findById(post.getUserId());
 
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
-                    boolean scrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+                    boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+                    int commentCount = commentRepository.findByPostId(post.getId());
+                    int likeCount = likeRepository.findByPostId(post.getId());
 
                     String thumbnailImage = switch (post.getType()) {
                         case AI -> aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
-                        case FREE -> post.getImages().get(0).getImageUuid();
+                        case FREE -> post.getImages().isEmpty() ? "" : post.getImages().get(0).getImageUuid();
                     };
 
                     return new PostAllResponseDto.Posts(
                             post.getId(),
                             post.getTitle(),
-                            new PostAuthorResponseDto(author.getNicknameCommunity(), author.getImagePath()),
+                            new PostAuthorResponseDto(userAuthRepository.findById(post.getUserId()).isActive()
+                                    ? author.getNicknameCommunity()
+                                    : "알 수 없음",
+                                    author.getImagePath()),
                             thumbnailImage,
-                            post.getLikeCount(),
-                            post.getCommentCount(),
+                            likeCount,
+                            commentCount,
                             post.getCreatedAt(),
                             liked,
                             scrapped
@@ -152,24 +153,28 @@ public class PostServiceImpl implements PostService {
 
         Post post = postRepository.findById(postId);
 
-        User user = userAuthRepository.findById(post.getUserId())
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(post.getUserId());
 
         boolean isOwner = post.getUserId().equals(userId);
         boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
-        boolean scrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+        boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
 
         List<?> imageUrls = imageLoaderManager.loadImages(post.getType(), postId);
+
+        int commentCount = commentRepository.findByPostId(post.getId());
+        int likeCount = likeRepository.findByPostId(post.getId());
 
         return new PostGetResponseDto(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getType(),
-                new PostAuthorResponseDto(user.getNicknameCommunity(), user.getImagePath()),
-                post.getLikeCount(),
-                post.getCommentCount(),
+                new PostAuthorResponseDto(userAuthRepository.findById(post.getUserId()).isActive()
+                        ? user.getNicknameCommunity()
+                        : "알 수 없음",
+                        user.getImagePath()),
+                likeCount,
+                commentCount,
                 post.getViewCount(),
                 scrapped,
                 liked,
@@ -183,8 +188,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void deletePost(Long userId, Long postId) throws AccessDeniedException {
 
-        UserEntity userEntity = userAuthRepository.findById(userId)
-                .orElseThrow();
+        User user = userAuthRepository.findById(userId);
 
         Post post = postRepository.findById(postId);
 
@@ -203,9 +207,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public PostCreateResponseDto updateFreePost(Long postId, Long userId, FreePostUpdateRequestDto freePostUpdateRequestDto) throws IOException {
 
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
 
         Post post = postRepository.findById(postId);
 
@@ -215,33 +217,64 @@ public class PostServiceImpl implements PostService {
         // 2) 변경 가능한 필드 적용
         if (freePostUpdateRequestDto.getTitle() != null) post.updateTitle(freePostUpdateRequestDto.getTitle());
         if (freePostUpdateRequestDto.getContent() != null) post.updateContent(freePostUpdateRequestDto.getContent());
-        // 3) 이미지 교체 로직
-        if (freePostUpdateRequestDto.getImages() != null) {
 
-            for (PostImage img : post.getImages()) {
-                s3Uploader.delete(img.getImageUuid());
-            }
+        // 이미지 목록 처리
+        List<PostImage> updatedImages = new ArrayList<>();
+        List<PostImage> currentImages = post.getImages() != null ? post.getImages() : new ArrayList<>(); // 기존 이미지가 없을 수 있음
 
-            // 기존 이미지 전부 삭제
-            post.clearImages();
+        // 1. 기존 이미지 유지 (Sequence 기반)
+        if (freePostUpdateRequestDto.getExistingImageIds() != null && !freePostUpdateRequestDto.getExistingImageIds().isEmpty()) {
+            List<Integer> existingSequences = freePostUpdateRequestDto.getExistingImageIds().stream()
+                    .map(Integer::parseInt) // 문자열 -> 정수 변환
+                    .collect(Collectors.toList());
 
-            int seq = 1;
-            for (MultipartFile file : freePostUpdateRequestDto.getImages()) {
-                String url = baseUrl + s3Uploader.upload(file);
-                System.out.println(url);
-                post.addImage(PostImage.createPostImage(post.getId(), seq++, url));
+            // 기존 이미지 중 유지할 이미지 선별 (시퀀스 기준)
+            for (Integer sequence : existingSequences) {
+                currentImages.stream()
+                        .filter(img -> img.getSequence() == sequence) // 시퀀스 값으로 비교
+                        .findFirst()
+                        .ifPresent(updatedImages::add);
             }
         }
 
+        // 2. 새로 추가할 이미지 처리 (MultipartFile)
+        if (freePostUpdateRequestDto.getImages() != null && !freePostUpdateRequestDto.getImages().isEmpty()) {
+            int seq = updatedImages.size() + 1;
+            for (MultipartFile file : freePostUpdateRequestDto.getImages()) {
+                String url = baseUrl + s3Uploader.upload(file);
+                updatedImages.add(PostImage.createPostImage(post.getId(), seq++, url));
+            }
+        }
+
+        // 3. 기존 이미지 중 제거된 이미지 삭제 (S3에서 제거)
+        if (!currentImages.isEmpty()) {
+            for (PostImage img : currentImages) {
+                if (updatedImages.stream().noneMatch(updated -> updated.getSequence() == img.getSequence())) {
+                    s3Uploader.delete(img.getImageUuid());
+                }
+            }
+        }
+
+        // 4. 게시글 이미지 목록 갱신
+        post.clearImages(); // 기존 이미지 모두 제거
+
+        // 5. 시퀀스 값 다시 설정 후 저장
+        if (!updatedImages.isEmpty()) {
+            int seq = 1;
+            for (PostImage img : updatedImages) {
+                img.setSequence(seq++); // 시퀀스를 순차적으로 다시 설정
+                post.addImage(img);
+            }
+        }
+
+        // 저장
         Post savedPost = postRepository.save(post);
         return new PostCreateResponseDto(savedPost.getId());
     }
 
     @Override
     public PostCreateResponseDto updateAiPost(Long postId, Long userId, AiPostUpdateRequestDto aiPostUpdateRequestDto) throws IOException {
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
         Post post = postRepository.findById(postId);
 
         if (!post.getUserId().equals(userId)) {
@@ -284,16 +317,19 @@ public class PostServiceImpl implements PostService {
         Map<Long, AiImage> aiImageMap = aiImageRepository.findByPostIds(postIds);
 
         // Scrap 여부 Batch 조회 (Domain Repository)
-        Set<Long> scrappedPostIds = scrapRepository.findScrappedPostIds(userId, postIds);
+        Set<Long> scrappedPostIds = (userId != null)
+                ? new HashSet<>(scrapRepository.findScrappedPostIds(userId, postIds))
+                : Collections.emptySet();
 
         // PopularSetupDto 생성
         return popularPosts.stream()
                 .map(post -> new PopularSetupDto(
                         post.getId(),
                         post.getTitle(),
-                        aiImageMap.getOrDefault(post.getId(), null) != null ?
-                                aiImageMap.get(post.getId()).getAfterImagePath() : "",
-                        scrappedPostIds.contains(post.getId())
+                        Optional.ofNullable(aiImageMap.get(post.getId()))
+                                .map(AiImage::getAfterImagePath)
+                                .orElse(""),
+                        (userId != null) && scrappedPostIds.contains(post.getId())
                 ))
                 .collect(Collectors.toList());
     }

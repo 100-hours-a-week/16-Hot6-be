@@ -1,7 +1,6 @@
 package com.kakaotech.ott.ott.post.presentation.controller;
 
 import com.kakaotech.ott.ott.global.response.ApiResponse;
-import com.kakaotech.ott.ott.post.application.component.ViewCountAggregator;
 import com.kakaotech.ott.ott.post.application.service.PostService;
 import com.kakaotech.ott.ott.post.presentation.dto.request.AiPostCreateRequestDto;
 import com.kakaotech.ott.ott.post.presentation.dto.request.AiPostUpdateRequestDto;
@@ -28,8 +27,6 @@ public class PostController {
 
     private final PostService postService;
 
-    private final ViewCountAggregator viewCountAggregator;
-
     @GetMapping
     public ResponseEntity<ApiResponse<PostAllResponseDto>> getAllPostS(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -38,7 +35,7 @@ public class PostController {
             @RequestParam(required = false) Long lastPostId,
             @RequestParam(defaultValue = "10") int size) {
 
-        Long userId = userPrincipal.getId();
+        Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
 
         PostAllResponseDto payload = postService.getAllPost(userId, category, sort, size, lastPostId);
         return ResponseEntity.ok(ApiResponse.success("게시글 목록 조회 성공", payload));
@@ -49,7 +46,7 @@ public class PostController {
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long postId) {
 
-        Long userId = userPrincipal.getId();
+        Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
 
         return ResponseEntity.ok(ApiResponse.success("게시글 조회 성공", postService.getPost(postId, userId)));
     }
@@ -83,6 +80,7 @@ public class PostController {
             @Valid @ModelAttribute FreePostUpdateRequestDto freePostUpdateRequestDto) throws IOException {
 
         Long userId = userPrincipal.getId();
+
         PostCreateResponseDto postCreateResponseDto = postService.updateFreePost(postId, userId, freePostUpdateRequestDto);
 
         return ResponseEntity.ok(ApiResponse.success("게시글 수정 완료", postCreateResponseDto));

@@ -78,35 +78,36 @@ public class PostRepositoryImpl implements PostRepository {
 
         if (category == null || "ALL".equalsIgnoreCase(category)) {
             return switch (sort == null ? "LATEST" : sort.toUpperCase()) {
-                case "LIKE" -> postJpaRepository.findAllPostsByLike(pageable)
+                case "LIKE" -> postJpaRepository.findAllPostsByLike(lastPostId, pageable)
                         .stream().map(PostEntity::toDomain).toList();
-                case "VIEW" -> postJpaRepository.findAllPostsByView(pageable)
+                case "VIEW" -> postJpaRepository.findAllPostsByView(lastPostId, pageable)
                         .stream().map(PostEntity::toDomain).toList();
-                default -> postJpaRepository.findAllPosts(pageable)
+                default -> postJpaRepository.findAllPosts(lastPostId, pageable)
                         .stream().map(PostEntity::toDomain).toList();
             };
         }
 
         PostType postType = PostType.valueOf(category.toUpperCase());
 
-        if (lastPostId == null) {
-            return switch (sort == null ? "LATEST" : sort.toUpperCase()) {
-                case "LIKE" -> postJpaRepository.findByCategoryByLike(postType, pageable)
-                        .stream().map(PostEntity::toDomain).toList();
-                case "VIEW" -> postJpaRepository.findByCategoryByView(postType, pageable)
-                        .stream().map(PostEntity::toDomain).toList();
-                default -> postJpaRepository.findByCategory(postType, pageable)
-                        .stream().map(PostEntity::toDomain).toList();
-            };
-        }
-
-        return postJpaRepository.findByCategoryAndCursor(postType, lastPostId, pageable)
+        return switch (sort == null ? "LATEST" : sort.toUpperCase()) {
+            case "LIKE" -> postJpaRepository.findByCategoryByLike(postType, lastPostId, pageable)
                     .stream().map(PostEntity::toDomain).toList();
+            case "VIEW" -> postJpaRepository.findByCategoryByView(postType, lastPostId, pageable)
+                    .stream().map(PostEntity::toDomain).toList();
+            default -> postJpaRepository.findByCategory(postType, lastPostId, pageable)
+                    .stream().map(PostEntity::toDomain).toList();
+        };
     }
 
     @Override
     @Transactional
     public void incrementViewCount(Long postId, Long delta) {
+
+        PostEntity postEntity = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if(postEntity.getViewCount() + delta < 0)
+            return;
 
         postJpaRepository.incrementViewCount(postId, delta);
     }
@@ -115,6 +116,12 @@ public class PostRepositoryImpl implements PostRepository {
     @Transactional
     public void incrementLikeCount(Long postId, Long delta) {
 
+        PostEntity postEntity = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if(postEntity.getLikeCount() + delta < 0)
+            return;
+
         postJpaRepository.incrementLikeCount(postId, delta);
     }
 
@@ -122,12 +129,24 @@ public class PostRepositoryImpl implements PostRepository {
     @Transactional
     public void incrementScrapCount(Long postId, Long delta) {
 
+        PostEntity postEntity = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if(postEntity.getScrapCount() + delta < 0)
+            return;
+
         postJpaRepository.incrementScrapCount(postId, delta);
     }
 
     @Override
     @Transactional
     public void incrementCommentCount(Long postId, Long delta) {
+
+        PostEntity postEntity = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if(postEntity.getCommentCount() + delta < 0)
+            return;
 
         postJpaRepository.incrementCommentCount(postId, delta);
     }
@@ -142,4 +161,11 @@ public class PostRepositoryImpl implements PostRepository {
                 .map(PostEntity::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void batchUpdateWeights() {
+        postJpaRepository.batchUpdateWeights();
+    }
+
+
 }

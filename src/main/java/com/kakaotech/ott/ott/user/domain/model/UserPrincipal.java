@@ -12,12 +12,14 @@ public class UserPrincipal implements UserDetails {
     private Long id;
     private String email;
     private Role role;
+    private boolean isActive;
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserPrincipal(Long id, String email, Role role, Collection<? extends GrantedAuthority> authorities) {
+    public UserPrincipal(Long id, String email, Role role, boolean isActive, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.email = email;
         this.role = role;
+        this.isActive = isActive;
         this.authorities = authorities;
     }
 
@@ -26,6 +28,7 @@ public class UserPrincipal implements UserDetails {
                 user.getId(),
                 user.getEmail(),
                 user.getRole(),
+                user.isActive(),
                 List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
         );
     }
@@ -38,6 +41,8 @@ public class UserPrincipal implements UserDetails {
     public Role getRole() {
         return role;
     }
+
+    public boolean getIsActive() { return isActive; }
 
     @Override
     public String getUsername() {

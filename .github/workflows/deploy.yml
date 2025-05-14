@@ -122,11 +122,13 @@ jobs:
               echo "실행 중인 프로세스 없음"
             fi
 
+            mkdir -p /var/log/onthetop/backend
+
             echo "▶️ 애플리케이션 재시작"
-            nohup java -jar backend.jar \
-              --spring.profiles.active=$DEPLOY_ENV \
+            nohup env SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
+              java -jar backend.jar \
               --spring.config.additional-location=file:/home/ubuntu/backend/secrets.properties \
-              > backend.log 2>&1 &
+              > /var/log/onthetop/backend/backend.log 2>&1 &
 
             echo "▶️ [3] 실행 상태 확인"
             sleep 10

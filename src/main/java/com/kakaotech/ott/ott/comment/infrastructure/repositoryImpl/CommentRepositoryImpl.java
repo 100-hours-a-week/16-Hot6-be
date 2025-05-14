@@ -44,10 +44,10 @@ public class CommentRepositoryImpl implements CommentRepository {
     }
 
     @Override
-    @Transactional
     public void deleteComment(Long commentId) {
 
         commentJpaRepository.deleteById(commentId);
+        commentJpaRepository.flush();
     }
 
     @Override
@@ -56,6 +56,12 @@ public class CommentRepositoryImpl implements CommentRepository {
         return commentJpaRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND))
                 .toDomain();
+    }
+
+    @Override
+    public int findByPostId(Long postId) {
+
+        return commentJpaRepository.countByPostId(postId);
     }
 
     @Override

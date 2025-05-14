@@ -13,6 +13,7 @@ import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,28 +39,27 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public void deleteComment(Long commentId, Long userId) {
 
-        User user = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        User user = userAuthRepository.findById(userId);
 
         if(!user.getId().equals(userId))
             throw new CustomException(ErrorCode.USER_FORBIDDEN);
 
         Comment comment = commentRepository.findById(commentId);
 
+        System.out.println(commentId);
         commentRepository.deleteComment(commentId);
 
         postRepository.incrementCommentCount(comment.getPostId(), -1L);
+
     }
 
     @Override
     public CommentCreateResponseDto updateComment(CommentCreateRequestDto commentCreateRequestDto, Long commentId, Long userId) {
 
-        userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                .toDomain();
+        userAuthRepository.findById(userId);
 
         Comment comment = commentRepository.findById(commentId);
 
@@ -94,13 +94,13 @@ public class CommentServiceImpl implements CommentService {
                 commentList.stream()
                         .map(c -> {
                             // 작성자 정보 조회
-                            User author = userAuthRepository.findById(c.getUserId())
-                                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                                    .toDomain();
+                            User author = userAuthRepository.findById(c.getUserId());
 
                             CommentListResponseDto.AuthorDto authorDto =
                                     new CommentListResponseDto.AuthorDto(
-                                            author.getNicknameCommunity(),
+                                            userAuthRepository.findById(c.getUserId()).isActive()
+                                                    ? author.getNicknameCommunity()
+                                                    : "알 수 없음",
                                             author.getImagePath()
                                     );
 

@@ -6,6 +6,7 @@ import lombok.Getter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Builder
 @Getter
 public class User {
 
@@ -23,32 +24,13 @@ public class User {
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
 
-    @Builder
-    public User(Long id, String email, Role role, String nicknameKakao, String nicknameCommunity,
-                int point, String imagePath, boolean isActive, boolean isVerified,
-                LocalDate aiImageGeneratedDate, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime deletedAt) {
-        this.id = id;
-        this.email = email;
-        this.role = role;
-        this.nicknameKakao = nicknameKakao;
-        this.nicknameCommunity = nicknameCommunity;
-        this.point = point;
-        this.imagePath = imagePath;
-        this.isActive = isActive;
-        this.isVerified = isVerified;
-        this.aiImageGeneratedDate = aiImageGeneratedDate;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.deletedAt = deletedAt;
-    }
-
     public static User createUser(String email, String nicknameCommunity, String imagePath) {
         return User.builder()
                 .email(email)
                 .role(Role.USER)
                 .nicknameKakao(null)
                 .nicknameCommunity(nicknameCommunity)
-                .point(1000)
+                .point(500)
                 .imagePath(imagePath)
                 .isActive(true)
                 .isVerified(false)
@@ -80,8 +62,8 @@ public class User {
         this.isActive = isActive;
     }
 
-    public void updateDeletedAt() {
-        this.deletedAt = LocalDateTime.now();
+    public void updateDeletedAt(LocalDateTime currentTime) {
+        this.deletedAt = currentTime;
     }
 
     public void updateVerified() {

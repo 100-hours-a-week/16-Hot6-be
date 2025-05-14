@@ -30,7 +30,7 @@ public class Post {
     private Long viewCount = 0L;
     private int scrapCount;
 
-    private int weight;
+    private double weight;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -45,7 +45,7 @@ public class Post {
                 .likeCount(0)
                 .viewCount(0L)
                 .scrapCount(0)
-                .weight(0)
+                .weight(0.0)
                 .build();
 
     }

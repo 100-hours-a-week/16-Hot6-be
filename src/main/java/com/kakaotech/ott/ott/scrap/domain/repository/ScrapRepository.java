@@ -15,4 +15,6 @@ public interface ScrapRepository {
     boolean existsByUserIdAndTypeAndPostId(Long userId, ScrapType scrapType, Long postId);
 
     Set<Long> findScrappedPostIds(Long userId, List<Long> postIds);
+
+    int findByPostId(Long postId, ScrapType type);
 }

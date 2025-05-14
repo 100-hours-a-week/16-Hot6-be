@@ -84,7 +84,16 @@ public class AiImageRepositoryImpl implements AiImageRepository {
     }
 
     @Override
-    public Slice<AiImage> findUserDeskImages(Long userId, Long cursorId, int size) {
+    public Slice<AiImage> findUserDeskImages(Long userId, Long cursorId, int size, String type) {
+
+        if (type != null) {
+            Slice<AiImageEntity> slice = aiImageJpaRepository.findUnlinkedByUserWithCursor(
+                    userId, cursorId, PageRequest.of(0, size)
+            );
+
+            return slice.map(AiImageEntity::toDomain);
+        }
+
         Slice<AiImageEntity> slice = aiImageJpaRepository.findByUserWithCursor(
                 userId, cursorId, PageRequest.of(0, size)
         );

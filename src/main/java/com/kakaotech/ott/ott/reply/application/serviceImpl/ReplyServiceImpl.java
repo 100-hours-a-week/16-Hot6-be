@@ -46,13 +46,13 @@ public class ReplyServiceImpl implements ReplyService {
         List<ReplyListResponseDto.ReplyResponseDto> replyDtos =
                 replyList.stream()
                         .map(r -> {
-                            User author = userAuthRepository.findById(r.getUserId())
-                                    .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND))
-                                    .toDomain();
+                            User author = userAuthRepository.findById(r.getUserId());
 
                             ReplyListResponseDto.AuthorDto authorDto =
                                     new ReplyListResponseDto.AuthorDto(
-                                            author.getNicknameCommunity(),
+                                            userAuthRepository.findById(r.getUserId()).isActive()
+                                                    ? author.getNicknameCommunity()
+                                                    : "알 수 없음",
                                             author.getImagePath()
                                     );
 
@@ -107,8 +107,7 @@ public class ReplyServiceImpl implements ReplyService {
     @Override
     public void deleteReply(Long replyId, Long userId){
 
-        userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        userAuthRepository.findById(userId);
 
         Reply reply = replyRepository.findById(replyId);
 

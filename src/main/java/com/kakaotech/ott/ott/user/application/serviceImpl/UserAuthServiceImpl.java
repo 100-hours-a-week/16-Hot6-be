@@ -2,9 +2,12 @@ package com.kakaotech.ott.ott.user.application.serviceImpl;
 
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import com.kakaotech.ott.ott.user.application.service.UserAuthService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -27,11 +30,10 @@ public class UserAuthServiceImpl implements UserAuthService {
         LocalDate today = LocalDate.now();
 
         // 1. 사용자가 존재하지 않으면 예외 발생 (404)
-        UserEntity userEntity = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = userAuthRepository.findById(userId);
 
         // 2. quota 사용일이 null이면 → 아직 사용 안 함 → 사용 가능
-        LocalDate lastGenerated = userEntity.getAiImageGeneratedDate();
+        LocalDate lastGenerated = user.getAiImageGeneratedDate();
 
         return lastGenerated == null || !today.equals(lastGenerated);
 
@@ -39,11 +41,13 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     @Transactional
-    public void logout(Long userId, HttpServletResponse response, String kakaoAccessToken) {
+    public void logout(Long userId, HttpServletRequest request, HttpServletResponse response, String kakaoAccessToken) {
         try {
-
-            // 서버에서 Refresh Token 삭제 (DB or Redis)
-            jwtService.logout(userId);
+            // ✅ Refresh Token 쿠키에서 추출
+            String refreshToken = getRefreshTokenFromCookie(request);
+            if (refreshToken == null) {
+                throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+            }
 
             // 클라이언트의 Refresh Token 쿠키 만료
             ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", null)
@@ -63,5 +67,15 @@ public class UserAuthServiceImpl implements UserAuthService {
         } catch (Exception e) {
             throw new CustomException(ErrorCode.LOGOUT_FAILED);
         }
+    }
+    private String getRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }

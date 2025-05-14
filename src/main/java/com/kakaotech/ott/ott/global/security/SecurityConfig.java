@@ -14,6 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -38,15 +39,13 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable) // ✅ CSRF 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ CORS 설정 적용
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // ✅ 세션 사용 비활성화 (무상태)
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/api/v1/main", "/api/v1/health",
-                                "/api/v1/posts", "/api/v1/posts/{postId}",
-                                "/oauth2/authorization/kakao", "/login/oauth2/code/kakao",
-                                "/api/v1/ai-images/result", "/api/v1/auth/kakao").permitAll()
-
+                        .requestMatchers(HttpMethod.GET, publicUrls().toArray(new String[0])).permitAll()
                         // ✅ POST 요청 허용
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/kakao", "/api/v1/ai-images/result"
-                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST,  "/api/v1/ai-images/result", "/api/v1/auth/kakao").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
@@ -99,5 +98,18 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }
+
+    @Bean
+    public List<String> publicUrls() {
+        return List.of(
+                "/api/v1/main",
+                "/api/v1/health",
+                "/api/v1/posts",
+                "/api/v1/posts/{postId}",
+                "/api/v1/auth/kakao",
+                "/oauth2/authorization/kakao",
+                "/login/oauth2/code/kakao"
+        );
     }
 }

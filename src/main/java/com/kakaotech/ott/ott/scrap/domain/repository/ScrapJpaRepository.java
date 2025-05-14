@@ -21,4 +21,6 @@ public interface ScrapJpaRepository extends JpaRepository<ScrapEntity, Long> {
     @Query("SELECT s.targetId FROM ScrapEntity s WHERE s.userEntity.id = :userId AND s.targetId IN :postIds")
     List<Long> findScrappedPostIds(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
 
+    @Query("SELECT COUNT(s) FROM ScrapEntity s WHERE s.targetId = :postId AND s.type = :type")
+    int countByPostId(@Param("postId") Long postId);
 }

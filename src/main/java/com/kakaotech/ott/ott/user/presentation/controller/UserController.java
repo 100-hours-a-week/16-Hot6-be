@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 
 @RestController
@@ -38,7 +39,8 @@ public class UserController {
     public ResponseEntity<ApiResponse<MyDeskImageResponseDto>> getMyDesk(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam (value = "lastId", required = false) Long lastId,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(value = "type", required = false) String type) {
 
         Long userId = userPrincipal.getId();
 
@@ -47,15 +49,15 @@ public class UserController {
             lastId = Long.MAX_VALUE; // 가장 최신 ID를 의미
         }
 
-        MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, lastId, size);
+        MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, lastId, size, type);
 
         return ResponseEntity.ok(ApiResponse.success("나의 데스크 조회 성공", myDeskImageResponseDto));
     }
 
-    @PatchMapping("/me")
+    @PatchMapping(value = "/me", consumes = "multipart/form-data")
     public ResponseEntity<ApiResponse<UserInfoUpdateResponseDto>> updateUserInfo(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestBody @Valid UserInfoUpdateRequestDto userInfoUpdateRequestDto) {
+            @Valid @ModelAttribute UserInfoUpdateRequestDto userInfoUpdateRequestDto) throws IOException {
 
         Long userId = userPrincipal.getId();
 
@@ -85,5 +87,16 @@ public class UserController {
         userService.verifiedCode(userId, userVerifiedRequestDto);
 
         return ResponseEntity.ok(ApiResponse.success("추천인 코드 등록 성공", null));
+    }
+
+    @PostMapping("/recover")
+    public ResponseEntity<ApiResponse> recoverUserAccount(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+        Long userId = userPrincipal.getId();
+
+        userService.recoverUser(userId);
+
+        return ResponseEntity.ok(ApiResponse.success("회원 탈퇴 취소가 완료되었습니다.", userId));
     }
 }

@@ -38,4 +38,8 @@ public class PostImageEntity {
                 .imageUuid(this.imageUuid)
                 .build();
     }
+
+    public void setSequence(int sequence) {
+        this.sequence = sequence;
+    }
 }

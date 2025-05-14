@@ -1,8 +1,12 @@
 package com.kakaotech.ott.ott.user.infrastructure.repositoryImpl;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.domain.model.User;
+import com.kakaotech.ott.ott.user.domain.repository.RefreshTokenRepository;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.user.infrastructure.entity.RefreshTokenEntity;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserRepositoryImpl implements UserRepository {
 
     private final UserJpaRepository userJpaRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public User findById(Long userId) {
@@ -30,12 +35,9 @@ public class UserRepositoryImpl implements UserRepository {
         UserEntity userEntity = userJpaRepository.findById(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
 
-        if(!user.getImagePath().equals(userEntity.getImagePath()))
-            userEntity.updateProfileImagePath(user.getImagePath());
-        if(!user.getNicknameCommunity().equals(userEntity.getNicknameCommunity()))
-            userEntity.updateNicknameCommunity(user.getNicknameCommunity());
-        if(!user.getNicknameKakao().equals(userEntity.getNicknameKakao()))
-            userEntity.updateNicknameKakao(user.getNicknameKakao());
+        userEntity.updateProfileImagePath(user.getImagePath());
+        userEntity.updateNicknameCommunity(user.getNicknameCommunity());
+        userEntity.updateNicknameKakao(user.getNicknameKakao());
 
         return userJpaRepository.save(userEntity).toDomain();
     }
@@ -47,6 +49,9 @@ public class UserRepositoryImpl implements UserRepository {
         UserEntity userEntity = userJpaRepository.findById(user.getId())
                         .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
 
+        RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findById(userEntity.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+        refreshTokenEntity.updateRefreshToken(null, null);
         userEntity.updateActive(user.isActive());
         userEntity.updateDeletedAt(user.getDeletedAt());
 
@@ -66,6 +71,18 @@ public class UserRepositoryImpl implements UserRepository {
     public boolean existsByNicknameCommunity(String nicknameCommunity) {
 
         return userJpaRepository.existsByNicknameCommunity(nicknameCommunity);
+    }
+
+    @Override
+    @Transactional
+    public void recovery(User user) {
+
+        UserEntity userEntity = userJpaRepository.findById(user.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        System.out.println(user.isActive());
+        userEntity.updateActive(user.isActive());
+        userEntity.updateDeletedAt(user.getDeletedAt());
     }
 
 
