@@ -93,8 +93,26 @@ public class JwtService {
 
     public boolean validateToken(String token) {
         try {
+            // 1. 토큰 서명 검증 (위조 여부 확인)
             Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
             return true;
+        } catch (JwtException e) {
+            return false;
+        }
+    }
+
+    public boolean validateToken(String token, Long userId) {
+        try {
+            // 1. 토큰 서명 검증 (위조 여부 확인)
+            Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
+
+            // 2. DB에서 해당 사용자의 Refresh Token 가져오기
+            String storedRefreshToken = refreshTokenRepository.findById(userId)
+                    .map(RefreshTokenEntity::getRefreshToken)
+                    .orElse(null);
+
+            // 3. Refresh Token이 존재하고 동일한지 확인
+            return storedRefreshToken != null && token.equals(storedRefreshToken);
         } catch (JwtException e) {
             return false;
         }

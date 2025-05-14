@@ -34,9 +34,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             if (accessToken != null && jwtService.validateToken(accessToken)) {
                 setAuthentication(accessToken, request);
-            } else if (refreshToken != null && jwtService.validateToken(refreshToken)) {
-                String newAccessToken = jwtService.reissueAccessToken(refreshToken);
-                setAuthentication(newAccessToken, request);
+            } else if (refreshToken != null) {
+                Long userId = jwtService.extractUserId(refreshToken);
+
+                if (jwtService.validateToken(refreshToken, userId)) {
+                    String newAccessToken = jwtService.reissueAccessToken(refreshToken);
+                    setAuthentication(newAccessToken, request);
+                }
             }
         } catch (ExpiredJwtException ex) {
             clearRefreshToken(response);

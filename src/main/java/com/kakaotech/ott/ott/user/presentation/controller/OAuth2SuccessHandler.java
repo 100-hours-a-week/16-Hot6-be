@@ -30,32 +30,27 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         CustomOAuth2User customUser = (CustomOAuth2User) authentication.getPrincipal();
         Long userId = customUser.getUserId();
 
-        // Refresh Token 존재 여부 확인
-        Optional<RefreshTokenEntity> existingToken = refreshTokenRepository.findById(userId);
+        // ✅ Refresh Token 무조건 새로 생성
+        String refreshToken = jwtService.createRefreshToken(userId);
+        jwtService.storeRefreshToken(userId, refreshToken);
 
-        String refreshToken;
-        if (existingToken.isPresent()) {
-            refreshToken = existingToken.get().getRefreshToken();
-        } else {
-            refreshToken = jwtService.createRefreshToken(userId);
-        }
-
-        // 4. Refresh Token을 HttpOnly, Secure 쿠키로 저장
+        // ✅ Refresh Token을 HttpOnly, Secure 쿠키로 저장
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None") // ✅ SameSite 설정
                 .domain(".onthe-top.com")
                 .path("/")
-                .maxAge(Duration.ofDays(7))  // ✅ 클라이언트 쿠키 만료 시간과 DB 만료 시간 일치
+                .maxAge(Duration.ofDays(7))
                 .build();
 
         // ✅ Spring ResponseCookie를 사용하여 쿠키 설정
         response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
-        // 5. 로그인 성공 후 클라이언트로 리디렉트
+        // ✅ 로그인 성공 후 클라이언트로 리디렉트
         response.setStatus(HttpServletResponse.SC_FOUND);
         response.setHeader(HttpHeaders.LOCATION, "https://dev.onthe-top.com/oauth-success");
     }
+
 
 }
