@@ -9,13 +9,14 @@ import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.product.domain.repository.DeskProductRepository;
-import com.kakaotech.ott.ott.product.infrastructure.entity.DeskProductEntity;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
 
 import com.kakaotech.ott.ott.aiImage.application.service.AiImageService;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.*;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductResponseDto;
+import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
+import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class AiImageServiceImpl implements AiImageService {
     private final UserAuthRepository userAuthRepository;
 
     private final DeskProductRepository deskProductRepository;
+    private final ScrapRepository scrapRepository;
 
     private final ImageUploader imageUploader;
     private final FastApiClient fastApiClient;
@@ -106,18 +108,25 @@ public class AiImageServiceImpl implements AiImageService {
 
         aiImageResponseDto.updateAfterImagePath(aiImage.getAfterImagePath());
 
-        List<DeskProductEntity> entities = deskProductRepository.findByAiImageId(imageId);
-        if (entities.isEmpty()) {
+        List<DeskProduct> deskProducts = deskProductRepository.findByAiImageId(imageId);
+        if (deskProducts.isEmpty()) {
             throw new CustomException(ErrorCode.AI_PRODUCT_NOT_FOUND);
         }
 
-        List<DeskProduct> deskProducts = entities.stream()
-                .map(DeskProductEntity::toDomain)
-                .toList();
 
         List<ProductResponseDto> productResponseDtos = deskProducts.stream()
-                .map(product -> new ProductResponseDto(product.getId(), product.getName(), product.getImagePath(),
-                        product.getPrice(), product.getPurchaseUrl(), true, product.getWeight()))
+                .map(product -> {
+                    boolean isScrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.PRODUCT, product.getId());
+                    return new ProductResponseDto(
+                            product.getId(),
+                            product.getName(),
+                            product.getImagePath(),
+                            product.getPrice(),
+                            product.getPurchaseUrl(),
+                            isScrapped,
+                            product.getWeight()
+                    );
+                })
                 .toList();
 
         return new AiImageAndProductResponseDto(aiImageResponseDto, productResponseDtos);
