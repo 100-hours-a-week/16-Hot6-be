@@ -118,7 +118,7 @@ public class PostServiceImpl implements PostService {
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
                     boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
                     int commentCount = commentRepository.findByPostId(post.getId());
-                    int scrapCount = scrapRepository.findByPostId(post.getId());
+                    int scrapCount = scrapRepository.findByPostId(post.getId(), ScrapType.POST);
                     int likeCount = likeRepository.findByPostId(post.getId());
 
                     String thumbnailImage = switch (post.getType()) {

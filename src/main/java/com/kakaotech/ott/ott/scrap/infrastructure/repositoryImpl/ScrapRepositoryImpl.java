@@ -56,7 +56,7 @@ public class ScrapRepositoryImpl implements ScrapRepository {
     }
 
     @Override
-    public int findByPostId(Long postId) {
+    public int findByPostId(Long postId, ScrapType type) {
         return scrapJpaRepository.countByPostId(postId);
     }
 
