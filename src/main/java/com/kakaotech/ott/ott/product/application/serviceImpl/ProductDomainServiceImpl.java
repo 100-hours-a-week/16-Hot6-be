@@ -76,7 +76,7 @@ public class ProductDomainServiceImpl implements ProductDomainService {
                     product.getPurchaseUrl(), 0, 0, product.getImagePath()
             );
 
-            DeskProduct generatedDeskProduct = deskProductRepository.save(deskProduct, productSubCategoryEntity, aiImageEntity).toDomain();
+            DeskProduct generatedDeskProduct = deskProductRepository.save(deskProduct, productSubCategoryEntity, aiImageEntity);
             savedDeskProducts.add(generatedDeskProduct);
         }
 
