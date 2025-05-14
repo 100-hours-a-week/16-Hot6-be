@@ -13,4 +13,6 @@ public interface UserRepository {
     void certify(User user);
 
     boolean existsByNicknameCommunity(String nicknameCommunity);
+
+    void recovery(User user);
 }

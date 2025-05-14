@@ -88,4 +88,15 @@ public class UserController {
 
         return ResponseEntity.ok(ApiResponse.success("추천인 코드 등록 성공", null));
     }
+
+    @PostMapping("/recover")
+    public ResponseEntity<ApiResponse> recoverUserAccount(
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+
+        Long userId = userPrincipal.getId();
+
+        userService.recoverUser(userId);
+
+        return ResponseEntity.ok(ApiResponse.success("회원 탈퇴 취소가 완료되었습니다.", userId));
+    }
 }

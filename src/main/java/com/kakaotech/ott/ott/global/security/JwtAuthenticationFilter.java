@@ -1,7 +1,10 @@
 package com.kakaotech.ott.ott.global.security;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.application.serviceImpl.JwtService;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomUserDetailsService;
+import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -52,6 +55,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // ✅ 인증 완료 후, 탈퇴된 사용자 예외 확인
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if (!userPrincipal.getIsActive() && !isRecoveryRequest(request)) {
+                throw new CustomException(ErrorCode.USER_DELETED);
+            }
+        }
+
+
         filterChain.doFilter(request, response);
     }
 
@@ -59,11 +71,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Long userId = jwtService.extractUserId(token);
         UserDetails userDetails = userDetailsService.loadUserByUsername(userId.toString());
 
+//        // ✅ 사용자 탈퇴 상태 확인
+//        if (userDetails instanceof UserPrincipal) {
+//            UserPrincipal userPrincipal = (UserPrincipal) userDetails;
+//            if (!userPrincipal.getIsActive()) {
+//                throw new CustomException(ErrorCode.USER_DELETED);
+//            }
+//        }
+
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
         SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    // ✅ 복구 API 경로 확인
+    private boolean isRecoveryRequest(HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        return requestURI.startsWith("/api/v1/users/recover");
     }
 
     private String resolveToken(HttpServletRequest request) {
