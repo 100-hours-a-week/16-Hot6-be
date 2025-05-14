@@ -15,7 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -38,18 +37,18 @@ public class UserController {
     @GetMapping("/me/desks")
     public ResponseEntity<ApiResponse<MyDeskImageResponseDto>> getMyDesk(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestParam (value = "lastId", required = false) Long lastId,
+            @RequestParam (value = "cursorId", required = false) Long cursorId,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(value = "type", required = false) String type) {
 
         Long userId = userPrincipal.getId();
 
         // lastId가 없으면 기본값 (가장 최신 ID) 설정
-        if (lastId == null) {
-            lastId = Long.MAX_VALUE; // 가장 최신 ID를 의미
+        if (cursorId == null) {
+            cursorId = Long.MAX_VALUE; // 가장 최신 ID를 의미
         }
 
-        MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, lastId, size, type);
+        MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, cursorId, size, type);
 
         return ResponseEntity.ok(ApiResponse.success("나의 데스크 조회 성공", myDeskImageResponseDto));
     }

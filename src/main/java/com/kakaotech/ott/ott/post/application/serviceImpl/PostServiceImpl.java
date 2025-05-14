@@ -51,6 +51,9 @@ public class PostServiceImpl implements PostService {
     @Value("${cloud.aws.s3.base-url}")
     private String baseUrl;
 
+    @Value("${cloud.aws.s3.basic-profile}")
+    private String basicProfile;
+
     @Override
     @Transactional
     public PostCreateResponseDto createFreePost(FreePostCreateRequestDto freePostCreateRequestDto, Long userId)
@@ -122,13 +125,17 @@ public class PostServiceImpl implements PostService {
                         case FREE -> post.getImages().isEmpty() ? "" : post.getImages().get(0).getImageUuid();
                     };
 
+                    boolean isActive = userAuthRepository.findById(post.getUserId()).isActive();
+
                     return new PostAllResponseDto.Posts(
                             post.getId(),
                             post.getTitle(),
-                            new PostAuthorResponseDto(userAuthRepository.findById(post.getUserId()).isActive()
+                            new PostAuthorResponseDto(isActive
                                     ? author.getNicknameCommunity()
                                     : "알 수 없음",
-                                    author.getImagePath()),
+                                    isActive
+                                    ? author.getImagePath()
+                                    : basicProfile),
                             thumbnailImage,
                             likeCount,
                             commentCount,
@@ -164,15 +171,19 @@ public class PostServiceImpl implements PostService {
         int commentCount = commentRepository.findByPostId(post.getId());
         int likeCount = likeRepository.findByPostId(post.getId());
 
+        boolean isActive = userAuthRepository.findById(post.getUserId()).isActive();
+
         return new PostGetResponseDto(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getType(),
-                new PostAuthorResponseDto(userAuthRepository.findById(post.getUserId()).isActive()
+                new PostAuthorResponseDto(isActive
                         ? user.getNicknameCommunity()
                         : "알 수 없음",
-                        user.getImagePath()),
+                        isActive
+                                ? user.getImagePath()
+                                : basicProfile),
                 likeCount,
                 commentCount,
                 post.getViewCount(),
@@ -196,8 +207,14 @@ public class PostServiceImpl implements PostService {
             throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
 
-        for (PostImage img : post.getImages()) {
-            s3Uploader.delete(img.getImageUuid());
+        if(post.getType().equals(PostType.FREE)) {
+            for (PostImage img : post.getImages()) {
+                s3Uploader.delete(img.getImageUuid());
+            }
+        } else {
+            AiImage aiImage = aiImageRepository.findByPostId(postId);
+            aiImage.updatePostId(null);
+            aiImageRepository.updatePostId(aiImage);
         }
 
         postRepository.deletePost(postId);
@@ -289,7 +306,7 @@ public class PostServiceImpl implements PostService {
                     .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
                     .toDomain();
 
-            if(aiImage.getPostId() != null) {
+            if(aiImage.getPostId() != null && !aiImage.getPostId().equals(post.getId())) {
                 throw new CustomException(ErrorCode.AI_IMAGE_ALREADY_USED);
             }
 

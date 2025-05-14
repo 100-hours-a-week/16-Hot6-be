@@ -9,6 +9,7 @@ import lombok.*;
 @Table(name = "desk_products")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Getter
 @Builder
 public class DeskProductEntity {
 

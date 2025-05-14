@@ -9,6 +9,7 @@ import com.kakaotech.ott.ott.user.presentation.dto.response.RefreshTokenResponse
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -24,6 +25,9 @@ public class UserAuthController {
     private final JwtService jwtService;
     private final UserAuthService userAuthService;
 
+    @Value("${spring.security.oauth2.redirectURL}")
+    String baseURl;
+
     @GetMapping("/{provider}")
     public ResponseEntity<Void> login(@PathVariable String provider,
                                       @AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -34,13 +38,13 @@ public class UserAuthController {
         // 이미 로그인된 사용자라면 홈으로 리디렉트
         if (userPrincipal != null) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, "https://dev.onthe-top.com/")
+                    .header(HttpHeaders.LOCATION, baseURl)
                     .build();
         }
 
 
         // 리디렉트 URL을 고정된 주소로 지정
-        String redirectUrl = "https://dev-backend.onthe-top.com/oauth2/authorization/" + provider;
+        String redirectUrl = baseURl + "oauth2/authorization/" + provider;
 
         return ResponseEntity.status(302)
                 .header(HttpHeaders.LOCATION, redirectUrl)

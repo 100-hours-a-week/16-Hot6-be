@@ -14,6 +14,8 @@ public interface AiImageRepository {
 
     AiImage saveImage(AiImage aiImage);
 
+    void updatePostId(AiImage aiImage);
+
     Optional<AiImageEntity> findById(Long userId);
 
     Slice<AiImage> findUserDeskImages(Long userId, Long cursorId, int size, String type);

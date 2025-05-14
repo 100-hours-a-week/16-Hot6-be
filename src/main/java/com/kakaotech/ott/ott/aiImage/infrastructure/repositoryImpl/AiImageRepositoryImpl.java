@@ -78,6 +78,16 @@ public class AiImageRepositoryImpl implements AiImageRepository {
     }
 
     @Override
+    @Transactional
+    public void updatePostId(AiImage aiImage) {
+
+        AiImageEntity aiImageEntity = aiImageJpaRepository.findById(aiImage.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND));
+
+        aiImageEntity.setPostId(aiImage.getPostId());
+    }
+
+    @Override
     public Optional<AiImageEntity> findById(Long userId) {
 
         return aiImageJpaRepository.findById(userId);
