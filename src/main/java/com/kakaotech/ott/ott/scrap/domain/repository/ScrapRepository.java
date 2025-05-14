@@ -16,5 +16,5 @@ public interface ScrapRepository {
 
     Set<Long> findScrappedPostIds(Long userId, List<Long> postIds);
 
-    int findByPostId(Long postId);
+    int findByPostId(Long postId, ScrapType type);
 }

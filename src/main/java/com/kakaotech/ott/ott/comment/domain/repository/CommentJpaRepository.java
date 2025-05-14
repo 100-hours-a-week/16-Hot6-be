@@ -13,7 +13,7 @@ public interface CommentJpaRepository extends JpaRepository<CommentEntity, Long>
 
     Page<CommentEntity> findAllByPostEntityIdAndIdLessThanOrderByIdDesc(Long postId, Long lastCommentId, Pageable pageable);
 
-    @Query("SELECT COUNT(c) FROM CommentEntity c WHERE c.post.id = :postId")
+    @Query("SELECT COUNT(c) FROM CommentEntity c WHERE c.postEntity.id = :postId")
     int countByPostId(@Param("postId") Long postId);
 
 }
