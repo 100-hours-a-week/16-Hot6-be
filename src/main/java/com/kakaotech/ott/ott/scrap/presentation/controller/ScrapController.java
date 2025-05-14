@@ -26,7 +26,7 @@ public class ScrapController {
 
         scrapService.likeScrap(userId, scrapRequestDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("게시글 스크랩 취소 완료", null));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("스크랩 완료", null));
     }
 
     @DeleteMapping

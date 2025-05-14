@@ -1,5 +1,8 @@
 package com.kakaotech.ott.ott.product.infrastructure.repositoryImpl;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.product.domain.repository.DeskProductJpaRepository;
 import com.kakaotech.ott.ott.product.domain.repository.DeskProductRepository;
@@ -9,6 +12,7 @@ import com.kakaotech.ott.ott.product.infrastructure.entity.ProductSubCategoryEnt
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,15 +24,19 @@ public class DeskProductRepositoryImpl implements DeskProductRepository {
     private final DeskProductJpaRepository deskProductJpaRepository;
 
     @Override
-    public DeskProductEntity save(DeskProduct deskProduct, ProductSubCategoryEntity productSubCategoryEntity,
+    public DeskProduct save(DeskProduct deskProduct, ProductSubCategoryEntity productSubCategoryEntity,
                                   AiImageEntity aiImageEntity) {
 
-        return deskProductJpaRepository.save(DeskProductEntity.from(deskProduct, productSubCategoryEntity, aiImageEntity));
+        return deskProductJpaRepository.save(DeskProductEntity.from(deskProduct, productSubCategoryEntity, aiImageEntity))
+                .toDomain();
     }
 
     @Override
-    public List<DeskProductEntity> findByAiImageId(Long aiImageId) {
-        return deskProductJpaRepository.findByAiImageEntity_Id(aiImageId);
+    public List<DeskProduct> findByAiImageId(Long aiImageId) {
+        return deskProductJpaRepository.findByAiImageEntity_Id(aiImageId)
+                .stream()
+                .map(DeskProductEntity::toDomain)
+                .toList();
     }
 
     @Override
@@ -40,5 +48,18 @@ public class DeskProductRepositoryImpl implements DeskProductRepository {
         return entities.stream()
                 .map(DeskProductEntity::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void incrementScrapCount(Long targetId, Long delta) {
+
+        DeskProductEntity deskProductEntity = deskProductJpaRepository.findById(targetId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AI_PRODUCT_NOT_FOUND));
+
+        if(deskProductEntity.getScrapCount() + delta < 0)
+            return;
+
+        deskProductJpaRepository.incrementScrapCount(targetId, delta);
     }
 }
