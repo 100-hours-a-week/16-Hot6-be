@@ -30,7 +30,7 @@ public class User {
                 .role(Role.USER)
                 .nicknameKakao(null)
                 .nicknameCommunity(nicknameCommunity)
-                .point(1000)
+                .point(500)
                 .imagePath(imagePath)
                 .isActive(true)
                 .isVerified(false)

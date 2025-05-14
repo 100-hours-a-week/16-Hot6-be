@@ -84,7 +84,7 @@ public class PostServiceImpl implements PostService {
 
         User user = userAuthRepository.findById(userId);
 
-        user.updatePoint(500);
+        user.updatePoint(200);
         userAuthRepository.save(user);
 
         Post savedPost = postRepository.save(post);
