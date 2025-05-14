@@ -124,7 +124,10 @@ public class PostServiceImpl implements PostService {
                     return new PostAllResponseDto.Posts(
                             post.getId(),
                             post.getTitle(),
-                            new PostAuthorResponseDto(author.getNicknameCommunity(), author.getImagePath()),
+                            new PostAuthorResponseDto(userAuthRepository.findById(post.getUserId()).isActive()
+                                    ? author.getNicknameCommunity()
+                                    : "알 수 없음",
+                                    author.getImagePath()),
                             thumbnailImage,
                             post.getLikeCount(),
                             post.getCommentCount(),
@@ -155,7 +158,6 @@ public class PostServiceImpl implements PostService {
         boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
         boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
 
-
         List<?> imageUrls = imageLoaderManager.loadImages(post.getType(), postId);
 
         return new PostGetResponseDto(
@@ -163,7 +165,10 @@ public class PostServiceImpl implements PostService {
                 post.getTitle(),
                 post.getContent(),
                 post.getType(),
-                new PostAuthorResponseDto(user.getNicknameCommunity(), user.getImagePath()),
+                new PostAuthorResponseDto(userAuthRepository.findById(post.getUserId()).isActive()
+                        ? user.getNicknameCommunity()
+                        : "알 수 없음",
+                        user.getImagePath()),
                 post.getLikeCount(),
                 post.getCommentCount(),
                 post.getViewCount(),

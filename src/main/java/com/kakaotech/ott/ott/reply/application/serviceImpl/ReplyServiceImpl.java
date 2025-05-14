@@ -50,7 +50,9 @@ public class ReplyServiceImpl implements ReplyService {
 
                             ReplyListResponseDto.AuthorDto authorDto =
                                     new ReplyListResponseDto.AuthorDto(
-                                            author.getNicknameCommunity(),
+                                            userAuthRepository.findById(r.getUserId()).isActive()
+                                                    ? author.getNicknameCommunity()
+                                                    : "알 수 없음",
                                             author.getImagePath()
                                     );
 

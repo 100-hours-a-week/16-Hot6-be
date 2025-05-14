@@ -96,7 +96,9 @@ public class CommentServiceImpl implements CommentService {
 
                             CommentListResponseDto.AuthorDto authorDto =
                                     new CommentListResponseDto.AuthorDto(
-                                            author.getNicknameCommunity(),
+                                            userAuthRepository.findById(c.getUserId()).isActive()
+                                                    ? author.getNicknameCommunity()
+                                                    : "알 수 없음",
                                             author.getImagePath()
                                     );
 
