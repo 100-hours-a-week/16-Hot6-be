@@ -57,7 +57,7 @@ public class PostEntity extends AuditEntity {
     private int scrapCount;
 
     @Column(name = "weight", nullable = false)
-    private int weight;
+    private double weight;
 
     public Post toDomain() {
         return Post.builder()

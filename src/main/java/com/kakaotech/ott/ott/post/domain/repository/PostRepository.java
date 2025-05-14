@@ -2,7 +2,6 @@ package com.kakaotech.ott.ott.post.domain.repository;
 
 import com.kakaotech.ott.ott.post.domain.model.Post;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PostRepository {
@@ -24,4 +23,6 @@ public interface PostRepository {
     void incrementCommentCount(Long postId, Long delta);
 
     List<Post> findTop7ByWeight();
+
+    void batchUpdateWeights();
 }

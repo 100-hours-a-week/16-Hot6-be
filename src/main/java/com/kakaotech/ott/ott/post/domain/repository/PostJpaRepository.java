@@ -9,14 +9,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
-
-    List<PostEntity> findAllByUserEntityId(Long userId);
 
     @EntityGraph(attributePaths = {"userEntity", "postImages"})
     Optional<PostEntity> findById(Long id);
@@ -77,5 +75,13 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
       ORDER BY p.weight DESC
     """)
     List<PostEntity> findTop7ByTypeOrderByWeightDescWithAiImages(Pageable pageable);
+
+    // ✅ Native Query를 통한 Batch Update (모든 게시글의 weight 계산)
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE posts p " +
+            "SET p.weight = (p.view_count * 0.8) + (p.scrap_count * 0.5) + (p.like_count * 0.3)",
+            nativeQuery = true)
+    void batchUpdateWeights();
 
 }
