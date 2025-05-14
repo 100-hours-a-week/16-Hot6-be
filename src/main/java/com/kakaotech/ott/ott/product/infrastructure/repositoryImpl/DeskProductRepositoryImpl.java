@@ -2,7 +2,6 @@ package com.kakaotech.ott.ott.product.infrastructure.repositoryImpl;
 
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
-import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.product.domain.repository.DeskProductJpaRepository;
 import com.kakaotech.ott.ott.product.domain.repository.DeskProductRepository;
