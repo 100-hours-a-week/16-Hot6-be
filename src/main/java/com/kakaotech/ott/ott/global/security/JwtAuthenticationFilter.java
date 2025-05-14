@@ -41,9 +41,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (ExpiredJwtException ex) {
             clearRefreshToken(response);
             response.sendRedirect("/oauth2/authorization/kakao");
+            return;
         } catch (JwtException ex) {
             clearRefreshToken(response);
             response.sendRedirect("/oauth2/authorization/kakao");
+            return;
         }
 
         filterChain.doFilter(request, response);
