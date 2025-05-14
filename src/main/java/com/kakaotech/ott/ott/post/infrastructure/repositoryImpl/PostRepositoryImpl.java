@@ -103,12 +103,24 @@ public class PostRepositoryImpl implements PostRepository {
     @Transactional
     public void incrementViewCount(Long postId, Long delta) {
 
+        PostEntity postEntity = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if(postEntity.getViewCount() + delta < 0)
+            return;
+
         postJpaRepository.incrementViewCount(postId, delta);
     }
 
     @Override
     @Transactional
     public void incrementLikeCount(Long postId, Long delta) {
+
+        PostEntity postEntity = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if(postEntity.getLikeCount() + delta < 0)
+            return;
 
         postJpaRepository.incrementLikeCount(postId, delta);
     }
@@ -117,12 +129,24 @@ public class PostRepositoryImpl implements PostRepository {
     @Transactional
     public void incrementScrapCount(Long postId, Long delta) {
 
+        PostEntity postEntity = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if(postEntity.getScrapCount() + delta < 0)
+            return;
+
         postJpaRepository.incrementScrapCount(postId, delta);
     }
 
     @Override
     @Transactional
     public void incrementCommentCount(Long postId, Long delta) {
+
+        PostEntity postEntity = postJpaRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        if(postEntity.getCommentCount() + delta < 0)
+            return;
 
         postJpaRepository.incrementCommentCount(postId, delta);
     }

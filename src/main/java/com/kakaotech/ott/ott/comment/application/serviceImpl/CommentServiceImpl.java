@@ -49,9 +49,11 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment = commentRepository.findById(commentId);
 
+        System.out.println(commentId);
         commentRepository.deleteComment(commentId);
 
         postRepository.incrementCommentCount(comment.getPostId(), -1L);
+
     }
 
     @Override

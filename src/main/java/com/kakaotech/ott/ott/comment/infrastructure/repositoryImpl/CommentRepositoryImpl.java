@@ -44,10 +44,10 @@ public class CommentRepositoryImpl implements CommentRepository {
     }
 
     @Override
-    @Transactional
     public void deleteComment(Long commentId) {
 
         commentJpaRepository.deleteById(commentId);
+        commentJpaRepository.flush();
     }
 
     @Override
