@@ -59,6 +59,12 @@ public class CommentRepositoryImpl implements CommentRepository {
     }
 
     @Override
+    public int findByPostId(Long postId) {
+
+        return commentJpaRepository.countByPostId(postId);
+    }
+
+    @Override
     public List<Comment> findByPostIdCursor(Long postId, Long lastCommentId, int size) {
         Pageable pg = PageRequest.of(0, size, Sort.by("id").descending());
         Page<CommentEntity> page;

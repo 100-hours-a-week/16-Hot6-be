@@ -43,5 +43,10 @@ public class LikeRepositoryImpl implements LikeRepository {
         return likeJpaRepository.existsByUserEntityIdAndTargetId(userId, postId);
     }
 
+    @Override
+    public int findByPostId(Long postId) {
+        return likeJpaRepository.countByPostId(postId);
+    }
+
 
 }
