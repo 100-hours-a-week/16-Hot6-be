@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostWeightUpdater {
     private final PostRepository postRepository;
 
-    @Scheduled(fixedDelay = 60_000) // 24시간마다 실행
+    @Scheduled(fixedDelay = 86_400_000) // 24시간마다 실행
     @SchedulerLock(name = "update-post-weights", lockAtMostFor = "PT23H")
     @Transactional
     public void updateWeights() {
