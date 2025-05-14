@@ -19,4 +19,6 @@ public interface UserService {
     void deleteUser(Long userId);
 
     void verifiedCode(Long userId, UserVerifiedRequestDto userVerifiedRequestDto);
+
+    void recoverUser(Long userId);
 }

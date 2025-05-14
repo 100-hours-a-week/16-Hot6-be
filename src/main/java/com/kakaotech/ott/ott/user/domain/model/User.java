@@ -62,8 +62,8 @@ public class User {
         this.isActive = isActive;
     }
 
-    public void updateDeletedAt() {
-        this.deletedAt = LocalDateTime.now();
+    public void updateDeletedAt(LocalDateTime currentTime) {
+        this.deletedAt = currentTime;
     }
 
     public void updateVerified() {

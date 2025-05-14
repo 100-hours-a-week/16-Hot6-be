@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -128,7 +129,7 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(ErrorCode.USER_DELETED);
 
         user.updateActive(false);
-        user.updateDeletedAt();
+        user.updateDeletedAt(LocalDateTime.now());
 
         userRepository.delete(user);
     }
@@ -149,6 +150,20 @@ public class UserServiceImpl implements UserService {
 
         user.updateVerified();
         userRepository.certify(user);
+    }
+
+    @Override
+    public void recoverUser(Long userId) {
+
+        User user = userRepository.findById(userId);
+
+        if(user.isActive())
+            throw new CustomException(ErrorCode.USER_FORBIDDEN);
+
+        user.updateActive(true);
+        user.updateDeletedAt(null);
+
+        userRepository.recovery(user);
     }
 
 
