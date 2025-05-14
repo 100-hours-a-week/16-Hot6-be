@@ -18,6 +18,6 @@ public class ScrapRequestDto {
     private ScrapType type;
 
     @NotNull(message = "어떤 게시글/상품에 해당하는 스크랩인지 입력하세요.")
-    @JsonProperty("target_id")
+    @JsonProperty("targetId")
     private Long targetId;
 }

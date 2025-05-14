@@ -18,6 +18,5 @@ public class LikeRequestDto {
     private LikeType type;
 
     @NotNull(message = "어떤 게시글/상품에 해당하는 좋아요인지 입력하세요.")
-    @JsonProperty("target_id")
     private Long targetId;
 }
