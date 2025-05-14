@@ -289,7 +289,7 @@ public class PostServiceImpl implements PostService {
                     .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
                     .toDomain();
 
-            if(aiImage.getPostId() != null) {
+            if(aiImage.getPostId() != null && !aiImage.getPostId().equals(post.getId())) {
                 throw new CustomException(ErrorCode.AI_IMAGE_ALREADY_USED);
             }
 
