@@ -5,6 +5,7 @@ on:
     branches:
       - dev
       - main
+      - feat/cd-properties
 
 jobs:
   build:
@@ -125,7 +126,7 @@ jobs:
             mkdir -p /var/log/onthetop/backend
 
             echo "▶️ 애플리케이션 재시작"
-            nohup SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
+            nohup env SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
               java -jar backend.jar \
               --spring.config.additional-location=file:/home/ubuntu/backend/secrets.properties \
               > /var/log/onthetop/backend/backend.log 2>&1 &
