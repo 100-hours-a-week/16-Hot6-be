@@ -51,6 +51,9 @@ public class PostServiceImpl implements PostService {
     @Value("${cloud.aws.s3.base-url}")
     private String baseUrl;
 
+    @Value("${cloud.aws.s3.basic-profile}")
+    private String basicProfile;
+
     @Override
     @Transactional
     public PostCreateResponseDto createFreePost(FreePostCreateRequestDto freePostCreateRequestDto, Long userId)
@@ -122,13 +125,17 @@ public class PostServiceImpl implements PostService {
                         case FREE -> post.getImages().isEmpty() ? "" : post.getImages().get(0).getImageUuid();
                     };
 
+                    boolean isActive = userAuthRepository.findById(post.getUserId()).isActive();
+
                     return new PostAllResponseDto.Posts(
                             post.getId(),
                             post.getTitle(),
-                            new PostAuthorResponseDto(userAuthRepository.findById(post.getUserId()).isActive()
+                            new PostAuthorResponseDto(isActive
                                     ? author.getNicknameCommunity()
                                     : "알 수 없음",
-                                    author.getImagePath()),
+                                    isActive
+                                    ? author.getImagePath()
+                                    : basicProfile),
                             thumbnailImage,
                             likeCount,
                             commentCount,
@@ -164,15 +171,19 @@ public class PostServiceImpl implements PostService {
         int commentCount = commentRepository.findByPostId(post.getId());
         int likeCount = likeRepository.findByPostId(post.getId());
 
+        boolean isActive = userAuthRepository.findById(post.getUserId()).isActive();
+
         return new PostGetResponseDto(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
                 post.getType(),
-                new PostAuthorResponseDto(userAuthRepository.findById(post.getUserId()).isActive()
+                new PostAuthorResponseDto(isActive
                         ? user.getNicknameCommunity()
                         : "알 수 없음",
-                        user.getImagePath()),
+                        isActive
+                                ? user.getImagePath()
+                                : basicProfile),
                 likeCount,
                 commentCount,
                 post.getViewCount(),

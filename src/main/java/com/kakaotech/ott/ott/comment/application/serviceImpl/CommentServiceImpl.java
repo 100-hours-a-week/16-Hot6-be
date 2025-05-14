@@ -12,6 +12,7 @@ import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,9 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final UserAuthRepository userAuthRepository;
     private final PostRepository postRepository;
+
+    @Value("${cloud.aws.s3.basic-profile}")
+    private String basicProfile;
 
     @Override
     public CommentCreateResponseDto createComment(CommentCreateRequestDto commentCreateRequestDto, Long userId, Long postId) {
@@ -98,10 +102,12 @@ public class CommentServiceImpl implements CommentService {
 
                             CommentListResponseDto.AuthorDto authorDto =
                                     new CommentListResponseDto.AuthorDto(
-                                            userAuthRepository.findById(c.getUserId()).isActive()
+                                            author.isActive()
                                                     ? author.getNicknameCommunity()
                                                     : "알 수 없음",
-                                            author.getImagePath()
+                                            author.isActive()
+                                                    ? author.getImagePath()
+                                                    : basicProfile
                                     );
 
                             boolean isOwner = c.getUserId().equals(userId);
