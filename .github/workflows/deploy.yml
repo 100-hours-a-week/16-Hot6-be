@@ -5,7 +5,6 @@ on:
     branches:
       - dev
       - main
-      - feat/cd-properties
 
 jobs:
   build:
