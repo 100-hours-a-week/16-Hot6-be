@@ -20,6 +20,7 @@ public enum ErrorCode {
     USER_DELETED(HttpStatus.FORBIDDEN, "탈퇴한 사용자입니다."),
     LOGOUT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "로그아웃 처리에 실패했습니다."),
     USER_ALREADY_AUTHENTICATED(HttpStatus.FORBIDDEN, "이미 추천인 코드를 등록하셨습니다."),
+    USER_NOT_VERIFIED(HttpStatus.FORBIDDEN, "추천인 코드를 등록해야 카카오 닉네임이 변경됩니다."),
     INVALID_INPUT_CODE(HttpStatus.BAD_REQUEST, "추천인 코드가 일치하지 않습니다."),
     DUPLICATE_NICKNAME_COMMUNITY(HttpStatus.CONFLICT, "이미 사용 중인 커뮤니티 닉네임입니다."),
     USER_FORBIDDEN(HttpStatus.FORBIDDEN, "해당 사용자의 권한이 없습니다."),
