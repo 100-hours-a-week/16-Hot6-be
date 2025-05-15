@@ -89,6 +89,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         config.addAllowedOriginPattern("https://*.onthe-top.com");
+        config.addAllowedOriginPattern("https://onthe-top.com");
         config.addAllowedOriginPattern("http://localhost:3000");
         config.addAllowedOriginPattern("http://10.50.0.3:8000");
         config.addAllowedMethod("*"); // GET, POST, PUT, DELETE 등 모든 HTTP 메서드 허용

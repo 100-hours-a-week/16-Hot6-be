@@ -4,7 +4,6 @@ import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
-import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import com.kakaotech.ott.ott.user.application.service.UserAuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,6 +54,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                     .secure(true)
                     .sameSite("None")
                     .domain("dev.onthe-top.com") // 환경에 맞게 도메인 설정
+                    .domain("onthe-top.com") // 환경에 맞게 도메인 설정
                     .path("/")
                     .maxAge(0)  // 즉시 만료
                     .build();

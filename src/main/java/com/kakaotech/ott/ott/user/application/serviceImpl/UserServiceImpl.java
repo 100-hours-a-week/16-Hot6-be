@@ -2,9 +2,11 @@ package com.kakaotech.ott.ott.user.application.serviceImpl;
 
 import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.post.domain.model.MyDeskState;
 import com.kakaotech.ott.ott.user.application.service.UserService;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
@@ -73,8 +75,24 @@ public class UserServiceImpl implements UserService {
                 ))
                 .collect(Collectors.toList());
 
+        MyDeskState myDeskState;
+        boolean hasAiImage = !aiImageRepository.findByUserId(userId).isEmpty(); // 이미지 존재 여부
+
+        System.out.println("ImageDtos Empty: " + imageDtos.isEmpty());
+        System.out.println("Has AI Image: " + hasAiImage);
+
+// 상태 결정
+        if (!imageDtos.isEmpty() && hasAiImage) {
+            myDeskState = MyDeskState.ALL_POSTS_WRITTEN;
+        } else if ((!imageDtos.isEmpty()) && (!hasAiImage)) {
+            myDeskState = MyDeskState.NO_IMAGE_GENERATED;
+        } else {
+            myDeskState = MyDeskState.NO_IMAGE_LINKED;
+        }
+
         return new MyDeskImageResponseDto(
                 imageDtos,
+                myDeskState,
                 size,
                 aiImages.hasNext() ? aiImages.getContent().get(aiImages.getNumberOfElements() - 1).getId() : null,
                 aiImages.hasNext()
