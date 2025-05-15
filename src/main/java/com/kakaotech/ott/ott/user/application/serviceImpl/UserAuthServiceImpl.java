@@ -53,8 +53,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                     .httpOnly(true)
                     .secure(true)
                     .sameSite("None")
-                    .domain("dev.onthe-top.com") // 환경에 맞게 도메인 설정
-                    .domain("onthe-top.com") // 환경에 맞게 도메인 설정
+                    .domain(".onthe-top.com") // 환경에 맞게 도메인 설정
                     .path("/")
                     .maxAge(0)  // 즉시 만료
                     .build();

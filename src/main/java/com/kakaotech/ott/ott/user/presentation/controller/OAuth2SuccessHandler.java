@@ -42,7 +42,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 .secure(true)
                 .sameSite("None") // ✅ SameSite 설정
                 .domain(".onthe-top.com")
-                .domain("onthe-top.com")
                 .path("/")
                 .maxAge(Duration.ofDays(7))
                 .build();
