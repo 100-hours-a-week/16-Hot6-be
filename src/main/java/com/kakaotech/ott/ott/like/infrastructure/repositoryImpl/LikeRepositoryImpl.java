@@ -11,6 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 @Repository
 @RequiredArgsConstructor
 public class LikeRepositoryImpl implements LikeRepository {
@@ -46,6 +50,11 @@ public class LikeRepositoryImpl implements LikeRepository {
     @Override
     public int findByPostId(Long postId) {
         return likeJpaRepository.countByPostId(postId);
+    }
+
+    @Override
+    public Set<Long> findLikedPostIdsByUserId(Long userId, List<Long> postIds) {
+        return new HashSet<>(likeJpaRepository.findLikedPostIds(userId, postIds));
     }
 
 
