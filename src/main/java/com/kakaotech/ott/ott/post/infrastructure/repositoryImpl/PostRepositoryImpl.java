@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.post.infrastructure.repositoryImpl;
 
+import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.model.Post;
@@ -14,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -97,6 +99,16 @@ public class PostRepositoryImpl implements PostRepository {
             default -> postJpaRepository.findByCategory(postType, lastPostId, pageable)
                     .stream().map(PostEntity::toDomain).toList();
         };
+    }
+
+    @Override
+    public Slice<Post> findUserPost(Long userId, Long cursorId, int size) {
+
+        Slice<PostEntity> slice = postJpaRepository.findUserAllPosts(
+                userId, cursorId, PageRequest.of(0, size)
+        );
+
+        return slice.map(PostEntity::toDomain);
     }
 
     @Override

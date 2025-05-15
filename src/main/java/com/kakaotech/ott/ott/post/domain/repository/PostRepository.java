@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.post.domain.repository;
 
 import com.kakaotech.ott.ott.post.domain.model.Post;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 
@@ -13,6 +14,8 @@ public interface PostRepository {
     void deletePost(Long userId);
 
     List<Post> findAllByCursor(int size, Long lastPostId, String category, String sort);
+
+    Slice<Post> findUserPost(Long userId, Long cursorId, int size);
 
     void incrementViewCount(Long postId, Long delta);
 
