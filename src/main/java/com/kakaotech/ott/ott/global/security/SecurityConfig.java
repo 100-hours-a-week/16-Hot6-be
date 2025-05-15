@@ -88,7 +88,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("https://*.onthe-top.com");
+        config.addAllowedOriginPattern("https://dev.onthe-top.com");
+        config.addAllowedOriginPattern("https://backend.onthe-top.com");
         config.addAllowedOriginPattern("https://onthe-top.com");
         config.addAllowedOriginPattern("http://localhost:3000");
         config.addAllowedOriginPattern("http://10.50.0.3:8000");
