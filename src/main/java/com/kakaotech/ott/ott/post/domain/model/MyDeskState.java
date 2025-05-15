@@ -1,7 +1,7 @@
 package com.kakaotech.ott.ott.post.domain.model;
 
-public enum ImageState {
+public enum MyDeskState {
     ALL_POSTS_WRITTEN,
     NO_IMAGE_GENERATED,
-    NO_IMAGE_LINKED
+    IS_IMAGE_UNLINKED
 }

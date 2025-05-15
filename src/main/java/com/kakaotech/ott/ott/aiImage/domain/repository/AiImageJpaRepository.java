@@ -42,6 +42,9 @@ public interface AiImageJpaRepository extends JpaRepository<AiImageEntity, Long>
             Pageable pageable
     );
 
+    @Query("SELECT a FROM AiImageEntity a WHERE a.userEntity.id = :userId AND a.state = 'SUCCESS'")
+    List<AiImageEntity> findByUserId(@Param("userId") Long userId);
+
     // Batch 조회 쿼리
     @Query("SELECT a FROM AiImageEntity a WHERE a.postId IN :postIds AND a.state = 'SUCCESS'")
     List<AiImageEntity> findByPostIdIn(@Param("postIds") List<Long> postIds);

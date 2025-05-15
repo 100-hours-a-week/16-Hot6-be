@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.user.presentation.dto.response;
 
+import com.kakaotech.ott.ott.post.domain.model.MyDeskState;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.List;
 public class MyDeskImageResponseDto {
 
     private List<ImageDto> images;
+    private MyDeskState myDeskState;
     private int size;
     private Long lastPostId;
     private boolean hasNext;
