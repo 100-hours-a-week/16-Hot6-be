@@ -23,7 +23,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    @Value("${spring.security.oauth2.redirectURL}")
+    @Value("${spring.security.oauth2.redirectURL.front}")
     String baseURl;
 
     @Override
