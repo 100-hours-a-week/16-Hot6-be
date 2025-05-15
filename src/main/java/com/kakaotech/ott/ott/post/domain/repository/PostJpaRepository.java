@@ -19,6 +19,18 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
     @EntityGraph(attributePaths = {"userEntity", "postImages"})
     Optional<PostEntity> findById(Long id);
 
+    // 나의 데스크 조회
+    @Query("""
+    SELECT DISTINCT p 
+    FROM PostEntity p 
+    LEFT JOIN FETCH p.postImages i 
+    LEFT JOIN FETCH p.userEntity u 
+    WHERE p.userEntity.id = :userId 
+      AND (:lastPostId IS NULL OR p.id < :lastPostId) 
+    ORDER BY p.id DESC
+""")
+    Page<PostEntity> findUserAllPosts(@Param("userId") Long userId, @Param("lastPostId") Long lastPostId, Pageable pageable);
+
     // 최신순 조회 (커서 기반)
     @Query("SELECT DISTINCT p FROM PostEntity p WHERE (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.id DESC")
     Page<PostEntity> findAllPosts(@Param("lastPostId") Long lastPostId, Pageable pageable);

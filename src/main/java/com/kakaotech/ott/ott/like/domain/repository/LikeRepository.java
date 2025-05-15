@@ -2,6 +2,9 @@ package com.kakaotech.ott.ott.like.domain.repository;
 
 import com.kakaotech.ott.ott.like.domain.model.Like;
 
+import java.util.List;
+import java.util.Set;
+
 public interface LikeRepository {
 
     void deleteByUserEntityIdAndTypeAndTargetId(Long userId, Long postId);
@@ -11,4 +14,6 @@ public interface LikeRepository {
     boolean existsByUserIdAndPostId(Long userId, Long postId);
 
     int findByPostId(Long postId);
+
+    Set<Long> findLikedPostIdsByUserId(Long userId, List<Long> postIds);
 }

@@ -2,11 +2,18 @@ package com.kakaotech.ott.ott.user.application.serviceImpl;
 
 import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
-import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
 import com.kakaotech.ott.ott.post.domain.model.MyDeskState;
+import com.kakaotech.ott.ott.post.domain.model.Post;
+import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
+import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
+import com.kakaotech.ott.ott.post.presentation.dto.response.PostAuthorResponseDto;
+import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
+import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.application.service.UserService;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
@@ -14,16 +21,21 @@ import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequest
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyPostResponseDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +45,10 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AiImageRepository aiImageRepository;
     private final ImageUploader imageUploader;
+    private final PostRepository postRepository;
+    private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
+    private final ScrapRepository scrapRepository;
 
     @Value("${verified.code}")
     private String verifiedCode;
@@ -78,10 +94,6 @@ public class UserServiceImpl implements UserService {
         MyDeskState myDeskState;
         boolean hasAiImage = !aiImageRepository.findByUserId(userId).isEmpty(); // 이미지 존재 여부
 
-        System.out.println("ImageDtos Empty: " + aiImages.isEmpty());
-        System.out.println("Has AI Image: " + hasAiImage);
-
-// 상태 결정
         if (!hasAiImage)
             myDeskState = MyDeskState.NO_IMAGE_GENERATED;
         else if (hasAiImage && !aiImages.isEmpty())
@@ -97,6 +109,56 @@ public class UserServiceImpl implements UserService {
                 aiImages.hasNext()
         );
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MyPostResponseDto getMyPost(Long userId, Long lastId, int size) {
+        // 게시글 페이징 조회 (커서 기반)
+        Slice<Post> postSlice = postRepository.findUserPost(userId, lastId, size);
+
+        // 게시글 ID 목록 수집
+        List<Long> postIds = postSlice.getContent().stream()
+                .map(Post::getId)
+                .toList();
+
+        // 좋아요/스크랩 정보를 한 번에 조회 (Batch)
+        Set<Long> likedPostIds = likeRepository.findLikedPostIdsByUserId(userId, postIds);
+        Set<Long> scrappedPostIds = scrapRepository.findScrappedPostIds(userId, postIds);
+        User user = userRepository.findById(userId);
+
+        // 게시글 DTO로 변환
+        List<PostAllResponseDto.Posts> posts = postSlice.getContent().stream()
+                .map(post -> {
+                    String thumbnailImage = post.getImages().isEmpty()
+                            ? null
+                            : post.getImages().get(0).getImageUuid();
+                    boolean liked = likedPostIds.contains(post.getId());
+                    boolean scrapped = scrappedPostIds.contains(post.getId());
+
+                    return new PostAllResponseDto.Posts(
+                            post.getId(),
+                            post.getTitle(),
+                            new PostAuthorResponseDto(
+                                    user.getNicknameCommunity(),
+                                    user.getImagePath()
+                            ),
+                            thumbnailImage,
+                            post.getLikeCount(),
+                            post.getCommentCount(),
+                            post.getCreatedAt(),
+                            liked,
+                            scrapped
+                    );
+                })
+                .toList();
+
+        return new MyPostResponseDto(postSlice.getSize(), posts,
+                size,
+                postSlice.hasNext() ? postSlice.getContent().get(postSlice.getNumberOfElements() - 1).getId() : null,
+                postSlice.hasNext());
+    }
+
+
 
     @Override
     public UserInfoUpdateResponseDto updateUserInfo(Long userId, UserInfoUpdateRequestDto userInfoUpdateRequestDto) throws IOException {

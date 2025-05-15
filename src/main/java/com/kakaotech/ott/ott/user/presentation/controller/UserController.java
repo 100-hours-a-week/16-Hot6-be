@@ -7,6 +7,7 @@ import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequest
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.MyPostResponseDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,19 @@ public class UserController {
         MyDeskImageResponseDto myDeskImageResponseDto = userService.getMyDeskWithCursor(userId, cursorId, size, type);
 
         return ResponseEntity.ok(ApiResponse.success("나의 데스크 조회 성공", myDeskImageResponseDto));
+    }
+
+    @GetMapping("/me/posts")
+    public ResponseEntity<ApiResponse<MyPostResponseDto>> getMyPost(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam (value = "cursorId", required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Long userId = userPrincipal.getId();
+
+        MyPostResponseDto myPostResponseDto = userService.getMyPost(userId, cursorId, size);
+
+        return ResponseEntity.ok(ApiResponse.success("나의 게시글 조회 성공", myPostResponseDto));
     }
 
     @PatchMapping(value = "/me", consumes = "multipart/form-data")

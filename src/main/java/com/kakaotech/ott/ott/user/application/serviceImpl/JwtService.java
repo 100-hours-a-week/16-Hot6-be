@@ -65,6 +65,15 @@ public class JwtService {
             throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         }
 
+        // Refresh Token이 DB에 존재하는지 확인
+        RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED));
+
+        if (refreshTokenEntity.isExpired()) {
+            invalidateRefreshToken(refreshToken);
+            throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
         Long userId = extractUserId(refreshToken);
         String newAccessToken = createAccessToken(userId);
 
