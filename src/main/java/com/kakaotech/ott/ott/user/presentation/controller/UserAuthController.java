@@ -28,6 +28,9 @@ public class UserAuthController {
     @Value("${spring.security.oauth2.redirectURL}")
     String baseURl;
 
+    @Value("${spring.security.oauth2.redirectURL.front}")
+    String frontBaseUrl;
+
     @GetMapping("/{provider}")
     public ResponseEntity<Void> login(@PathVariable String provider,
                                       @AuthenticationPrincipal UserPrincipal userPrincipal,
@@ -38,7 +41,7 @@ public class UserAuthController {
         // 이미 로그인된 사용자라면 홈으로 리디렉트
         if (userPrincipal != null) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, baseURl)
+                    .header(HttpHeaders.LOCATION, frontBaseUrl)
                     .build();
         }
 
