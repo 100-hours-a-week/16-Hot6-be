@@ -38,10 +38,10 @@ public class UserAuthController {
 
         System.out.println("userPrincipal : " + userPrincipal);
 
-        // 이미 로그인된 사용자라면 홈으로 리디렉트
+        // 이미 로그인된 사용자라면 성공 콜백
         if (userPrincipal != null) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header(HttpHeaders.LOCATION, frontBaseUrl)
+                    .header(HttpHeaders.LOCATION, frontBaseUrl + "oauth-success")
                     .build();
         }
 
