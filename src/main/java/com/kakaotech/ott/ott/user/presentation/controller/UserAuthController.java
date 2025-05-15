@@ -86,8 +86,7 @@ public class UserAuthController {
                     .httpOnly(true)
                     .secure(true)
                     .sameSite("None")
-                    .domain("dev.onthe-top.com")
-                    .domain("onthe-top.com")
+                    .domain(".onthe-top.com")
                     .path("/")
                     .maxAge(0)  // 즉시 만료
                     .build();
