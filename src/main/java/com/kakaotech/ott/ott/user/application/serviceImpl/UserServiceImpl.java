@@ -78,17 +78,16 @@ public class UserServiceImpl implements UserService {
         MyDeskState myDeskState;
         boolean hasAiImage = !aiImageRepository.findByUserId(userId).isEmpty(); // 이미지 존재 여부
 
-        System.out.println("ImageDtos Empty: " + imageDtos.isEmpty());
+        System.out.println("ImageDtos Empty: " + aiImages.isEmpty());
         System.out.println("Has AI Image: " + hasAiImage);
 
 // 상태 결정
-        if (!imageDtos.isEmpty() && hasAiImage) {
-            myDeskState = MyDeskState.ALL_POSTS_WRITTEN;
-        } else if ((!imageDtos.isEmpty()) && (!hasAiImage)) {
+        if (!hasAiImage)
             myDeskState = MyDeskState.NO_IMAGE_GENERATED;
-        } else {
-            myDeskState = MyDeskState.NO_IMAGE_LINKED;
-        }
+        else if (hasAiImage && !aiImages.isEmpty())
+            myDeskState = MyDeskState.IS_IMAGE_UNLINKED;
+        else
+            myDeskState = MyDeskState.ALL_POSTS_WRITTEN;
 
         return new MyDeskImageResponseDto(
                 imageDtos,

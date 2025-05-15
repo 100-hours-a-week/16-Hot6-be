@@ -88,9 +88,15 @@ public class AiImageRepositoryImpl implements AiImageRepository {
     }
 
     @Override
-    public Optional<AiImageEntity> findById(Long userId) {
+    public Optional<AiImageEntity> findById(Long imageId) {
 
-        return aiImageJpaRepository.findById(userId);
+        return aiImageJpaRepository.findById(imageId);
+    }
+
+    @Override
+    public List<AiImageEntity> findByUserId(Long userId) {
+
+        return aiImageJpaRepository.findByUserId(userId);
     }
 
     @Override
@@ -134,4 +140,5 @@ public class AiImageRepositoryImpl implements AiImageRepository {
                 .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
                 .toDomain();
     }
+
 }
