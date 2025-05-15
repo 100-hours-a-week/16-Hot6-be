@@ -31,4 +31,9 @@ public class RefreshTokenEntity extends AuditEntity {
         this.refreshTokenExpiration = refreshTokenExpiration;
     }
 
+    // 만료 여부 확인 메서드
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(this.refreshTokenExpiration);
+    }
+
 }
