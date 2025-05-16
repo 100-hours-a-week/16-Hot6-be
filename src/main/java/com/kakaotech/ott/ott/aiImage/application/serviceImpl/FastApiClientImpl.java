@@ -23,9 +23,12 @@ public class FastApiClientImpl implements FastApiClient {
     @Value("${cloud.aws.s3.base-url}")
     private String baseUrl;
 
+    @Value("${fastapi.URL}")
+    private String aiBaseUrl;
+
     @Override
     public FastApiResponseDto sendBeforeImageToFastApi(FastApiRequestDto fastApiRequestDto) {
-        String url = "http://10.50.0.3:8000/classify";
+        String url = aiBaseUrl + "classify";
 
         fastApiRequestDto.fastApiUrl(baseUrl);
 
