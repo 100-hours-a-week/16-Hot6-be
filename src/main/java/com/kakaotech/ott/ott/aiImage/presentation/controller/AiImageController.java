@@ -41,12 +41,12 @@ public class AiImageController {
 
         Long userId = userPrincipal.getId();
 
-//        boolean checkQuota = userAuthService.checkQuota(userId);
-//
-//        if (!checkQuota)
-//            return ResponseEntity
-//                    .status(HttpStatus.FORBIDDEN)
-//                    .body(ApiResponse.error(403, "오늘은 더 이상 이미지를 생성할 수 없습니다."));
+        boolean checkQuota = userAuthService.checkQuota(userId);
+
+        if (!checkQuota)
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error(403, "오늘은 더 이상 이미지를 생성할 수 없습니다."));
 
         CheckAiImageQuotaResponseDto responseDto = new CheckAiImageQuotaResponseDto(1);
         return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성이 가능합니다.", responseDto));

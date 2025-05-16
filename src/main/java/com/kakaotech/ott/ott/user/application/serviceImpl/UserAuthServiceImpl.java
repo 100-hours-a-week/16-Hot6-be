@@ -3,9 +3,10 @@ package com.kakaotech.ott.ott.user.application.serviceImpl;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.domain.model.User;
+import com.kakaotech.ott.ott.user.domain.repository.RefreshTokenRepository;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
-import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import com.kakaotech.ott.ott.user.application.service.UserAuthService;
+import com.kakaotech.ott.ott.user.infrastructure.entity.RefreshTokenEntity;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,6 +24,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final UserAuthRepository userAuthRepository;
     private final JwtService jwtService;
     private final KakaoLogoutServiceImpl kakaoLogoutService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public boolean checkQuota(Long userId) {
@@ -42,6 +44,12 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Override
     @Transactional
     public void logout(Long userId, HttpServletRequest request, HttpServletResponse response, String kakaoAccessToken) {
+
+        RefreshTokenEntity refreshTokenEntity = refreshTokenRepository.findByRefreshToken(getRefreshTokenFromCookie(request))
+                .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+
+        refreshTokenEntity.updateRefreshToken(null, null);
+
         try {
             // ✅ Refresh Token 쿠키에서 추출
             String refreshToken = getRefreshTokenFromCookie(request);
@@ -54,7 +62,7 @@ public class UserAuthServiceImpl implements UserAuthService {
                     .httpOnly(true)
                     .secure(true)
                     .sameSite("None")
-                    .domain("dev.onthe-top.com") // 환경에 맞게 도메인 설정
+                    .domain(".onthe-top.com") // 환경에 맞게 도메인 설정
                     .path("/")
                     .maxAge(0)  // 즉시 만료
                     .build();
@@ -68,6 +76,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             throw new CustomException(ErrorCode.LOGOUT_FAILED);
         }
     }
+
     private String getRefreshTokenFromCookie(HttpServletRequest request) {
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
