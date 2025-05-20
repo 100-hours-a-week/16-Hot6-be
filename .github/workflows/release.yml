@@ -1,0 +1,59 @@
+name: Release Backend JAR
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Build and Release from VERSION
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Read version from VERSION file
+        id: version
+        run: |
+          VERSION=$(cat VERSION)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "📌 VERSION: $VERSION"
+
+      - name: Set up Git identity for tag push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+
+      - name: Create Git Tag and Push
+        run: |
+          if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+            echo "❗Tag v${VERSION} already exists. Skipping tag push."
+          else
+            git tag "v${VERSION}"
+            git push origin "v${VERSION}"
+          fi
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build JAR
+        run: ./gradlew bootJar -x test
+
+      - name: Rename JAR
+        run: cp build/libs/*.jar backend.jar
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          files: backend.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

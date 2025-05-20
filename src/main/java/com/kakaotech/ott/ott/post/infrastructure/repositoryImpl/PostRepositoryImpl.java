@@ -75,14 +75,15 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Post> findAllByCursor(int size, Long lastPostId, String category, String sort) {
+    public List<Post> findAllByCursor(int size, Long lastPostId, Integer lastLikeCount, Long lastViewCount,
+                                      String category, String sort) {
         Pageable pageable = PageRequest.of(0, size);
 
         if (category == null || "ALL".equalsIgnoreCase(category)) {
             return switch (sort == null ? "LATEST" : sort.toUpperCase()) {
-                case "LIKE" -> postJpaRepository.findAllPostsByLike(lastPostId, pageable)
+                case "LIKE" -> postJpaRepository.findAllPostsByLike(lastLikeCount, lastPostId, pageable)
                         .stream().map(PostEntity::toDomain).toList();
-                case "VIEW" -> postJpaRepository.findAllPostsByView(lastPostId, pageable)
+                case "VIEW" -> postJpaRepository.findAllPostsByView(lastViewCount, lastPostId, pageable)
                         .stream().map(PostEntity::toDomain).toList();
                 default -> postJpaRepository.findAllPosts(lastPostId, pageable)
                         .stream().map(PostEntity::toDomain).toList();
@@ -92,9 +93,9 @@ public class PostRepositoryImpl implements PostRepository {
         PostType postType = PostType.valueOf(category.toUpperCase());
 
         return switch (sort == null ? "LATEST" : sort.toUpperCase()) {
-            case "LIKE" -> postJpaRepository.findByCategoryByLike(postType, lastPostId, pageable)
+            case "LIKE" -> postJpaRepository.findByCategoryByLike(postType, lastLikeCount, lastPostId, pageable)
                     .stream().map(PostEntity::toDomain).toList();
-            case "VIEW" -> postJpaRepository.findByCategoryByView(postType, lastPostId, pageable)
+            case "VIEW" -> postJpaRepository.findByCategoryByView(postType, lastViewCount, lastPostId, pageable)
                     .stream().map(PostEntity::toDomain).toList();
             default -> postJpaRepository.findByCategory(postType, lastPostId, pageable)
                     .stream().map(PostEntity::toDomain).toList();

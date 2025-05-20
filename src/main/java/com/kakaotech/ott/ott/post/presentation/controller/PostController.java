@@ -33,11 +33,13 @@ public class PostController {
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) Long lastPostId,
+            @RequestParam(required = false) Integer lastLikeCount,
+            @RequestParam(required = false) Long lastViewCount,
             @RequestParam(defaultValue = "10") int size) {
 
         Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
 
-        PostAllResponseDto payload = postService.getAllPost(userId, category, sort, size, lastPostId);
+        PostAllResponseDto payload = postService.getAllPost(userId, category, sort, size, lastPostId, lastLikeCount, lastViewCount);
         return ResponseEntity.ok(ApiResponse.success("게시글 목록 조회 성공", payload));
     }
 

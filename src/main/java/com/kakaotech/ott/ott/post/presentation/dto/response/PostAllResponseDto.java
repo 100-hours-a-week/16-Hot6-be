@@ -22,6 +22,7 @@ public class PostAllResponseDto {
         private final String thumbnailUrl;
         private final int likeCount;
         private final int commentCount;
+        private final Long viewCount;
 
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         private final LocalDateTime createdAt;
