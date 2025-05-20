@@ -145,6 +145,7 @@ public class UserServiceImpl implements UserService {
                             thumbnailImage,
                             post.getLikeCount(),
                             post.getCommentCount(),
+                            post.getViewCount(),
                             post.getCreatedAt(),
                             liked,
                             scrapped
