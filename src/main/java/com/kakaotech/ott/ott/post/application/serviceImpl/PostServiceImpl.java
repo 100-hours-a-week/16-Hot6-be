@@ -108,8 +108,9 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size, Long lastPostId) {
-        List<Post> posts = postRepository.findAllByCursor(size, lastPostId, category, sort);
+    public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size, Long lastPostId,
+                                         Integer lastLikeCount, Long lastViewCount) {
+        List<Post> posts = postRepository.findAllByCursor(size, lastPostId, lastLikeCount, lastViewCount, category, sort);
 
         List<PostAllResponseDto.Posts> dtoList = posts.stream()
                 .map(post -> {
@@ -139,6 +140,7 @@ public class PostServiceImpl implements PostService {
                             thumbnailImage,
                             likeCount,
                             commentCount,
+                            post.getViewCount(),
                             post.getCreatedAt(),
                             liked,
                             scrapped
@@ -148,6 +150,8 @@ public class PostServiceImpl implements PostService {
 
         boolean hasNext = dtoList.size() == size;
         Long nextLastId = hasNext ? dtoList.get(dtoList.size() - 1).getPostId() : null;
+        Integer nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
+        Long nextLastViewCount = hasNext ? dtoList.get(dtoList.size() - 1).getViewCount() : null;
 
         return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, hasNext));
     }
