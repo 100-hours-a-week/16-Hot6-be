@@ -27,7 +27,7 @@ public class CommentController {
             @RequestParam(required = false) Long lastCommentId,
             @RequestParam(defaultValue = "10") int size) {
 
-        Long userId = userPrincipal.getId();
+        Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
 
         CommentListResponseDto commentListResponseDto = commentService.findByPostIdCursor(userId, postId, lastCommentId, size);
         return ResponseEntity.ok(ApiResponse.success("댓글 조회 완료", commentListResponseDto));
