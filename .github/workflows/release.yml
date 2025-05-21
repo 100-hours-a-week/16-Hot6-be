@@ -29,7 +29,12 @@ jobs:
           git config user.email "actions@github.com"
 
       - name: Create Git Tag and Push
+        env:
+          VERSION: ${{ env.VERSION }}
+          GH_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
         run: |
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
+
           if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
             echo "❗Tag v${VERSION} already exists. Skipping tag push."
           else
