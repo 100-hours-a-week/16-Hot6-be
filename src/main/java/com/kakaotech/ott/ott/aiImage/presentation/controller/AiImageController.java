@@ -41,15 +41,8 @@ public class AiImageController {
 
         Long userId = userPrincipal.getId();
 
-        boolean checkQuota = userAuthService.checkQuota(userId);
-
-        if (!checkQuota)
-            return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN)
-                    .body(ApiResponse.error(403, "오늘은 더 이상 이미지를 생성할 수 없습니다."));
-
-        CheckAiImageQuotaResponseDto responseDto = new CheckAiImageQuotaResponseDto(1);
-        return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성이 가능합니다.", responseDto));
+        CheckAiImageQuotaResponseDto responseDto = userAuthService.remainQuota(userId);
+        return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성 토큰을 조회합니다.", responseDto));
 
     }
 
@@ -59,6 +52,8 @@ public class AiImageController {
             @ModelAttribute AiImageUploadRequestDto requestDto) throws IOException {
 
         Long userId = userPrincipal.getId();
+
+        userAuthService.checkQuota(userId);
 
         MultipartFile image = requestDto.getBeforeImagePath();
 
