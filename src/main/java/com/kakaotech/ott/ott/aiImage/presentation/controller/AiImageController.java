@@ -39,7 +39,7 @@ public class AiImageController {
     public ResponseEntity<ApiResponse<CheckAiImageQuotaResponseDto>> checkAiImageQuota(
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
 
-        Long userId = userPrincipal.getId();
+        Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
 
         CheckAiImageQuotaResponseDto responseDto = userAuthService.remainQuota(userId);
         return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성 토큰을 조회합니다.", responseDto));

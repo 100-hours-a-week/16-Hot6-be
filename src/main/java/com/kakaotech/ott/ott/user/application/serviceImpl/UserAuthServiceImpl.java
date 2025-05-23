@@ -29,6 +29,9 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     public CheckAiImageQuotaResponseDto remainQuota(Long userId) {
 
+        if (userId == null)
+            throw new CustomException(ErrorCode.AUTH_REQUIRED);
+
         LocalDate today = LocalDate.now();
 
         // 1. 사용자가 존재하지 않으면 예외 발생 (404)
