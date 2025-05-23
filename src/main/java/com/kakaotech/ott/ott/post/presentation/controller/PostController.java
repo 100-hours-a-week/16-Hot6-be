@@ -40,6 +40,7 @@ public class PostController {
         Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
 
         PostAllResponseDto payload = postService.getAllPost(userId, category, sort, size, lastPostId, lastLikeCount, lastViewCount);
+
         return ResponseEntity.ok(ApiResponse.success("게시글 목록 조회 성공", payload));
     }
 
