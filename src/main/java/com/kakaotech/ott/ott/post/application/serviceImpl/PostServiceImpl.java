@@ -153,7 +153,7 @@ public class PostServiceImpl implements PostService {
         Integer nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
         Long nextLastViewCount = hasNext ? dtoList.get(dtoList.size() - 1).getViewCount() : null;
 
-        return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, hasNext));
+        return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, nextLastLikeCount, nextLastViewCount, hasNext));
     }
 
     @Override
