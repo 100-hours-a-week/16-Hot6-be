@@ -104,14 +104,9 @@ jobs:
           scp -F ~/.ssh/config backend.jar backend-server:/home/ubuntu/backend/backend.jar
           scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.propertie
 
-      - name: 디버깅 현재 위치 확인
-        run: |
-          echo "📂 현재 위치: $(pwd)"
-          echo "📁 파일 목록:"
-          ls -al
-
       - name: Build Docker image
-        run: docker build -t luckyprice1103/backend:test .
+        run: docker build -t luckyprice1103/backend:test -f ../Dockerfile .
+
 
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERHUB_PAT }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
