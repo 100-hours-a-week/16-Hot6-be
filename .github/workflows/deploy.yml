@@ -116,10 +116,8 @@ jobs:
 
       - name: Push Docker image
         run: docker push luckyprice1103/backend:test
-
-      
-
-      - name: Run test docker container on server
+ 
+      - name: Run test container on server
         run: |
           ssh -F ~/.ssh/config backend-server <<'EOF'
             echo "도커 테스트 컨테이너 실행 중 (port 18080)"
@@ -136,14 +134,12 @@ jobs:
               --memory=512m \
               --cpus=0.5 \
               -v /home/ubuntu/backend/secrets.properties:/app/secrets.properties \
-              -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
+              -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }}
               luckyprice1103/backend:test \
               --spring.config.additional-location=file:/app/secrets.properties
 
             echo " 테스트 컨테이너가 18080 포트에서 실행 중입니다."
           EOF
-
-    
       
       - name: Restart backend via SSH
         run: |
@@ -172,7 +168,7 @@ jobs:
 
             echo "▶[3] 실행 상태 확인"
             sleep 10
-            NEW_PID=$(pgrep -f backend || true)
+            NEW_PID=$(pgrep -f "java -jar backend.jar" || true)
 
             if [ -n "$NEW_PID" ]; then
               echo " 정상 기동 완료 (PID: $NEW_PID)"
