@@ -22,6 +22,7 @@ import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ public class ProductDomainServiceImpl implements ProductDomainService {
     private final ScrapRepository scrapRepository;
 
     @Override
+    @Transactional
     public List<DeskProduct> createdProduct(AiImageAndProductRequestDto aiImageAndProductRequestDto, AiImage aiImage, Long userId) {
         List<DeskProduct> savedDeskProducts = new ArrayList<>();
 

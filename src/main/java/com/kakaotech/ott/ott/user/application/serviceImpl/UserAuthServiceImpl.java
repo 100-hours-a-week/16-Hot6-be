@@ -27,6 +27,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final KakaoLogoutServiceImpl kakaoLogoutService;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    @Transactional(readOnly = true)
     public CheckAiImageQuotaResponseDto remainQuota(Long userId) {
 
         if (userId == null)
@@ -47,6 +48,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean checkQuota(Long userId) {
 
         LocalDate today = LocalDate.now();

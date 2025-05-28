@@ -90,7 +90,7 @@ public class AiImageServiceImpl implements AiImageService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public AiImageAndProductResponseDto getAiImage(Long imageId, Long userId) {
         AiImage aiImage = aiImageRepository.findById(imageId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
