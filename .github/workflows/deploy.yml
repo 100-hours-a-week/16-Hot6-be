@@ -134,7 +134,7 @@ jobs:
               --memory=512m \
               --cpus=0.5 \
               -v /home/ubuntu/backend/secrets.properties:/app/secrets.properties \
-              -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }}
+              -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
               luckyprice1103/backend:test \
               --spring.config.additional-location=file:/app/secrets.properties
 
