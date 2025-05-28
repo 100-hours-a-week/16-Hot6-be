@@ -107,11 +107,16 @@ jobs:
       - name: Check build context
         run: |
           echo "📂 현재 디렉토리: $(pwd)"
-          echo "📁 파일 목록:"
+          echo "📁 현재 디렉토리 파일 목록:"
           ls -al
 
+          echo "📂 상위 디렉토리: $(dirname $(pwd))"
+          echo "📁 상위 디렉토리 파일 목록:"
+          ls -al ..
+
+
       - name: Build Docker image
-        run: docker build -t luckyprice1103/backend:test .
+        run: docker build -t luckyprice1103/backend:test ../
 
 
       - name: Log in to DockerHub
