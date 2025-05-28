@@ -4,15 +4,30 @@ on:
   push:
     tags:
       - 'v*.*.*'
-      - 'test-*'
 
 jobs:
-  docker:
+  release:
+    name: Build and Release Docker
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+    #   - name: Verify tag is on main
+    #     run: |
+    #       TAG_COMMIT=$(git rev-parse HEAD)
+    #       MAIN_COMMIT=$(git rev-parse origin/main)
+
+    #       echo "🔖 Tag commit:  $TAG_COMMIT"
+    #       echo "🌿 Main commit: $MAIN_COMMIT"
+
+    #       if [ "$TAG_COMMIT" != "$MAIN_COMMIT" ]; then
+    #         echo "❌ Tag is not pointing to latest main commit. Aborting release."
+    #         exit 1
+    #       fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -24,7 +39,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PAT }}
 
       - name: Extract version from tag
-        id: vars
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Build and push Docker image
