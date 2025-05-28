@@ -105,7 +105,7 @@ jobs:
           scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.propertie
 
       - name: Build Docker image
-        run: docker build -t luckyprice1103/backend:test -f ../Dockerfile .
+        run: docker build -t luckyprice1103/backend:test .
 
 
       - name: Log in to DockerHub
