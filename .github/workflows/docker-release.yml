@@ -15,6 +15,22 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+    
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Build backend.jar
+        run: ./gradlew bootJar -x test
+
+      - name: Copy JAR for Docker build
+        run: cp build/libs/*.jar backend.jar
+
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
