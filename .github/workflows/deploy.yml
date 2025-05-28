@@ -168,7 +168,7 @@ jobs:
 
             echo "▶[3] 실행 상태 확인"
             sleep 10
-            NEW_PID=$(pgrep -f "java -jar backend" || true)
+            NEW_PID=$(pgrep -f "java -jar backend.jar" || true)
 
             if [ -n "$NEW_PID" ]; then
               echo " 정상 기동 완료 (PID: $NEW_PID)"
