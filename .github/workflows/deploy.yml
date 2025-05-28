@@ -134,46 +134,9 @@ jobs:
               --memory=512m \
               --cpus=0.5 \
               -v /home/ubuntu/backend/secrets.properties:/app/secrets.properties \
-              -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }}
+              -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
               luckyprice1103/backend:test \
               --spring.config.additional-location=file:/app/secrets.properties
 
             echo " 테스트 컨테이너가 18080 포트에서 실행 중입니다."
-          EOF
-      
-      - name: Restart backend via SSH
-        run: |
-          ssh -F ~/.ssh/config backend-server "DEPLOY_ENV=${{ env.DEPLOY_ENV }} bash -s" <<'EOF'
-            set -eux
-            cd ~/backend
-
-            echo "▶️ [1] 실행 중인 애플리케이션 중지"
-            PID=$(pgrep -f backend || true)
-
-            if [ -n "$PID" ]; then
-              echo "기존 프로세스 종료중 (PID: $PID)"
-              kill "$PID"
-              sleep 5
-            else
-              echo "실행 중인 프로세스 없음"
-            fi
-
-            mkdir -p /var/log/onthetop/backend
-
-            echo "▶ 애플리케이션 재시작"
-            nohup env SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
-              java -jar backend.jar \
-              --spring.config.additional-location=file:/home/ubuntu/backend/secrets.properties \
-              > /var/log/onthetop/backend/backend.log 2>&1 &
-
-            echo "▶[3] 실행 상태 확인"
-            sleep 10
-            NEW_PID=$(pgrep -f "java -jar backend.jar" || true)
-
-            if [ -n "$NEW_PID" ]; then
-              echo " 정상 기동 완료 (PID: $NEW_PID)"
-            else
-              echo " 기동 실패"
-              exit 1
-            fi
           EOF
