@@ -104,6 +104,10 @@ jobs:
           scp -F ~/.ssh/config backend.jar backend-server:/home/ubuntu/backend/backend.jar
           scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.propertie
 
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+  
       - name: Build Docker image
         run: docker build -t luckyprice1103/backend:test .
 
