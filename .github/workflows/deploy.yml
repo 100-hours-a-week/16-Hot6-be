@@ -103,7 +103,13 @@ jobs:
           ssh -F ~/.ssh/config backend-server 'mkdir -p ~/backend'
           scp -F ~/.ssh/config backend.jar backend-server:/home/ubuntu/backend/backend.jar
           scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.propertie
-      
+
+      - name: 디버깅 현재 위치 확인
+        run: |
+          echo "📂 현재 위치: $(pwd)"
+          echo "📁 파일 목록:"
+          ls -al
+
       - name: Build Docker image
         run: docker build -t luckyprice1103/backend:test .
 
@@ -132,7 +138,7 @@ jobs:
               --memory=512m \
               --cpus=0.5 \
               -v /home/ubuntu/backend/secrets.properties:/app/secrets.properties \
-              -e SPRING_PROFILES_ACTIVE=dev \
+              -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }}
               luckyprice1103/backend:test \
               --spring.config.additional-location=file:/app/secrets.properties
 
