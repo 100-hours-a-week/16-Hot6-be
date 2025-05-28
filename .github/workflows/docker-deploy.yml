@@ -3,7 +3,7 @@ name: Backend CI & Dev/Prod CD
 on:
   push:
     branches:
-      - feat/docker
+      - dev
 
 jobs:
   build:
@@ -126,7 +126,7 @@ jobs:
             echo " lsof이 설치되어 있지 않아 설치 중..."
             sudo apt update && sudo apt install -y lsof
             fi
-            
+
             echo " 기존 8080 포트 사용 중인 프로세스 종료"
             PID=$(sudo lsof -t -i:8080 || true)
             if [ -n "$PID" ]; then
