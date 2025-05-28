@@ -122,7 +122,12 @@ jobs:
           ssh -F ~/.ssh/config backend-server <<'EOF'
             echo "도커 테스트 컨테이너 실행 중 (port 8080)"
 
-            echo " 기존 18080 포트 사용 중인 프로세스 종료"
+            if ! command -v lsof >/dev/null 2>&1; then
+            echo " lsof이 설치되어 있지 않아 설치 중..."
+            sudo apt update && sudo apt install -y lsof
+            fi
+            
+            echo " 기존 8080 포트 사용 중인 프로세스 종료"
             PID=$(sudo lsof -t -i:8080 || true)
             if [ -n "$PID" ]; then
                 echo "포트를 점유 중인 프로세스 종료 (PID: $PID)"
