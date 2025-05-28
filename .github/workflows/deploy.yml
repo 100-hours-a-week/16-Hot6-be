@@ -104,9 +104,11 @@ jobs:
           scp -F ~/.ssh/config backend.jar backend-server:/home/ubuntu/backend/backend.jar
           scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.propertie
 
-      - name: Copy Dockerfile to current directory
-        run: cp ../Dockerfile .
-
+      - name: Check build context
+        run: |
+          echo "📂 현재 디렉토리: $(pwd)"
+          echo "📁 파일 목록:"
+          ls -al
 
       - name: Build Docker image
         run: docker build -t luckyprice1103/backend:test .
