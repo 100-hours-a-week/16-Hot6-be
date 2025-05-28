@@ -3,7 +3,7 @@ name: Backend CI & Dev/Prod CD
 on:
   push:
     branches:
-      - dev
+      - feat/docker
 
 jobs:
   build:
@@ -109,15 +109,15 @@ jobs:
           scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.properties
 
       - name: Build Docker image
-        run: docker build -t luckyprice1103/backend:test .
+        run: docker build -t luckyprice1103/backend:dev .
 
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERHUB_PAT }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Push Docker image
-        run: docker push luckyprice1103/backend:test
+        run: docker push luckyprice1103/backend:dev
  
-      - name: Run test container on server
+      - name: Run dev container on server
         run: |
           ssh -F ~/.ssh/config backend-server <<'EOF'
             echo "도커 테스트 컨테이너 실행 중 (port 8080)"
@@ -138,19 +138,19 @@ jobs:
             fi
 
             # 기존 테스트 컨테이너 있으면 제거
-            docker rm -f backend-test || true
-            docker rmi luckyprice1103/backend:test || true
-            docker pull luckyprice1103/backend:test
+            docker rm -f backend-dev || true
+            docker rmi luckyprice1103/backend:dev || true
+            docker pull luckyprice1103/backend:dev
 
             # 도커 실행
             docker run -d \
-              --name backend-test \
+              --name backend-dev \
               -p 8080:8080 \
               --memory=512m \
               --cpus=0.5 \
               -v /home/ubuntu/backend/secrets.properties:/app/secrets.properties \
               -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
-              luckyprice1103/backend:test \
+              luckyprice1103/backend:dev \
               --spring.config.additional-location=file:/app/secrets.properties
 
             echo " 테스트 컨테이너가 8080 포트에서 실행 중입니다."
