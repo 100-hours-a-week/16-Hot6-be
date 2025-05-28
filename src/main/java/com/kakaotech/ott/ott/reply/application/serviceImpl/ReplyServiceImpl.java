@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +33,7 @@ public class ReplyServiceImpl implements ReplyService {
     private final UserAuthRepository userAuthRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public ReplyListResponseDto getAllReply(Long userId, Long commentId, Long lastReplyId, int size) {
 
         List<Reply> replyList = replyRepository.findByCommentIdCursor(commentId, lastReplyId, size + 1);
@@ -75,6 +77,7 @@ public class ReplyServiceImpl implements ReplyService {
     }
 
     @Override
+    @Transactional
     public ReplyCreateResponseDto createReply(ReplyCreateRequestDto replyCreateRequestDto, Long userId, Long commentId) {
 
         Reply reply = Reply.createReply(userId, commentId, replyCreateRequestDto.getContent());
@@ -89,6 +92,7 @@ public class ReplyServiceImpl implements ReplyService {
     }
 
     @Override
+    @Transactional
     public ReplyCreateResponseDto updateReply(ReplyCreateRequestDto replyCreateRequestDto, Long replyId, Long userId) {
 
         Reply reply = replyRepository.findById(replyId);
@@ -105,6 +109,7 @@ public class ReplyServiceImpl implements ReplyService {
     }
 
     @Override
+    @Transactional
     public void deleteReply(Long replyId, Long userId){
 
         userAuthRepository.findById(userId);
