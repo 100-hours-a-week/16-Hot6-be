@@ -108,15 +108,8 @@ jobs:
           scp -F ~/.ssh/config backend.jar backend-server:/home/ubuntu/backend/backend.jar
           scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.propertie
 
-      - name: Check build context
-        run: |
-          echo "📂 현재 디렉토리: $(pwd)"
-          echo "📁 파일 목록:"
-          ls -al
-
       - name: Build Docker image
         run: docker build -t luckyprice1103/backend:test .
-
 
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERHUB_PAT }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
@@ -126,7 +119,7 @@ jobs:
 
       
 
-      - name: Run test container on server
+      - name: Run test docker container on server
         run: |
           ssh -F ~/.ssh/config backend-server <<'EOF'
             echo "도커 테스트 컨테이너 실행 중 (port 18080)"
@@ -143,7 +136,7 @@ jobs:
               --memory=512m \
               --cpus=0.5 \
               -v /home/ubuntu/backend/secrets.properties:/app/secrets.properties \
-              -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }}
+              -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
               luckyprice1103/backend:test \
               --spring.config.additional-location=file:/app/secrets.properties
 
