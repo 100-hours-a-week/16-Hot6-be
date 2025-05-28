@@ -3,7 +3,7 @@ name: Backend CI & Dev/Prod CD
 on:
   push:
     branches:
-      - dev
+      - feat/dockerfile
 
 jobs:
   build:
@@ -102,8 +102,43 @@ jobs:
         run: |
           ssh -F ~/.ssh/config backend-server 'mkdir -p ~/backend'
           scp -F ~/.ssh/config backend.jar backend-server:/home/ubuntu/backend/backend.jar
-          scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.properties
+          scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.propertie
+      
+      - name: Build Docker image
+        run: docker build -t luckyprice1103/backend:test .
 
+      - name: Log in to DockerHub
+        run: echo "${{ secrets.DOCKERHUB_PAT }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push Docker image
+        run: docker push luckyprice1103/backend:test
+
+      
+
+      - name: Run test container on server
+        run: |
+          ssh -F ~/.ssh/config backend-server <<'EOF'
+            echo "도커 테스트 컨테이너 실행 중 (port 18080)"
+
+            # 기존 테스트 컨테이너 있으면 제거
+            docker rm -f backend-test || true
+            docker rmi luckyprice1103/backend:test || true
+            docker pull luckyprice1103/backend:test
+
+            # 테스트용 도커 실행
+            docker run -d \
+              --name backend-test \
+              -p 18080:8080 \
+              --memory=512m \
+              --cpus=0.5 \
+              -e SPRING_PROFILES_ACTIVE=dev \
+              luckyprice1103/backend:test
+
+            echo " 테스트 컨테이너가 18080 포트에서 실행 중입니다."
+          EOF
+
+    
+      
       - name: Restart backend via SSH
         run: |
           ssh -F ~/.ssh/config backend-server "DEPLOY_ENV=${{ env.DEPLOY_ENV }} bash -s" <<'EOF'
@@ -123,20 +158,20 @@ jobs:
 
             mkdir -p /var/log/onthetop/backend
 
-            echo "▶️ 애플리케이션 재시작"
+            echo "▶ 애플리케이션 재시작"
             nohup env SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
               java -jar backend.jar \
               --spring.config.additional-location=file:/home/ubuntu/backend/secrets.properties \
               > /var/log/onthetop/backend/backend.log 2>&1 &
 
-            echo "▶️ [3] 실행 상태 확인"
+            echo "▶[3] 실행 상태 확인"
             sleep 10
             NEW_PID=$(pgrep -f backend || true)
 
             if [ -n "$NEW_PID" ]; then
-              echo "✅ 정상 기동 완료 (PID: $NEW_PID)"
+              echo " 정상 기동 완료 (PID: $NEW_PID)"
             else
-              echo "❗ 기동 실패"
+              echo " 기동 실패"
               exit 1
             fi
           EOF
