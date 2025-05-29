@@ -11,7 +11,6 @@ jobs:
   build:
     name: Build Backend
     runs-on: ubuntu-latest
-    # environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
     environment: ${{ inputs.confirm_slot }}
 
     steps:
@@ -40,11 +39,8 @@ jobs:
     name: Deploy to Dev/Prod via SSH
     needs: build
     runs-on: ubuntu-latest
-    # environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
     environment: ${{ inputs.confirm_slot }}
     env:
-      # DEPLOY_ENV: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
-      # SECRET_LABELS: ${{ github.ref_name == 'main' && 'backend_shared backend_prod' || 'backend_shared backend_dev' }}
       DEPLOY_ENV: ${{ inputs.confirm_slot }}
       SECRET_LABELS: ${{ inputs.confirm_slot == 'prod' && 'backend_shared backend_prod' || 'backend_shared backend_dev' }}
 
