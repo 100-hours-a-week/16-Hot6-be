@@ -3,7 +3,7 @@ name: Backend CI & Dev/Prod CD
 on:
   push:
     branches:
-      - dev
+      - feat/docker
 
 jobs:
   build:
@@ -55,17 +55,6 @@ jobs:
 
     steps:
         
-      - name: Download JAR Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: backend-jar
-          path: .
-
-      - name: Find and rename JAR
-        run: |
-          JAR_FILE=$(find . -name "*.jar" | head -n 1)
-          cp "$JAR_FILE" backend.jar
-
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v2
         with:
