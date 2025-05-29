@@ -33,6 +33,15 @@ jobs:
           name: backend-jar
           path: build/libs/*.jar
 
+      - name: Build Docker image
+        run: docker build -t luckyprice1103/backend:${{ env.DEPLOY_ENV }} .
+
+      - name: Log in to DockerHub
+        run: echo "${{ secrets.DOCKERHUB_PAT }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Push Docker image
+        run: docker push luckyprice1103/backend:${{ env.DEPLOY_ENV }}
+
   deploy:
     name: Deploy to Dev/Prod via SSH
     needs: build
@@ -43,9 +52,6 @@ jobs:
       SECRET_LABELS: ${{ github.ref_name == 'main' && 'backend_shared backend_prod' || 'backend_shared backend_dev' }}
 
     steps:
-
-      - name: Checkout repository
-        uses: actions/checkout@v3
         
       - name: Download JAR Artifact
         uses: actions/download-artifact@v4
@@ -107,15 +113,6 @@ jobs:
           ssh -F ~/.ssh/config backend-server 'mkdir -p ~/backend'
           scp -F ~/.ssh/config backend.jar backend-server:/home/ubuntu/backend/backend.jar
           scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.properties
-
-      - name: Build Docker image
-        run: docker build -t luckyprice1103/backend:${{ env.DEPLOY_ENV }} .
-
-      - name: Log in to DockerHub
-        run: echo "${{ secrets.DOCKERHUB_PAT }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-      - name: Push Docker image
-        run: docker push luckyprice1103/backend:dev
  
       - name: Run dev container on server
         run: |
@@ -138,7 +135,7 @@ jobs:
             fi
 
             # 기존 테스트 컨테이너 있으면 제거
-            docker rm -f backend-dev || true
+            docker rm -f backend-${{ env.DEPLOY_ENV }} || true
             docker rmi luckyprice1103/backend:${{ env.DEPLOY_ENV }} || true
             docker pull luckyprice1103/backend:${{ env.DEPLOY_ENV }}
 
