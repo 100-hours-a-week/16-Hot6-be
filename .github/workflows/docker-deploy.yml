@@ -7,9 +7,11 @@ on:
 
 jobs:
   build:
-    name: Build Backend
+    name: Build Backend and Docker image
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+    env:
+      DEPLOY_ENV: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
 
     steps:
       - name: Checkout repository
