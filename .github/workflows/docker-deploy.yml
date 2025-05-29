@@ -135,6 +135,7 @@ jobs:
               --memory=512m \
               --cpus=0.5 \
               -v /home/ubuntu/backend/secrets.properties:/app/secrets.properties \
+              -v /var/log/onthetop/backend:/logs \
               -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
               luckyprice1103/backend:${{ env.DEPLOY_ENV }} \
               --logging.file.path=/logs \
