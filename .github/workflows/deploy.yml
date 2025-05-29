@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     # environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
     environment: ${{ inputs.confirm_slot }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -127,9 +127,29 @@ jobs:
               echo "실행 중인 프로세스 없음"
             fi
 
+            if ! command -v lsof >/dev/null 2>&1; then
+            echo " lsof이 설치되어 있지 않아 설치 중..."
+            sudo apt update && sudo apt install -y lsof
+            fi
+
+            echo "▶️ [2] 기존 8080 포트 사용 중인 프로세스 종료"
+            PID=$(sudo lsof -t -i:8080 || true)
+            if [ -n "$PID" ]; then
+                echo "포트를 점유 중인 프로세스 종료 (PID: $PID)"
+                kill "$PID"
+                sleep 3
+            else
+                echo "포트를 점유한 프로세스 없음"
+            fi
+
+            # 기존 테스트 컨테이너 있으면 제거
+            docker rm -f backend-${{ env.DEPLOY_ENV }} || true
+            docker rmi luckyprice1103/backend:${{ env.DEPLOY_ENV }} || true
+            docker pull luckyprice1103/backend:${{ env.DEPLOY_ENV }}
+
             mkdir -p /var/log/onthetop/backend
 
-            echo "▶️ 애플리케이션 재시작"
+            echo "▶ 애플리케이션 재시작"
             nohup env SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
               java -jar backend.jar \
               --spring.config.additional-location=file:/home/ubuntu/backend/secrets.properties \
