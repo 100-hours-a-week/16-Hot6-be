@@ -102,7 +102,6 @@ jobs:
       - name: Upload backend.jar and secrets.properties to server
         run: |
           ssh -F ~/.ssh/config backend-server 'mkdir -p ~/backend'
-          scp -F ~/.ssh/config backend.jar backend-server:/home/ubuntu/backend/backend.jar
           scp -F ~/.ssh/config ./secrets/secrets.properties backend-server:/home/ubuntu/backend/secrets.properties
  
       - name: Run dev container on server
