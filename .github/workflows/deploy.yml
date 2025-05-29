@@ -137,12 +137,7 @@ jobs:
             else
                 echo "포트를 점유한 프로세스 없음"
             fi
-
-            # 기존 테스트 컨테이너 있으면 제거
-            docker rm -f backend-${{ env.DEPLOY_ENV }} || true
-            docker rmi luckyprice1103/backend:${{ env.DEPLOY_ENV }} || true
-            docker pull luckyprice1103/backend:${{ env.DEPLOY_ENV }}
-
+            
             mkdir -p /var/log/onthetop/backend
 
             echo "▶ 애플리케이션 재시작"
