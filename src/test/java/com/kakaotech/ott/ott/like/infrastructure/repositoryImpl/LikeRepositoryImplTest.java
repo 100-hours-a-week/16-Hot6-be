@@ -13,7 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -90,20 +90,80 @@ class LikeRepositoryImplTest {
         );
 
         // then
+        verify(userJpaRepository, times(1)).findById(like.getUserId());
+
         assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
         assertEquals("해당 사용자가 존재하지 않습니다.", exception.getMessage());
 
     }
 
     @Test
-    void existsByUserIdAndPostId() {
+    void 유저가_게시글에_좋아요를_했다() {
+
+        // given
+        Long userId = 1L;
+        Long postId = 1L;
+
+        when(likeJpaRepository.existsByUserEntityIdAndTargetId(userId, postId)).thenReturn(true);
+
+        // when
+        boolean result = likeRepositoryImpl.existsByUserIdAndPostId(userId, postId);
+
+        // then
+        verify(likeJpaRepository, times(1)).existsByUserEntityIdAndTargetId(userId, postId);
+        assertTrue(result);
     }
 
     @Test
-    void findByPostId() {
+    void 유저가_게시글에_좋아요를_안했다() {
+
+        // given
+        Long userId = 1L;
+        Long postId = 1L;
+
+        when(likeJpaRepository.existsByUserEntityIdAndTargetId(userId, postId)).thenReturn(false);
+
+        // when
+        boolean result = likeRepositoryImpl.existsByUserIdAndPostId(userId, postId);
+
+        // then
+        verify(likeJpaRepository, times(1)).existsByUserEntityIdAndTargetId(userId, postId);
+        assertFalse(result);
     }
 
     @Test
-    void findLikedPostIdsByUserId() {
+    void 게시글의_좋아요수를_반환한다() {
+
+        // given
+        Long postId = 1L;
+
+        when(likeJpaRepository.countByPostId(postId)).thenReturn(5);
+
+        // when
+        int result = likeRepositoryImpl.findByPostId(postId);
+
+        // then
+        verify(likeJpaRepository, times(1)).countByPostId(postId);
+
+        assertEquals(result, likeJpaRepository.countByPostId(postId));
+    }
+
+    @Test
+    void 유저가_좋아요한_게시글을_Set으로_반환한다() {
+
+        // given
+        Long userid = 1L;
+        List<Long> postIds = Arrays.asList(1L, 2L, 3L);
+        List<Long> likedPostIds = Arrays.asList(2L, 3L);
+
+        when(likeJpaRepository.findLikedPostIds(userid, postIds)).thenReturn(likedPostIds);
+
+        // when
+        Set<Long> result = likeRepositoryImpl.findLikedPostIdsByUserId(userid, postIds);
+
+        // then
+        verify(likeJpaRepository, times(1)).findLikedPostIds(userid, postIds);
+
+        assertEquals(result, new HashSet<>(likeJpaRepository.findLikedPostIds(userid, postIds)));
     }
 }
