@@ -134,6 +134,8 @@ jobs:
             docker rm -f backend-${{ env.DEPLOY_ENV }} || true
             docker pull luckyprice1103/backend:${{ env.DEPLOY_ENV }}
 
+            mkdir -p /var/log/onthetop/backend
+
             # 도커 실행
             docker run -d \
               --name backend-${{ env.DEPLOY_ENV }} \
