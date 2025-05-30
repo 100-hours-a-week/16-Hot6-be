@@ -130,8 +130,8 @@ jobs:
                 echo "포트를 점유한 프로세스 없음"
             fi
 
-            # 기존 테스트 컨테이너 있으면 제거
-            docker rm -f backend || true
+            # 기존 컨테이너 있으면 제거
+            docker rm -f onthetop-backend || true
 
             # 올바른 이미지 이름으로 변경
             if [ "${{ env.DEPLOY_ENV }}" = "prod" ]; then
@@ -146,7 +146,7 @@ jobs:
 
             # 도커 실행
             docker run -d \
-              --name backend \
+              --name onthetop-backend \
               -p 8081:8080 \
               --memory=512m \
               --cpus=0.5 \
