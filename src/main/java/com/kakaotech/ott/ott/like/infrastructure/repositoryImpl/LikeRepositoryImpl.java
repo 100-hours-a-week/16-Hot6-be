@@ -24,7 +24,7 @@ public class LikeRepositoryImpl implements LikeRepository {
 
     @Override
     @Transactional
-    public void deleteByUserEntityIdAndTypeAndTargetId(Long userId, Long postId) {
+    public void deleteByUserEntityIdAndTargetId(Long userId, Long postId) {
         likeJpaRepository.deleteByUserEntityIdAndTargetId(userId, postId);
     }
 

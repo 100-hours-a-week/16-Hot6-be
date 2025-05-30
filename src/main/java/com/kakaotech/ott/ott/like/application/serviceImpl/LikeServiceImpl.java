@@ -57,7 +57,7 @@ public class LikeServiceImpl implements LikeService {
             throw new CustomException(ErrorCode.LIKE_NOT_FOUND);
         }
 
-        likeRepository.deleteByUserEntityIdAndTypeAndTargetId(userId, likeRequestDto.getTargetId());
+        likeRepository.deleteByUserEntityIdAndTargetId(userId, likeRequestDto.getTargetId());
 
         postRepository.incrementLikeCount(likeRequestDto.getTargetId(), -1L);
     }
