@@ -3,7 +3,7 @@ name: Backend CI & Dev/Prod CD
 on:
   push:
     branches:
-      - dev
+      - feat/docker
 
 jobs:
   build:
@@ -35,14 +35,20 @@ jobs:
           name: backend-jar
           path: build/libs/*.jar
 
-      - name: Build Docker image
-        run: docker build -t luckyprice1103/backend:${{ env.DEPLOY_ENV }} .
-
       - name: Log in to DockerHub
         run: echo "${{ secrets.DOCKERHUB_PAT }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Push Docker image
-        run: docker push luckyprice1103/backend:${{ env.DEPLOY_ENV }}
+      - name: Build & Push Docker image (dev)
+        if: ${{ env.DEPLOY_ENV == 'dev' }}
+        run: |
+          docker build -t luckyprice1103/onthetop-backend-dev:${{ github.sha }} .
+          docker push luckyprice1103/onthetop-backend-dev:${{ github.sha }}
+
+      - name: Build & Push Docker image (prod)
+        if: ${{ env.DEPLOY_ENV == 'prod' }}
+        run: |
+          docker build -t luckyprice1103/onthetop-backend:${{ github.sha }} .
+          docker push luckyprice1103/onthetop-backend:${{ github.sha }}
 
   deploy:
     name: Deploy to Dev/Prod via SSH
