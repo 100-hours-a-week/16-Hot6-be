@@ -3,7 +3,7 @@ name: Backend CI & Dev/Prod CD
 on:
   push:
     branches:
-      - dev
+      - feat/docker
 
 jobs:
   build:
@@ -121,7 +121,7 @@ jobs:
             fi
 
             echo " 기존 8080 포트 사용 중인 프로세스 종료"
-            PID=$(sudo lsof -t -i:8080 || true)
+            PID=$(sudo lsof -t -i:8081 || true)
             if [ -n "$PID" ]; then
                 echo "포트를 점유 중인 프로세스 종료 (PID: $PID)"
                 kill "$PID"
@@ -131,8 +131,7 @@ jobs:
             fi
 
             # 기존 테스트 컨테이너 있으면 제거
-            docker rm -f backend-${{ env.DEPLOY_ENV }} || true
-            docker pull luckyprice1103/backend:${{ env.DEPLOY_ENV }}
+            docker rm -f backend || true
 
             # 올바른 이미지 이름으로 변경
             if [ "${{ env.DEPLOY_ENV }}" = "prod" ]; then
@@ -147,8 +146,8 @@ jobs:
 
             # 도커 실행
             docker run -d \
-              --name backend-${{ env.DEPLOY_ENV }} \
-              -p 8080:8080 \
+              --name backend \
+              -p 8081:8080 \
               --memory=512m \
               --cpus=0.5 \
               -v /home/ubuntu/backend/secrets.properties:/app/secrets.properties \
