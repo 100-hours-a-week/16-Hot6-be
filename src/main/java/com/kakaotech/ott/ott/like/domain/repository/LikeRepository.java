@@ -7,7 +7,7 @@ import java.util.Set;
 
 public interface LikeRepository {
 
-    void deleteByUserEntityIdAndTypeAndTargetId(Long userId, Long postId);
+    void deleteByUserEntityIdAndTargetId(Long userId, Long postId);
 
     Like save(Like like);
 
