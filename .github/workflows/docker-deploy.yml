@@ -3,7 +3,7 @@ name: Backend CI & Dev/Prod CD
 on:
   push:
     branches:
-      - dev
+      - feat/docker
 
 jobs:
   build:
