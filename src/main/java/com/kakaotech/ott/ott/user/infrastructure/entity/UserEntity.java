@@ -32,7 +32,7 @@ public class UserEntity extends AuditEntity {
     @Column(length = 10)
     private Role role;
 
-    @Column(name = "nickname_kakao", nullable = false, length = 20)
+    @Column(name = "nickname_kakao", length = 20)
     private String nicknameKakao;
 
     @Column(name = "nickname_community", nullable = false, length = 20)
