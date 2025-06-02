@@ -26,7 +26,7 @@ class LikeControllerTest {
     private LikeController likeController;
 
     @Test
-    void POST_요청으로_좋아요가_성공적으로_요청된다() {
+    void 로그인_사용자가_게시글_좋아요_요청하면_201_반환() {
 
         // given
         UserPrincipal userPrincipal = mock(UserPrincipal.class);
@@ -47,7 +47,7 @@ class LikeControllerTest {
     }
 
     @Test
-    void DELETE_요청으로_좋아요가_비활성화된다() {
+    void 로그인_사용자가_게시글_좋아요_취소_요청하면_204_반환() {
 
         // given
         UserPrincipal userPrincipal = mock(UserPrincipal.class);

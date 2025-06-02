@@ -35,7 +35,7 @@ class LikeServiceImplTest {
     private LikeServiceImpl likeServiceImpl;
 
     @Test
-    void 게시글_좋아요를_누르면_좋아요가_생성된다() {
+    void 게시글에_좋아요_성공시_저장_및_카운트_증가_메서드_호출() {
 
         // given
         Long userId = 1L;
@@ -62,7 +62,7 @@ class LikeServiceImplTest {
     }
 
     @Test
-    void 이미_좋아요한_게시글에_좋아요를_하면_예외가_발생한다() {
+    void 이미_좋아요한_게시글에_좋아요시_LIKE_ALREADY_EXISTS_예외발생() {
 
         // given
         Long userId = 1L;
@@ -87,7 +87,7 @@ class LikeServiceImplTest {
 
 
     @Test
-    void 이미_좋아요한_게시글에_좋아요를_취소하면_좋아요가_취소된다() {
+    void 좋아요한_게시글_취소시_삭제_및_카운트_감소_메서드_호출() {
 
         // given
         Long userId = 1L;
@@ -111,7 +111,7 @@ class LikeServiceImplTest {
     }
 
     @Test
-    void 좋아요를_하지_않은_상태에서_좋아요가_취소되면_예외를_반환한다() {
+    void 좋아요하지_않은_게시글_취소시_LIKE_NOT_FOUND_예외발생() {
 
         // given
         Long userId = 1L;
