@@ -1,16 +1,13 @@
 package com.kakaotech.ott.ott.like.domain.model;
 
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("좋아요에 대한 테스트")
 class LikeTest {
 
     @Test
-    @DisplayName("LikeType이 POST일 때 게시글에 대한 Like 객체가 만들어진다.")
-    void should_return_post_like_when_create_post_type_like() {
+    void POST_타입일_때_게시글_Like_객체가_생성된다() {
 
         // given
         Long userId = 1L;
@@ -29,8 +26,7 @@ class LikeTest {
     }
 
     @Test
-    @DisplayName("LikeType이 PRODUCT일 때 상품에 대한 Like 객체가 만들어진다.")
-    void should_return_product_like_when_create_product_type_like() {
+    void PRODUCT_타입일_때_상품_Like_객체가_생성된다() {
 
         // given
         Long userId = 1L;

@@ -31,7 +31,7 @@ class LikeRepositoryImplTest {
     private LikeRepositoryImpl likeRepositoryImpl;
 
     @Test
-    void 유저가_게시글_좋아요_삭제시_JpaRepository_메서드가_호출된다() {
+    void 유저가_게시글_좋아요_삭제_요청하면_JpaRepository_메서드_호출됨() {
 
         // given
         Long userId = 1L;
@@ -45,7 +45,7 @@ class LikeRepositoryImplTest {
     }
 
     @Test
-    void 좋아요를_DB에_저장하고_도메인_객체로_반환한다() {
+    void 좋아요_저장시_DB에_저장되고_도메인_객체_반환() {
 
         // given
         Like like = mock(Like.class);
@@ -76,7 +76,7 @@ class LikeRepositoryImplTest {
     }
 
     @Test
-    void 좋아요를_누를때_유저가_없으면_예외를_반환한다() {
+    void 좋아요_저장시_유저가_없으면_USER_NOT_FOUND_예외_반환() {
 
         // given
         Like like = mock(Like.class);
@@ -98,7 +98,7 @@ class LikeRepositoryImplTest {
     }
 
     @Test
-    void 유저가_게시글에_좋아요를_했다() {
+    void 유저가_게시글에_좋아요를_눌렀을때_true_반환() {
 
         // given
         Long userId = 1L;
@@ -115,7 +115,7 @@ class LikeRepositoryImplTest {
     }
 
     @Test
-    void 유저가_게시글에_좋아요를_안했다() {
+    void 유저가_게시글에_좋아요를_누르지_않았을때_false_반환() {
 
         // given
         Long userId = 1L;
@@ -132,7 +132,7 @@ class LikeRepositoryImplTest {
     }
 
     @Test
-    void 게시글의_좋아요수를_반환한다() {
+    void 게시글_좋아요_수를_정상적으로_조회_성공() {
 
         // given
         Long postId = 1L;
@@ -149,7 +149,7 @@ class LikeRepositoryImplTest {
     }
 
     @Test
-    void 유저가_좋아요한_게시글을_Set으로_반환한다() {
+    void 유저가_좋아요한_게시글_목록을_Set_타입으로_반환() {
 
         // given
         Long userid = 1L;
