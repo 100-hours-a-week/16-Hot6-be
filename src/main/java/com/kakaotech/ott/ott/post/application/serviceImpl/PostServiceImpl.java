@@ -107,7 +107,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size, Long lastPostId,
                                          Integer lastLikeCount, Long lastViewCount) {
         List<Post> posts = postRepository.findAllByCursor(size, lastPostId, lastLikeCount, lastViewCount, category, sort);
@@ -153,11 +153,11 @@ public class PostServiceImpl implements PostService {
         Integer nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
         Long nextLastViewCount = hasNext ? dtoList.get(dtoList.size() - 1).getViewCount() : null;
 
-        return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, hasNext));
+        return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, nextLastLikeCount, nextLastViewCount, hasNext));
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public PostGetResponseDto getPost(Long postId, Long userId) {
 
         viewCountAggregator.increment(postId);
@@ -329,6 +329,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PopularSetupDto> getPopularSetups(Long userId) {
         // 상위 7개 게시글 조회 (단일 조회)
         List<Post> popularPosts = postRepository.findTop7ByWeight();

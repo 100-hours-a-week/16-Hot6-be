@@ -30,6 +30,7 @@ public enum ErrorCode {
     INVALID_CURSOR(HttpStatus.BAD_REQUEST, "유효하지 않은 lastPostId 값입니다."),
 
     // AiImage
+    QUOTA_ALREADY_USED(HttpStatus.FORBIDDEN, "금일 이미지 생성 할당량을 모두 사용했습니다."),
     AIIMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 AI 이미지가 존재하지 않습니다."),
     AI_IMAGE_ALREADY_USED(HttpStatus.CONFLICT, "해당 AI 이미지는 이미 게시물에 연결되어 있습니다."),
     INVALID_IMAGE(HttpStatus.BAD_REQUEST, "올바른 데스크 이미지가 아닙니다."),

@@ -36,7 +36,9 @@ public class PostAllResponseDto {
     @AllArgsConstructor
     public static class Pagination {
         private final int size;
-        private final Long lastPostId;   // 다음 조회의 커서
+        private final Long lastPostId;
+        private final Integer lastLikeCount;
+        private final Long lastViewCount;
         private final boolean hasNext;
     }
 }

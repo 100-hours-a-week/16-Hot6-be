@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.user.application.serviceImpl;
 
+import com.kakaotech.ott.ott.aiImage.presentation.dto.response.CheckAiImageQuotaResponseDto;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.user.domain.model.User;
@@ -26,7 +27,28 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final KakaoLogoutServiceImpl kakaoLogoutService;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    @Transactional(readOnly = true)
+    public CheckAiImageQuotaResponseDto remainQuota(Long userId) {
+
+        if (userId == null)
+            throw new CustomException(ErrorCode.AUTH_REQUIRED);
+
+        LocalDate today = LocalDate.now();
+
+        // 1. 사용자가 존재하지 않으면 예외 발생 (404)
+        User user = userAuthRepository.findById(userId);
+
+        LocalDate lastGenerated = user.getAiImageGeneratedDate();
+
+        if(today.equals(lastGenerated) || lastGenerated == null)
+            return new CheckAiImageQuotaResponseDto(0);
+
+        //나중에는 이미지 생성 내역 테이블 불러와서 남은 횟수 반환(현재는 1개)
+        return new CheckAiImageQuotaResponseDto(1);
+    }
+
     @Override
+    @Transactional(readOnly = true)
     public boolean checkQuota(Long userId) {
 
         LocalDate today = LocalDate.now();
@@ -34,8 +56,11 @@ public class UserAuthServiceImpl implements UserAuthService {
         // 1. 사용자가 존재하지 않으면 예외 발생 (404)
         User user = userAuthRepository.findById(userId);
 
-        // 2. quota 사용일이 null이면 → 아직 사용 안 함 → 사용 가능
         LocalDate lastGenerated = user.getAiImageGeneratedDate();
+
+        if(today.equals(lastGenerated) || lastGenerated == null)
+            throw new CustomException(ErrorCode.QUOTA_ALREADY_USED);
+
 
         return lastGenerated == null || !today.equals(lastGenerated);
 

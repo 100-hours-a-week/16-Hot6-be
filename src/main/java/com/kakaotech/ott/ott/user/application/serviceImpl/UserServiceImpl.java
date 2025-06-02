@@ -57,6 +57,7 @@ public class UserServiceImpl implements UserService {
     private String baseUrl;
 
     @Override
+    @Transactional(readOnly = true)
     public MyInfoResponseDto getMyInfo(Long userId) {
 
         User user = userRepository.findById(userId);
@@ -68,6 +69,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MyDeskImageResponseDto getMyDeskWithCursor(Long userId, Long lastId, int size, String type) {
 
         User user = userRepository.findById(userId);
@@ -162,6 +164,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Transactional
     public UserInfoUpdateResponseDto updateUserInfo(Long userId, UserInfoUpdateRequestDto userInfoUpdateRequestDto) throws IOException {
 
         User user = userRepository.findById(userId);
@@ -201,6 +204,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long userId) {
 
         User user = userRepository.findById(userId);
@@ -215,6 +219,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void verifiedCode(Long userId, UserVerifiedRequestDto userVerifiedRequestDto) {
 
         User user = userRepository.findById(userId);
@@ -233,6 +238,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void recoverUser(Long userId) {
 
         User user = userRepository.findById(userId);

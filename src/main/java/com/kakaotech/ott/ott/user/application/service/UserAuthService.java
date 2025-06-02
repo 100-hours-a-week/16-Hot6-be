@@ -1,9 +1,12 @@
 package com.kakaotech.ott.ott.user.application.service;
 
+import com.kakaotech.ott.ott.aiImage.presentation.dto.response.CheckAiImageQuotaResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public interface UserAuthService {
+
+    CheckAiImageQuotaResponseDto remainQuota(Long userId);
 
     boolean checkQuota(Long userId);
 

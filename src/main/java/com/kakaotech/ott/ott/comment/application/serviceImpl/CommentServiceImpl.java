@@ -32,6 +32,7 @@ public class CommentServiceImpl implements CommentService {
     private String basicProfile;
 
     @Override
+    @Transactional
     public CommentCreateResponseDto createComment(CommentCreateRequestDto commentCreateRequestDto, Long userId, Long postId) {
 
         Comment comment = Comment.createComment(userId, postId, commentCreateRequestDto.getContent());
@@ -61,6 +62,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public CommentCreateResponseDto updateComment(CommentCreateRequestDto commentCreateRequestDto, Long commentId, Long userId) {
 
         userAuthRepository.findById(userId);
@@ -81,6 +83,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CommentListResponseDto findByPostIdCursor(Long userId, Long postId, Long lastCommentId, int size) {
         // 1) DB에서 댓글을 조회
         List<Comment> commentList = commentRepository.findByPostIdCursor(postId, lastCommentId, size + 1);
