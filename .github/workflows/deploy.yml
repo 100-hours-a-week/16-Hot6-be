@@ -1,15 +1,17 @@
 name: Backend CI & Dev/Prod CD
 
 on:
-  push:
-    branches:
-      - dev
+  workflow_dispatch:
+    inputs:
+      confirm_slot:
+        description: '배포할 환경 이름 (예: dev, prod)'
+        required: true
 
 jobs:
   build:
     name: Build Backend
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+    environment: ${{ inputs.confirm_slot }}
 
     steps:
       - name: Checkout repository
@@ -37,10 +39,10 @@ jobs:
     name: Deploy to Dev/Prod via SSH
     needs: build
     runs-on: ubuntu-latest
-    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+    environment: ${{ inputs.confirm_slot }}
     env:
-      DEPLOY_ENV: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
-      SECRET_LABELS: ${{ github.ref_name == 'main' && 'backend_shared backend_prod' || 'backend_shared backend_dev' }}
+      DEPLOY_ENV: ${{ inputs.confirm_slot }}
+      SECRET_LABELS: ${{ inputs.confirm_slot == 'prod' && 'backend_shared backend_prod' || 'backend_shared backend_dev' }}
 
     steps:
       - name: Download JAR Artifact
@@ -110,20 +112,56 @@ jobs:
             set -eux
             cd ~/backend
 
-            echo "▶️ [1] 실행 중인 애플리케이션 중지"
-            PID=$(pgrep -f backend || true)
+            echo "▶️ [1] 실행 중인 애플리케이션 중지 (백엔드 JAR 프로세스)"
+            PID=$(pgrep -f 'backend' || true)
 
             if [ -n "$PID" ]; then
-              echo "기존 프로세스 종료중 (PID: $PID)"
+              echo "기존 백엔드 프로세스 종료중 (PID: $PID)"
               kill "$PID"
               sleep 5
             else
-              echo "실행 중인 프로세스 없음"
+              echo "실행 중인 백엔드 JAR 프로세스 없음"
+            fi
+
+            echo "▶️ [2] 8080 포트를 사용하는 Docker 컨테이너 종료"
+            CONTAINER_ID=$(docker ps --filter "publish=8080" --format "{{.ID}}")
+
+            if [ -n "$CONTAINER_ID" ]; then
+              echo "Docker 컨테이너($CONTAINER_ID)가 8080 포트 점유 중 → 종료"
+              docker stop "$CONTAINER_ID"
+              sleep 3
+            else
+              echo "8080 포트를 사용하는 Docker 컨테이너 없음"
+            fi
+
+            # KILLED가 false이면, 즉 1, 2번으로도 종료된 게 없으면 점유 주체를 알려주고 종료
+            if [ "$KILLED" = false ]; then
+              echo " 1, 2번 방식으로도 8080 포트를 해제하지 못했습니다."
+              echo " 누가 포트를 점유 중인지 확인합니다..."
+
+              if ! command -v lsof >/dev/null 2>&1; then
+                echo "lsof이 설치되어 있지 않아 설치 중..."
+                sudo apt update && sudo apt install -y lsof
+              fi
+
+              OCCUPY_INFO=$(sudo lsof -i:8080 || true)
+
+              if [ -n "$OCCUPY_INFO" ]; then
+                echo " 다음 프로세스가 8080 포트를 점유 중입니다:"
+                echo "$OCCUPY_INFO"
+              else
+                echo "8080 포트를 점유 중인 프로세스를 찾을 수 없습니다."
+              fi
+
+              echo " 포트 점유로 인해 애플리케이션을 시작할 수 없습니다."
+              exit 1
+            else
+              echo " 포트 해제 완료"
             fi
 
             mkdir -p /var/log/onthetop/backend
 
-            echo "▶️ 애플리케이션 재시작"
+            echo "▶ 애플리케이션 재시작"
             nohup env SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
               java -jar backend.jar \
               --spring.config.additional-location=file:/home/ubuntu/backend/secrets.properties \
