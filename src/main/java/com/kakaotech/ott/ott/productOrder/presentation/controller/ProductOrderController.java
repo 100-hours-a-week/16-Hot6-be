@@ -7,6 +7,7 @@ import com.kakaotech.ott.ott.productOrder.presentation.dto.response.ProductOrder
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,7 +31,7 @@ public class ProductOrderController {
 
         ProductOrderResponseDto productOrderResponseDto = productOrderService.create(productOrderRequestDto, userId);
 
-        return ResponseEntity.ok(ApiResponse.success("주문 생성 완료", productOrderResponseDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("주문 생성 완료", productOrderResponseDto));
     }
 
 }
