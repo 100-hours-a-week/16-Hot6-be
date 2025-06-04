@@ -50,6 +50,8 @@ public class LikeServiceImpl implements LikeService {
 
         User user = userAuthRepository.findById(userId);
 
+        Post post = postRepository.findById(likeRequestDto.getTargetId());
+
         boolean exists = likeRepository.existsByUserIdAndPostId(userId, likeRequestDto.getTargetId());
 
         // 이미 좋아요 상태라면 아무 동작 하지 않음
