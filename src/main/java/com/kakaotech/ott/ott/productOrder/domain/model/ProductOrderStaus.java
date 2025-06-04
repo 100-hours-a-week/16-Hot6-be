@@ -4,5 +4,8 @@ public enum ProductOrderStaus {
     ORDERED,
     PAID,
     CONFIRMED,
-    DELIVERED
+    DELIVERED,
+    CANCELED,
+    PARTIALLY_REFUNDED,
+    REFUNDED
 }
