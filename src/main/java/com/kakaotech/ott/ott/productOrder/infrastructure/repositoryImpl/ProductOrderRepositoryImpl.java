@@ -3,7 +3,7 @@ package com.kakaotech.ott.ott.productOrder.infrastructure.repositoryImpl;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
-import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStaus;
+import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderJpaRepository;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
 import com.kakaotech.ott.ott.productOrder.infrastructure.entity.ProductOrderEntity;
@@ -46,13 +46,15 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
 
     @Override
     @Transactional
-    public void confirmProductOrder(ProductOrder productOrder, User user) {
+    public ProductOrder confirmProductOrder(ProductOrder productOrder, User user) {
 
         ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(productOrder.getId(), user.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         beforeProductOrderEntity.setConfirmedAt(productOrder.getConfirmedAt());
         beforeProductOrderEntity.setStatus(productOrder.getStatus());
+
+        return productOrderJpaRepository.save(beforeProductOrderEntity).toDomain();
     }
 
     @Override
@@ -63,7 +65,7 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         beforeProductOrderEntity.setConfirmedAt(productOrder.getConfirmedAt());
-        beforeProductOrderEntity.setStatus(ProductOrderStaus.CONFIRMED);
+        beforeProductOrderEntity.setStatus(ProductOrderStatus.CONFIRMED);
     }
 
     @Override

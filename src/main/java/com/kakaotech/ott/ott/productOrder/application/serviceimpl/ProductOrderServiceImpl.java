@@ -3,14 +3,11 @@ package com.kakaotech.ott.ott.productOrder.application.serviceimpl;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.productOrder.application.service.ProductOrderService;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
-import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStaus;
+import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ServiceProductDto;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderHistoryResponseDto;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderHistoryListResponseDto;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderResponseDto;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.response.ProductOrderResponseDto;
+import com.kakaotech.ott.ott.productOrder.presentation.dto.response.*;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
@@ -69,7 +66,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                 savedProductOrder.getId(),
                 productOrderRequestDto.getProduct(),
                 totalAmount,
-                ProductOrderStaus.ORDERED,
+                ProductOrderStatus.ORDERED,
                 savedProductOrder.getOrderedAt());
     }
 
@@ -146,15 +143,16 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     }
 
     @Override
-    public void confirmProductOrder(Long userId, Long orderId) {
+    public ProductOrderConfirmResponseDto confirmProductOrder(Long userId, Long orderId) {
 
         User user = userRepository.findById(userId);
 
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
         productOrder.confirm();
 
-        productOrderRepository.confirmProductOrder(productOrder, user);
+        ProductOrder confirmedProductOrder = productOrderRepository.confirmProductOrder(productOrder, user);
 
+        return new ProductOrderConfirmResponseDto(productOrder.getId(), productOrder.getStatus());
     }
 
 

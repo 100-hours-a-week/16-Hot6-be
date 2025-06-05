@@ -1,7 +1,7 @@
 package com.kakaotech.ott.ott.productOrder.infrastructure.entity;
 
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
-import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStaus;
+import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,7 +32,7 @@ public class ProductOrderEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
-    private ProductOrderStaus status;
+    private ProductOrderStatus status;
 
     @Column(name = "subtotal_amount", nullable = false)
     private int subtotalAmount;
@@ -92,8 +92,8 @@ public class ProductOrderEntity {
         this.deletedAt = deletedAt;
     }
 
-    public void setStatus(ProductOrderStaus productOrderStaus) {
-        this.status = productOrderStaus;
+    public void setStatus(ProductOrderStatus productOrderStatus) {
+        this.status = productOrderStatus;
     }
 
     public void setDeliveredAt(LocalDateTime deliveredAt) {

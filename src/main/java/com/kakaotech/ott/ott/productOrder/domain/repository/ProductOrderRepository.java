@@ -13,7 +13,7 @@ public interface ProductOrderRepository {
 
     void deleteProductOrder(ProductOrder productOrder, User user);
 
-    void confirmProductOrder(ProductOrder productOrder, User user);
+    ProductOrder confirmProductOrder(ProductOrder productOrder, User user);
 
     void confirmProductOrder(ProductOrder productOrder);
 

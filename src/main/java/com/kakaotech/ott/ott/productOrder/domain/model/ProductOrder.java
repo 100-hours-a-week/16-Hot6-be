@@ -18,7 +18,7 @@ public class ProductOrder {
 
     private String orderNumber;
 
-    private ProductOrderStaus status;
+    private ProductOrderStatus status;
 
     private int subtotalAmount;
 
@@ -41,47 +41,47 @@ public class ProductOrder {
         return ProductOrder.builder()
                 .userId(userId)
                 .orderNumber(ulid.nextULID())
-                .status(ProductOrderStaus.ORDERED)
+                .status(ProductOrderStatus.ORDERED)
                 .subtotalAmount(subtotalAmount)
                 .discountAmount(discountAmount)
                 .build();
     }
 
     public void pay() {
-        if (this.status != ProductOrderStaus.ORDERED) throw new CustomException(ErrorCode.NOT_ORDERED_STATE);
+        if (this.status != ProductOrderStatus.ORDERED) throw new CustomException(ErrorCode.NOT_ORDERED_STATE);
 
-        if (this.status == ProductOrderStaus.PAID) throw new CustomException(ErrorCode.ALREADY_PAID);
+        if (this.status == ProductOrderStatus.PAID) throw new CustomException(ErrorCode.ALREADY_PAID);
 
-        this.status = ProductOrderStaus.PAID;
+        this.status = ProductOrderStatus.PAID;
     }
 
     public void confirm() {
-        if (this.status != ProductOrderStaus.DELIVERED) throw new CustomException(ErrorCode.NOT_DELIVERED_STATE);
+        if (this.status != ProductOrderStatus.DELIVERED) throw new CustomException(ErrorCode.NOT_DELIVERED_STATE);
 
-        if (this.status == ProductOrderStaus.CONFIRMED) throw new CustomException(ErrorCode.ALREADY_CONFIRMED);
+        if (this.status == ProductOrderStatus.CONFIRMED) throw new CustomException(ErrorCode.ALREADY_CONFIRMED);
 
         this.confirmedAt = LocalDateTime.now();
-        this.status = ProductOrderStaus.CONFIRMED;
+        this.status = ProductOrderStatus.CONFIRMED;
     }
 
     public void deliver() {
-        if (this.status != ProductOrderStaus.PAID) throw new CustomException(ErrorCode.NOT_PAID_STATE);
+        if (this.status != ProductOrderStatus.PAID) throw new CustomException(ErrorCode.NOT_PAID_STATE);
 
-        if (this.status == ProductOrderStaus.DELIVERED) throw new CustomException(ErrorCode.ALREADY_DELIVERED);
+        if (this.status == ProductOrderStatus.DELIVERED) throw new CustomException(ErrorCode.ALREADY_DELIVERED);
 
         this.deletedAt = LocalDateTime.now();
-        this.status = ProductOrderStaus.DELIVERED;
+        this.status = ProductOrderStatus.DELIVERED;
     }
 
     public void cancel() {
-        if (this.status != ProductOrderStaus.PAID) throw new CustomException(ErrorCode.NOT_PAID_STATE);
+        if (this.status != ProductOrderStatus.PAID) throw new CustomException(ErrorCode.NOT_PAID_STATE);
 
-        if (this.status == ProductOrderStaus.DELIVERED) throw new CustomException(ErrorCode.ALREADY_DELIVERED);
+        if (this.status == ProductOrderStatus.DELIVERED) throw new CustomException(ErrorCode.ALREADY_DELIVERED);
 
-        if (this.status == ProductOrderStaus.CONFIRMED) throw new CustomException(ErrorCode.ALREADY_CONFIRMED);
+        if (this.status == ProductOrderStatus.CONFIRMED) throw new CustomException(ErrorCode.ALREADY_CONFIRMED);
 
         this.canceledAt = LocalDateTime.now();
-        this.status = ProductOrderStaus.CANCELED;
+        this.status = ProductOrderStatus.CANCELED;
     }
 
 

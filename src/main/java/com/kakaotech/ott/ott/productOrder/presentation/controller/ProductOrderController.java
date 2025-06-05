@@ -3,10 +3,7 @@ package com.kakaotech.ott.ott.productOrder.presentation.controller;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.productOrder.application.service.ProductOrderService;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderRequestDto;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderHistoryListResponseDto;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderHistoryResponseDto;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderResponseDto;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.response.ProductOrderResponseDto;
+import com.kakaotech.ott.ott.productOrder.presentation.dto.response.*;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -71,15 +68,15 @@ public class ProductOrderController {
     }
 
     @PostMapping("/{orderId}/confirm")
-    public ResponseEntity<ApiResponse> confirmOrder(
+    public ResponseEntity<ApiResponse<ProductOrderConfirmResponseDto>> confirmOrder(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long orderId) {
 
         Long userId = userPrincipal.getId();
 
-        productOrderService.confirmProductOrder(userId, orderId);
+        ProductOrderConfirmResponseDto productOrderConfirmResponseDto = productOrderService.confirmProductOrder(userId, orderId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("구매 확정 완료", orderId));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("구매 확정 완료", productOrderConfirmResponseDto));
     }
 
 }
