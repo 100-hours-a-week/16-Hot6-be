@@ -44,6 +44,15 @@ public class ProductOrderEntity {
     @Column(name = "ordered_at", nullable = false, updatable = false)
     private LocalDateTime orderedAt;
 
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
+    @Column(name = "confirmed_at")
+    private LocalDateTime confirmedAt;
+
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
+
     @Column(name = "deleted_at", nullable = false)
     private LocalDateTime deletedAt;
 
@@ -57,6 +66,9 @@ public class ProductOrderEntity {
                 .subtotalAmount(this.subtotalAmount)
                 .discountAmount(this.discountAmount)
                 .orderedAt(this.orderedAt)
+                .deliveredAt(this.deliveredAt)
+                .confirmedAt(this.confirmedAt)
+                .canceledAt(this.canceledAt)
                 .deletedAt(this.deletedAt)
                 .build();
     }
@@ -69,12 +81,31 @@ public class ProductOrderEntity {
                 .status(productOrder.getStatus())
                 .subtotalAmount(productOrder.getSubtotalAmount())
                 .discountAmount(productOrder.getDiscountAmount())
+                .deliveredAt(productOrder.getDeliveredAt())
+                .confirmedAt(productOrder.getConfirmedAt())
+                .canceledAt(productOrder.getCanceledAt())
                 .deletedAt(productOrder.getDeletedAt())
                 .build();
     }
 
     public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    public void setStatus(ProductOrderStaus productOrderStaus) {
+        this.status = productOrderStaus;
+    }
+
+    public void setDeliveredAt(LocalDateTime deliveredAt) {
+        this.deliveredAt = deliveredAt;
+    }
+
+    public void setConfirmedAt(LocalDateTime confirmedAt) {
+        this.confirmedAt = confirmedAt;
+    }
+
+    public void setCanceledAt(LocalDateTime canceledAt) {
+        this.canceledAt = canceledAt;
     }
 
 }

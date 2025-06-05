@@ -70,4 +70,16 @@ public class ProductOrderController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 취소 성공", null));
     }
 
+    @PostMapping("/{orderId}/confirm")
+    public ResponseEntity<ApiResponse> confirmOrder(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long orderId) {
+
+        Long userId = userPrincipal.getId();
+
+        productOrderService.confirmProductOrder(userId, orderId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("구매 확정 완료", orderId));
+    }
+
 }
