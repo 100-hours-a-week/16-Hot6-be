@@ -14,4 +14,6 @@ public interface ProductOrderService {
     MyProductOrderResponseDto getProductOrder(Long userId, Long orderId);
 
     void deleteProductOrder(Long userId, Long orderId);
+
+    void confirmProductOrder(Long userId, Long orderId);
 }

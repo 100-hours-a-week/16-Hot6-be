@@ -26,6 +26,12 @@ public class ProductOrder {
 
     private LocalDateTime orderedAt;
 
+    private LocalDateTime deliveredAt;
+
+    private LocalDateTime confirmedAt;
+
+    private LocalDateTime canceledAt;
+
     private LocalDateTime deletedAt;
 
     private static final ULID ulid = new ULID();
@@ -50,10 +56,11 @@ public class ProductOrder {
     }
 
     public void confirm() {
-        if (this.status != ProductOrderStaus.DELIVERED) throw new CustomException(ErrorCode.NOT_DELIVERABLE_STATE);
+        if (this.status != ProductOrderStaus.DELIVERED) throw new CustomException(ErrorCode.NOT_DELIVERED_STATE);
 
         if (this.status == ProductOrderStaus.CONFIRMED) throw new CustomException(ErrorCode.ALREADY_CONFIRMED);
 
+        this.confirmedAt = LocalDateTime.now();
         this.status = ProductOrderStaus.CONFIRMED;
     }
 
@@ -62,8 +69,21 @@ public class ProductOrder {
 
         if (this.status == ProductOrderStaus.DELIVERED) throw new CustomException(ErrorCode.ALREADY_DELIVERED);
 
+        this.deletedAt = LocalDateTime.now();
         this.status = ProductOrderStaus.DELIVERED;
     }
+
+    public void cancel() {
+        if (this.status != ProductOrderStaus.PAID) throw new CustomException(ErrorCode.NOT_PAID_STATE);
+
+        if (this.status == ProductOrderStaus.DELIVERED) throw new CustomException(ErrorCode.ALREADY_DELIVERED);
+
+        if (this.status == ProductOrderStaus.CONFIRMED) throw new CustomException(ErrorCode.ALREADY_CONFIRMED);
+
+        this.canceledAt = LocalDateTime.now();
+        this.status = ProductOrderStaus.CANCELED;
+    }
+
 
     public void deleteOrder() {
         if(this.deletedAt != null) throw new CustomException(ErrorCode.ALREADY_DELETED);

@@ -142,7 +142,19 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         productOrder.deleteOrder();
 
-        productOrderRepository.update(productOrder, user);
+        productOrderRepository.deleteProductOrder(productOrder, user);
+    }
+
+    @Override
+    public void confirmProductOrder(Long userId, Long orderId) {
+
+        User user = userRepository.findById(userId);
+
+        ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
+        productOrder.confirm();
+
+        productOrderRepository.confirmProductOrder(productOrder, user);
+
     }
 
 

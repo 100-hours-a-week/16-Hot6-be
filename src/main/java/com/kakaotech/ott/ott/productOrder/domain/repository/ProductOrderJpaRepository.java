@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductOrderJpaRepository extends JpaRepository<ProductOrderEntity, Long> {
@@ -30,4 +32,11 @@ public interface ProductOrderJpaRepository extends JpaRepository<ProductOrderEnt
 
     Optional<ProductOrderEntity> findByIdAndUserEntity_IdAndDeletedAtIsNull(Long orderId, Long userId);
 
+    Optional<ProductOrderEntity> findByIdAndDeletedAtIsNull(Long orderId);
+
+    @Query("SELECT o FROM ProductOrderEntity o " +
+            "WHERE o.orderedAt <= :now " +
+            "AND o.status <> 'CONFIRMED' " +
+            "AND o.deletedAt IS NULL")
+    List<ProductOrderEntity> findOrdersToAutoConfirm(@Param("now") LocalDateTime now);
 }
