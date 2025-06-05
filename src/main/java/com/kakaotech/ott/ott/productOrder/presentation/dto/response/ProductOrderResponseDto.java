@@ -1,6 +1,6 @@
 package com.kakaotech.ott.ott.productOrder.presentation.dto.response;
 
-import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStaus;
+import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ServiceProductDto;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -27,7 +27,7 @@ public class ProductOrderResponseDto {
     private int totalAmount;
 
     @NotNull
-    private ProductOrderStaus status;
+    private ProductOrderStatus status;
 
     @NotNull
     private LocalDateTime createdAt;
