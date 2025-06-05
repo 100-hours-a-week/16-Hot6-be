@@ -30,6 +30,19 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
+    @Transactional
+    public ProductOrder update(ProductOrder productOrder, User user) {
+
+        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(productOrder.getId(), user.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        beforeProductOrderEntity.setDeletedAt(productOrder.getDeletedAt());
+
+        return beforeProductOrderEntity.toDomain();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Slice<ProductOrder> findAllByUserId(Long userId, Long lastOrderId, int size) {
 
         Slice<ProductOrderEntity> slice = productOrderJpaRepository.findUserAllProductOrders(userId, lastOrderId, PageRequest.of(0, size));
@@ -38,6 +51,7 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductOrder findByIdAndUserId(Long orderId, Long userId) {
 
         ProductOrderEntity productOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(orderId, userId)

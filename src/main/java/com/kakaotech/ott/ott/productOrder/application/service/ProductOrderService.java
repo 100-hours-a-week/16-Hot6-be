@@ -12,4 +12,6 @@ public interface ProductOrderService {
     MyProductOrderHistoryListResponseDto getProductOrderHistory(Long userId, Long lastId, int size);
 
     MyProductOrderResponseDto getProductOrder(Long userId, Long orderId);
+
+    void deleteProductOrder(Long userId, Long orderId);
 }

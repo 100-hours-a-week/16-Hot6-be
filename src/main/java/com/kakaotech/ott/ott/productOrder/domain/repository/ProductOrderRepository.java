@@ -8,6 +8,8 @@ public interface ProductOrderRepository {
 
     ProductOrder save(ProductOrder productOrder, User user);
 
+    ProductOrder update(ProductOrder productOrder, User user);
+
     Slice<ProductOrder> findAllByUserId(Long userId, Long lastOrderId, int size);
 
     ProductOrder findByIdAndUserId(Long orderId, Long userId);
