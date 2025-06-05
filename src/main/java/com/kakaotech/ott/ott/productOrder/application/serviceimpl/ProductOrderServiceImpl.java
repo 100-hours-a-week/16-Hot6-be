@@ -155,5 +155,15 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         return new ProductOrderConfirmResponseDto(productOrder.getId(), productOrder.getStatus());
     }
 
+    @Override
+    public void cancelProductOrder(Long userId, Long orderId) {
+
+        User user = userRepository.findById(userId);
+
+        ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
+        productOrder.cancel();
+
+        productOrderRepository.cancelProductOrder(productOrder, user);
+    }
 
 }

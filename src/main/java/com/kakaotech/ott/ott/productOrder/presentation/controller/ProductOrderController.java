@@ -55,7 +55,7 @@ public class ProductOrderController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 정보 조회 성공", myProductOrderResponseDto));
     }
 
-    @DeleteMapping("/{orderId}")
+    @PostMapping("/{orderId}")
     public ResponseEntity<ApiResponse> deleteOrder(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long orderId) {
@@ -64,7 +64,7 @@ public class ProductOrderController {
 
         productOrderService.deleteProductOrder(userId, orderId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 취소 성공", null));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 내역 삭제 완료", null));
     }
 
     @PostMapping("/{orderId}/confirm")
@@ -77,6 +77,18 @@ public class ProductOrderController {
         ProductOrderConfirmResponseDto productOrderConfirmResponseDto = productOrderService.confirmProductOrder(userId, orderId);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("구매 확정 완료", productOrderConfirmResponseDto));
+    }
+
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<ApiResponse> cancelOrder(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long orderId) {
+
+        Long userId = userPrincipal.getId();
+
+        productOrderService.cancelProductOrder(userId, orderId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 취소 완료", null));
     }
 
 }

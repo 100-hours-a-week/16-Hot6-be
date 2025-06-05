@@ -74,11 +74,7 @@ public class ProductOrder {
     }
 
     public void cancel() {
-        if (this.status != ProductOrderStatus.PAID) throw new CustomException(ErrorCode.NOT_PAID_STATE);
-
-        if (this.status == ProductOrderStatus.DELIVERED) throw new CustomException(ErrorCode.ALREADY_DELIVERED);
-
-        if (this.status == ProductOrderStatus.CONFIRMED) throw new CustomException(ErrorCode.ALREADY_CONFIRMED);
+        if (this.status != ProductOrderStatus.PAID) throw new CustomException(ErrorCode.NOT_CANCELABLE_STATE);
 
         this.canceledAt = LocalDateTime.now();
         this.status = ProductOrderStatus.CANCELED;
