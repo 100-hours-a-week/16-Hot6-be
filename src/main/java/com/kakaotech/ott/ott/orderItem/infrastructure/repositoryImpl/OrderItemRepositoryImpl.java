@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Repository
 @RequiredArgsConstructor
 public class OrderItemRepositoryImpl implements OrderItemRepository {
@@ -32,7 +35,7 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public void existsByProductIdAndPendingProductStatus(Long productId, OrderItemStatus orderItemStatus) {
 
         boolean exists = orderItemJpaRepository.existsByProductIdAndPendingProductStatus(productId, orderItemStatus);
@@ -40,5 +43,15 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
         if(exists) {
             throw new CustomException(ErrorCode.ALREADY_ORDERED);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderItem> findByProductOrderId(Long productOrderId) {
+
+        List<OrderItemEntity> entities = orderItemJpaRepository.findByProductOrderEntity_Id(productOrderId);
+        return entities.stream()
+                .map(OrderItemEntity::toDomain)
+                .collect(Collectors.toList());
     }
 }
