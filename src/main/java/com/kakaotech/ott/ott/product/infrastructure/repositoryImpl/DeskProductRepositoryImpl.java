@@ -61,4 +61,12 @@ public class DeskProductRepositoryImpl implements DeskProductRepository {
 
         deskProductJpaRepository.incrementScrapCount(targetId, delta);
     }
+
+    @Override
+    public DeskProduct findById(Long deskProductId) {
+
+        return deskProductJpaRepository.findById(deskProductId)
+                .orElseThrow(() -> new CustomException(ErrorCode.DESK_PRODUCT_NOT_FOUND))
+                .toDomain();
+    }
 }
