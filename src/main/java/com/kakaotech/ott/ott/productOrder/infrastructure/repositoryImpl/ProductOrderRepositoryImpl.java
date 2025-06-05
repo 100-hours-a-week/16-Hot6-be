@@ -40,7 +40,7 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     @Override
     public ProductOrder findByIdAndUserId(Long orderId, Long userId) {
 
-        ProductOrderEntity productOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_Id(orderId, userId)
+        ProductOrderEntity productOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(orderId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         return productOrderEntity.toDomain();

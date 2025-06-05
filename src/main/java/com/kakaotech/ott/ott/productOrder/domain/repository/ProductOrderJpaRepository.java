@@ -17,7 +17,8 @@ public interface ProductOrderJpaRepository extends JpaRepository<ProductOrderEnt
     @Query("""
         SELECT p
         FROM ProductOrderEntity p
-        WHERE p.userEntity.id = :userId
+        WHERE p.deletedAt IS NULL
+          AND p.userEntity.id = :userId
           AND (:lastProductOrderId IS NULL OR p.id < :lastProductOrderId)
         ORDER BY p.id DESC
     """)
@@ -27,6 +28,6 @@ public interface ProductOrderJpaRepository extends JpaRepository<ProductOrderEnt
             Pageable pageable
     );
 
-    Optional<ProductOrderEntity> findByIdAndUserEntity_Id(Long orderId, Long userId);
+    Optional<ProductOrderEntity> findByIdAndUserEntity_IdAndDeletedAtIsNull(Long orderId, Long userId);
 
 }
