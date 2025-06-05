@@ -36,6 +36,7 @@ public enum ErrorCode {
     INVALID_IMAGE(HttpStatus.BAD_REQUEST, "올바른 데스크 이미지가 아닙니다."),
 
     // Product
+    DESK_PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 데스크 추천 상품이 존재하지 않습니다."),
     AI_PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 AI 이미지에 대한 추천 상품이 존재하지 않습니다."),
 
     // Scrap

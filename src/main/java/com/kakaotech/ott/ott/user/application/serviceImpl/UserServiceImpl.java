@@ -3,7 +3,6 @@ package com.kakaotech.ott.ott.user.application.serviceImpl;
 import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
-import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
@@ -12,6 +11,9 @@ import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAuthorResponseDto;
+import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
+import com.kakaotech.ott.ott.product.domain.repository.DeskProductRepository;
+import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.application.service.UserService;
@@ -19,13 +21,9 @@ import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequestDto;
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.MyPostResponseDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +32,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,8 +44,8 @@ public class UserServiceImpl implements UserService {
     private final ImageUploader imageUploader;
     private final PostRepository postRepository;
     private final LikeRepository likeRepository;
-    private final CommentRepository commentRepository;
     private final ScrapRepository scrapRepository;
+    private final DeskProductRepository deskProductRepository;
 
     @Value("${verified.code}")
     private String verifiedCode;
@@ -161,6 +158,51 @@ public class UserServiceImpl implements UserService {
                 postSlice.hasNext());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public MyScrapResponseDto getMyScrap(Long userId, Long lastId, int size) {
+
+        Slice<Scrap> scrapSlice = scrapRepository.findUserScrap(userId, lastId, size);
+
+        List<Long> scrapIds = scrapSlice.getContent().stream()
+                .map(Scrap::getId)
+                .toList();
+
+        List<MyScrapResponseDto.Scraps> scraps = scrapSlice.getContent().stream()
+                .map(scrap -> {
+                    String thumbnailImage;
+                    if(scrap.getType().equals(ScrapType.POST)) {
+                        Post post = postRepository.findById(scrap.getTargetId());
+                        thumbnailImage = post.getImages().isEmpty()
+                                ? null
+                                : post.getImages().get(0).getImageUuid();
+                    } else {
+                        DeskProduct deskProduct = deskProductRepository.findById(scrap.getTargetId());
+                        thumbnailImage = deskProduct.getImagePath();
+                    }
+
+
+                    return new MyScrapResponseDto.Scraps(
+                            scrap.getId(),
+                            scrap.getType(),
+                            scrap.getTargetId(),
+                            thumbnailImage,
+                            true
+                    );
+
+                })
+                .toList();
+
+        MyScrapResponseDto.Pagination pagination = new MyScrapResponseDto.Pagination(
+                size,
+                scrapSlice.hasNext() ? scrapSlice.getContent().get(scrapSlice.getNumberOfElements() - 1).getId() : null,
+                scrapSlice.hasNext()
+        );
+
+        return new MyScrapResponseDto(scraps, pagination);
+
+
+    }
 
 
     @Override
@@ -251,6 +293,5 @@ public class UserServiceImpl implements UserService {
 
         userRepository.recovery(user);
     }
-
 
 }

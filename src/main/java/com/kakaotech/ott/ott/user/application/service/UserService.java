@@ -2,10 +2,7 @@ package com.kakaotech.ott.ott.user.application.service;
 
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequestDto;
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.MyPostResponseDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.*;
 
 import java.io.IOException;
 
@@ -17,6 +14,8 @@ public interface UserService {
 
     MyPostResponseDto getMyPost(Long userId, Long lastId, int size);
 
+    MyScrapResponseDto getMyScrap(Long userId, Long lastId, int size);
+
     UserInfoUpdateResponseDto updateUserInfo(Long userId, UserInfoUpdateRequestDto userInfoUpdateRequestDto) throws IOException;
 
     void deleteUser(Long userId);
@@ -24,4 +23,5 @@ public interface UserService {
     void verifiedCode(Long userId, UserVerifiedRequestDto userVerifiedRequestDto);
 
     void recoverUser(Long userId);
+
 }
