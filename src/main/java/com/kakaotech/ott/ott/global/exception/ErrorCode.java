@@ -58,12 +58,14 @@ public enum ErrorCode {
     NOT_ORDERED_STATE(HttpStatus.BAD_REQUEST, "주문 대기 상태가 아닙니다."),
     NOT_PAID_STATE(HttpStatus.BAD_REQUEST, "결제 완료 상태가 아닙니다."),
     NOT_DELIVERED_STATE(HttpStatus.BAD_REQUEST, "배송 완료된 상태가 아닙니다."),
+    NOT_CANCELABLE_STATE(HttpStatus.BAD_REQUEST, "취소 가능한 상태가 아닙니다."),
 
     ALREADY_ORDERED(HttpStatus.BAD_REQUEST, "이미 주문된 상태입니다."),
     ALREADY_PAID(HttpStatus.BAD_REQUEST, "이미 결제된 주문입니다."),
     ALREADY_CONFIRMED(HttpStatus.BAD_REQUEST, "이미 확정된 주문입니다."),
     ALREADY_DELIVERED(HttpStatus.BAD_REQUEST, "이미 배송된 주문입니다."),
     ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 주문내역입니다."),
+
 
     // ORDERITEM
     NOT_ORDERED_ITEM_STATE(HttpStatus.BAD_REQUEST, "주문 대기 상태가 아닙니다."),

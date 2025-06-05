@@ -69,6 +69,18 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
+    @Transactional
+    public void cancelProductOrder(ProductOrder productOrder, User user) {
+
+        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(
+                productOrder.getId(), user.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        beforeProductOrderEntity.setCanceledAt(productOrder.getCanceledAt());
+        beforeProductOrderEntity.setStatus(productOrder.getStatus());
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Slice<ProductOrder> findAllByUserId(Long userId, Long lastOrderId, int size) {
 
