@@ -133,5 +133,17 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         return new MyProductOrderResponseDto(orderInfo, productInfo, userInfo, paymentInfo);
     }
 
+    @Override
+    public void deleteProductOrder(Long userId, Long orderId) {
+
+        User user = userRepository.findById(userId);
+
+        ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
+
+        productOrder.deleteOrder();
+
+        productOrderRepository.update(productOrder, user);
+    }
+
 
 }

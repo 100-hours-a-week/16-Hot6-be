@@ -4,6 +4,7 @@ import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.productOrder.application.service.ProductOrderService;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderHistoryListResponseDto;
+import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderHistoryResponseDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderResponseDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.response.ProductOrderResponseDto;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
@@ -34,7 +35,7 @@ public class ProductOrderController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse> getOrderHistory(
+    public ResponseEntity<ApiResponse<MyProductOrderHistoryListResponseDto>> getOrderHistory(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam(required = false) Long lastOrderId,
             @RequestParam(defaultValue = "5") int size) {
@@ -42,11 +43,11 @@ public class ProductOrderController {
         Long userId = userPrincipal.getId();
 
         MyProductOrderHistoryListResponseDto myProductOrderHistoryListResponseDto = productOrderService.getProductOrderHistory(userId, lastOrderId, size);
-        return ResponseEntity.ok(ApiResponse.success("주문 내역 조회 성공", myProductOrderHistoryListResponseDto));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 내역 조회 성공", myProductOrderHistoryListResponseDto));
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<ApiResponse> getOrder(
+    public ResponseEntity<ApiResponse<MyProductOrderResponseDto>> getOrder(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long orderId) {
 
@@ -54,7 +55,19 @@ public class ProductOrderController {
 
         MyProductOrderResponseDto myProductOrderResponseDto = productOrderService.getProductOrder(userId, orderId);
 
-        return ResponseEntity.ok(ApiResponse.success("주문 정보 조회 성공", myProductOrderResponseDto));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 정보 조회 성공", myProductOrderResponseDto));
+    }
+
+    @DeleteMapping("/{orderId}")
+    public ResponseEntity<ApiResponse> deleteOrder(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long orderId) {
+
+        Long userId = userPrincipal.getId();
+
+        productOrderService.deleteProductOrder(userId, orderId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 취소 성공", null));
     }
 
 }

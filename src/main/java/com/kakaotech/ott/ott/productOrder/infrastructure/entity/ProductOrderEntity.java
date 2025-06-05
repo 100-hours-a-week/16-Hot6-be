@@ -73,6 +73,8 @@ public class ProductOrderEntity {
                 .build();
     }
 
-
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
 
 }
