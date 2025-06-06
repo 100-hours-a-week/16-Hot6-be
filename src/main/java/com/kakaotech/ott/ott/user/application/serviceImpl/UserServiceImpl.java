@@ -6,6 +6,9 @@ import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
+import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
+import com.kakaotech.ott.ott.pointHistory.domain.model.PointHistory;
+import com.kakaotech.ott.ott.pointHistory.domain.repository.PointHistoryRepository;
 import com.kakaotech.ott.ott.post.domain.model.MyDeskState;
 import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
@@ -46,6 +49,7 @@ public class UserServiceImpl implements UserService {
     private final LikeRepository likeRepository;
     private final ScrapRepository scrapRepository;
     private final DeskProductRepository deskProductRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     @Value("${verified.code}")
     private String verifiedCode;
@@ -201,6 +205,39 @@ public class UserServiceImpl implements UserService {
 
         return new MyScrapResponseDto(scraps, pagination);
 
+
+    }
+
+    @Override
+    @Transactional
+    public MyPointHistoryResponseDto getMyPointHistory(Long userId, Long lastId, int size) {
+        Slice<PointHistory> pointHistorySlice = pointHistoryRepository.findUserPointHistory(userId, lastId, size);
+
+        List<Long> PointHistoryIds = pointHistorySlice.getContent().stream()
+                .map(PointHistory::getId)
+                .toList();
+
+        List<MyPointHistoryResponseDto.PointInfo> pointInfos = pointHistorySlice.getContent().stream()
+                .map(pointHistory -> {
+                    return new MyPointHistoryResponseDto.PointInfo(
+                            pointHistory.getId(),
+                            pointHistory.getDescription(),
+                            pointHistory.getType(),
+                            pointHistory.getAmount(),
+                            pointHistory.getBalanceAfter(),
+                            pointHistory.getCreatedAt()
+                    );
+
+                })
+                .toList();
+
+        MyPointHistoryResponseDto.Pagination pagination = new MyPointHistoryResponseDto.Pagination(
+                size,
+                pointHistorySlice.hasNext() ? pointHistorySlice.getContent().get(pointHistorySlice.getNumberOfElements() - 1).getId() : null,
+                pointHistorySlice.hasNext()
+        );
+
+        return new MyPointHistoryResponseDto(pointInfos, pagination);
 
     }
 
