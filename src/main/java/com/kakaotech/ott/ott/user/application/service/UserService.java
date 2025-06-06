@@ -16,6 +16,8 @@ public interface UserService {
 
     MyScrapResponseDto getMyScrap(Long userId, Long lastId, int size);
 
+    MyPointHistoryResponseDto getMyPointHistory(Long userId, Long lastId, int size);
+
     UserInfoUpdateResponseDto updateUserInfo(Long userId, UserInfoUpdateRequestDto userInfoUpdateRequestDto) throws IOException;
 
     void deleteUser(Long userId);
