@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.user.presentation.dto.response;
 
+import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionReason;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,7 +24,7 @@ public class MyPointHistoryResponseDto {
     @AllArgsConstructor
     public static class PointInfo {
         private Long historyId;
-        private String description;
+        private PointActionReason description;
         private PointActionType type;
         private int amount;
         private int balance_after;

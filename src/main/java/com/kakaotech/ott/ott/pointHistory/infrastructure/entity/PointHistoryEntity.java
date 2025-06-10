@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.pointHistory.infrastructure.entity;
 
+import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionReason;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointHistory;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
@@ -38,14 +39,15 @@ public class PointHistoryEntity {
     @Column(name = "type", nullable = false)
     private PointActionType type;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "description", nullable = false)
-    private String description;
+    private PointActionReason description;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     LocalDateTime createdAt;
 
-    public PointHistoryEntity from(PointHistory pointHistory, UserEntity userEntity) {
+    public static PointHistoryEntity from(PointHistory pointHistory, UserEntity userEntity) {
 
         return PointHistoryEntity.builder()
                 .userEntity(userEntity)
