@@ -12,4 +12,10 @@ public interface OrderItemRepository {
     void existsByProductIdAndPendingProductStatus(Long productId, OrderItemStatus orderItemStatus);
 
     List<OrderItem> findByProductOrderId(Long productOrderId);
+
+    void cancelOrderItem(List<OrderItem> orderItems);
+
+    void refundOrderItem(List<OrderItem> orderItems);
+
+    void confirmOrderItem(List<OrderItem> orderItems);
 }
