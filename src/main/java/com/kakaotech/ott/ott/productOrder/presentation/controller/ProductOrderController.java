@@ -41,7 +41,7 @@ public class ProductOrderController {
 
         Long userId = userPrincipal.getId();
 
-        MyProductOrderHistoryListResponseDto myProductOrderHistoryListResponseDto = productOrderService.getProductOrderHistory(userId, cursor, size);
+        MyProductOrderHistoryListResponseDto myProductOrderHistoryListResponseDto = productOrderService.getProductOrderHistory(userId, cursorId, size);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 내역 조회 성공", myProductOrderHistoryListResponseDto));
     }
 
