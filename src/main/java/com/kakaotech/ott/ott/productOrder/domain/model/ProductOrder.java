@@ -32,6 +32,8 @@ public class ProductOrder {
 
     private LocalDateTime canceledAt;
 
+    private LocalDateTime refundedAt;
+
     private LocalDateTime deletedAt;
 
     private static final ULID ulid = new ULID();
@@ -41,43 +43,63 @@ public class ProductOrder {
         return ProductOrder.builder()
                 .userId(userId)
                 .orderNumber(ulid.nextULID())
-                .status(ProductOrderStatus.ORDERED)
+                .status(ProductOrderStatus.PENDING)
                 .subtotalAmount(subtotalAmount)
                 .discountAmount(discountAmount)
                 .build();
     }
 
     public void pay() {
-        if (this.status != ProductOrderStatus.ORDERED) throw new CustomException(ErrorCode.NOT_ORDERED_STATE);
-
-        if (this.status == ProductOrderStatus.PAID) throw new CustomException(ErrorCode.ALREADY_PAID);
+        if (this.status != ProductOrderStatus.PENDING)
+            throw new CustomException(ErrorCode.NOT_PENDING_STATE);
 
         this.status = ProductOrderStatus.PAID;
     }
 
     public void confirm() {
-        if (this.status != ProductOrderStatus.DELIVERED) throw new CustomException(ErrorCode.NOT_DELIVERED_STATE);
-
-        if (this.status == ProductOrderStatus.CONFIRMED) throw new CustomException(ErrorCode.ALREADY_CONFIRMED);
+        if (!(this.status == ProductOrderStatus.DELIVERED || this.status == ProductOrderStatus.PARTIALLY_REFUNDED))
+            throw new CustomException(ErrorCode.NOT_DELIVERED_STATE);
 
         this.confirmedAt = LocalDateTime.now();
         this.status = ProductOrderStatus.CONFIRMED;
     }
 
     public void deliver() {
-        if (this.status != ProductOrderStatus.PAID) throw new CustomException(ErrorCode.NOT_PAID_STATE);
-
-        if (this.status == ProductOrderStatus.DELIVERED) throw new CustomException(ErrorCode.ALREADY_DELIVERED);
+        if (!(this.status == ProductOrderStatus.PAID || this.status == ProductOrderStatus.PARTIALLY_CANCELED))
+            throw new CustomException(ErrorCode.NOT_PAID_STATE);
 
         this.deletedAt = LocalDateTime.now();
         this.status = ProductOrderStatus.DELIVERED;
     }
 
     public void cancel() {
-        if (this.status != ProductOrderStatus.PAID) throw new CustomException(ErrorCode.NOT_CANCELABLE_STATE);
+        if (!(this.status == ProductOrderStatus.PAID || this.status == ProductOrderStatus.PARTIALLY_CANCELED))
+            throw new CustomException(ErrorCode.NOT_CANCELABLE_STATE);
 
         this.canceledAt = LocalDateTime.now();
         this.status = ProductOrderStatus.CANCELED;
+    }
+
+    public void partialCancel() {
+        if (!(this.status == ProductOrderStatus.PAID || this.status == ProductOrderStatus.PARTIALLY_CANCELED))
+            throw new CustomException(ErrorCode.NOT_CANCELABLE_STATE);
+
+        this.status = ProductOrderStatus.PARTIALLY_CANCELED;
+    }
+
+    public void cancelRefund() {
+        if (!(this.status == ProductOrderStatus.DELIVERED || this.status == ProductOrderStatus.PARTIALLY_REFUNDED))
+            throw new CustomException(ErrorCode.NOT_DELIVERED_STATE);
+
+        this.status = ProductOrderStatus.REFUNDED;
+    }
+
+    public void refund() {
+        if (!(this.status == ProductOrderStatus.DELIVERED || this.status == ProductOrderStatus.PARTIALLY_REFUNDED))
+            throw new CustomException(ErrorCode.NOT_DELIVERED_STATE);
+
+        this.refundedAt = LocalDateTime.now();
+        this.status = ProductOrderStatus.REFUNDED;
     }
 
 

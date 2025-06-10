@@ -2,6 +2,8 @@ package com.kakaotech.ott.ott.productOrder.presentation.controller;
 
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.productOrder.application.service.ProductOrderService;
+import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialCancelRequestDto;
+import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialConfirmRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.response.*;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
@@ -67,7 +69,7 @@ public class ProductOrderController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 내역 삭제 완료", null));
     }
 
-    @PostMapping("/{orderId}/confirm")
+    @PatchMapping("/{orderId}/confirm")
     public ResponseEntity<ApiResponse<ProductOrderConfirmResponseDto>> confirmOrder(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long orderId) {
@@ -79,7 +81,20 @@ public class ProductOrderController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("구매 확정 완료", productOrderConfirmResponseDto));
     }
 
-    @DeleteMapping("/{orderId}")
+    @PatchMapping("/{orderId}/partially-cancel")
+    public ResponseEntity<ApiResponse> cancelOrder(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long orderId,
+            @RequestBody @Valid ProductOrderPartialCancelRequestDto productOrderPartialCancelRequestDto) {
+
+        Long userId = userPrincipal.getId();
+
+        productOrderService.partialCancelProductOrder(userId, orderId, productOrderPartialCancelRequestDto);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 부분 취소 완료", null));
+    }
+
+    @PatchMapping("/{orderId}/cancel")
     public ResponseEntity<ApiResponse> cancelOrder(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @PathVariable Long orderId) {
@@ -88,7 +103,7 @@ public class ProductOrderController {
 
         productOrderService.cancelProductOrder(userId, orderId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 취소 완료", null));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 전체 취소 완료", null));
     }
 
 }

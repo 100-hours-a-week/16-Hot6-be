@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.productOrder.domain.repository;
 
+import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.productOrder.infrastructure.entity.ProductOrderEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,8 @@ public interface ProductOrderJpaRepository extends JpaRepository<ProductOrderEnt
     @Query("""
         SELECT p
         FROM ProductOrderEntity p
-        WHERE p.deletedAt IS NULL
+        WHERE p.status <> ProductOrderStatus.PENDING
+          AND p.deletedAt IS NULL
           AND p.userEntity.id = :userId
           AND (:lastProductOrderId IS NULL OR p.id < :lastProductOrderId)
         ORDER BY p.id DESC
@@ -31,6 +33,8 @@ public interface ProductOrderJpaRepository extends JpaRepository<ProductOrderEnt
     );
 
     Optional<ProductOrderEntity> findByIdAndUserEntity_IdAndDeletedAtIsNull(Long orderId, Long userId);
+
+    Optional<ProductOrderEntity> findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(Long orderId, Long userId, ProductOrderStatus status);
 
     Optional<ProductOrderEntity> findByIdAndDeletedAtIsNull(Long orderId);
 

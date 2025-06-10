@@ -53,6 +53,9 @@ public class ProductOrderEntity {
     @Column(name = "canceled_at")
     private LocalDateTime canceledAt;
 
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
+
     @Column(name = "deleted_at", nullable = false)
     private LocalDateTime deletedAt;
 
@@ -69,6 +72,7 @@ public class ProductOrderEntity {
                 .deliveredAt(this.deliveredAt)
                 .confirmedAt(this.confirmedAt)
                 .canceledAt(this.canceledAt)
+                .refundedAt(this.refundedAt)
                 .deletedAt(this.deletedAt)
                 .build();
     }
@@ -84,6 +88,7 @@ public class ProductOrderEntity {
                 .deliveredAt(productOrder.getDeliveredAt())
                 .confirmedAt(productOrder.getConfirmedAt())
                 .canceledAt(productOrder.getCanceledAt())
+                .refundedAt(productOrder.getRefundedAt())
                 .deletedAt(productOrder.getDeletedAt())
                 .build();
     }
@@ -107,5 +112,7 @@ public class ProductOrderEntity {
     public void setCanceledAt(LocalDateTime canceledAt) {
         this.canceledAt = canceledAt;
     }
+
+    public void setRefundedAt(LocalDateTime refundedAt) { this.refundedAt = refundedAt; }
 
 }
