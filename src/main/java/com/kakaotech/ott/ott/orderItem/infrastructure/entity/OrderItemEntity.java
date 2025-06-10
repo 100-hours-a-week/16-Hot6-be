@@ -1,15 +1,13 @@
 package com.kakaotech.ott.ott.orderItem.infrastructure.entity;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.productOrder.infrastructure.entity.ProductOrderEntity;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -17,6 +15,7 @@ import java.time.LocalDateTime;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "order_items")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -51,11 +50,14 @@ public class OrderItemEntity {
     @Column(name = "refund_amount")
     private int refundAmount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "refund_reason")
     private RefundReason refundReason;
 
-    @CreatedDate
-    @Column(name = "refunded_at", updatable = false)
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
+
+    @Column(name = "refunded_at")
     private LocalDateTime refundedAt;
 
     public OrderItem toDomain() {
@@ -71,6 +73,7 @@ public class OrderItemEntity {
                 .pendingProductStatus(this.pendingProductStatus)
                 .refundAmount(this.refundAmount)
                 .refundReason(this.refundReason)
+                .canceledAt(this.canceledAt)
                 .refundedAt(this.refundedAt)
                 .build();
     }
@@ -87,4 +90,26 @@ public class OrderItemEntity {
                 .build();
     }
 
+    public void cancel(OrderItem item) {
+        this.status = item.getStatus();
+        this.refundAmount = item.getPrice() * item.getQuantity();
+        this.refundReason = item.getRefundReason();
+        this.refundedAt = item.getRefundedAt();
+    }
+
+    public void refund(OrderItem item) {
+
+        this.status = item.getStatus();
+        this.refundAmount = item.getPrice() * item.getQuantity();
+        this.refundReason = item.getRefundReason();
+        this.refundedAt = item.getRefundedAt();
+    }
+
+    public void confirm(OrderItem item) {
+        this.status = item.getStatus();
+    }
+
+    public void setPendingProductStatus(OrderItemStatus pendingProductStatus) {
+        this.pendingProductStatus = pendingProductStatus;
+    }
 }

@@ -11,9 +11,10 @@ import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
 import com.kakaotech.ott.ott.orderItem.infrastructure.entity.OrderItemEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Repository
@@ -24,7 +25,6 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     private final ProductOrderJpaRepository productOrderJpaRepository;
 
     @Override
-    @Transactional
     public OrderItem save(OrderItem orderItem) {
 
         ProductOrderEntity productOrderEntity = productOrderJpaRepository.findById(orderItem.getOrderId())
@@ -35,7 +35,6 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public void existsByProductIdAndPendingProductStatus(Long productId, OrderItemStatus orderItemStatus) {
 
         boolean exists = orderItemJpaRepository.existsByProductIdAndPendingProductStatus(productId, orderItemStatus);
@@ -46,12 +45,62 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<OrderItem> findByProductOrderId(Long productOrderId) {
 
         List<OrderItemEntity> entities = orderItemJpaRepository.findByProductOrderEntity_Id(productOrderId);
         return entities.stream()
                 .map(OrderItemEntity::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void cancelOrderItem(List<OrderItem> orderItems) {
+
+        List<OrderItemEntity> entities = orderItemJpaRepository.findByProductOrderEntity_Id(orderItems.getFirst().getOrderId());
+
+        Map<Long, OrderItemEntity> entityMap = entities.stream()
+                .collect(Collectors.toMap(OrderItemEntity::getId, Function.identity()));
+
+        for(OrderItem item : orderItems) {
+            OrderItemEntity entity = entityMap.get(item.getId());
+            if(entity == null)
+                throw new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+
+            entity.cancel(item);
+        }
+
+    }
+
+    @Override
+    public void refundOrderItem(List<OrderItem> orderItems) {
+
+        List<OrderItemEntity> entities = orderItemJpaRepository.findByProductOrderEntity_Id(orderItems.getFirst().getOrderId());
+
+        Map<Long, OrderItemEntity> entityMap = entities.stream()
+                .collect(Collectors.toMap(OrderItemEntity::getId, Function.identity()));
+
+        for(OrderItem item : orderItems) {
+            OrderItemEntity entity = entityMap.get(item.getId());
+            if(entity == null)
+                throw new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+
+            entity.refund(item);
+        }
+    }
+
+    @Override
+    public void confirmOrderItem(List<OrderItem> orderItems) {
+        List<OrderItemEntity> entities = orderItemJpaRepository.findByProductOrderEntity_Id(orderItems.getFirst().getOrderId());
+
+        Map<Long, OrderItemEntity> entityMap = entities.stream()
+                .collect(Collectors.toMap(OrderItemEntity::getId, Function.identity()));
+
+        for(OrderItem item : orderItems) {
+            OrderItemEntity entity = entityMap.get(item.getId());
+            if (entity == null)
+                throw new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+
+            entity.confirm(item);
+        }
     }
 }
