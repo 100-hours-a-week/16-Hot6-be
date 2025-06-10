@@ -42,7 +42,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         int totalAmount = 0;
         int discountAmount = 0;
 
-        for(ServiceProductDto serviceProduct : productOrderRequestDto.getProduct()) {
+        for(ServiceProductDto serviceProduct : productOrderRequestDto.getProducts()) {
             Long productId = serviceProduct.getProductId();
             int price = serviceProduct.getPrice();
             int quantity = serviceProduct.getQuantity();
@@ -69,7 +69,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         return new ProductOrderResponseDto(
                 savedProductOrder.getId(),
-                productOrderRequestDto.getProduct(),
+                productOrderRequestDto.getProducts(),
                 totalAmount,
                 productOrder.getStatus(),
                 savedProductOrder.getOrderedAt());

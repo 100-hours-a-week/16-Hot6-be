@@ -15,5 +15,5 @@ import java.util.List;
 public class ProductOrderRequestDto {
 
     @NotNull
-    private List<ServiceProductDto> product;
+    private List<ServiceProductDto> products;
 }

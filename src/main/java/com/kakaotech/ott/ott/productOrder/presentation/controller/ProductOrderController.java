@@ -36,12 +36,12 @@ public class ProductOrderController {
     @GetMapping
     public ResponseEntity<ApiResponse<MyProductOrderHistoryListResponseDto>> getOrderHistory(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestParam(required = false) Long lastOrderId,
+            @RequestParam(value = "cursorId", required = false) Long cursorId,
             @RequestParam(defaultValue = "5") int size) {
 
         Long userId = userPrincipal.getId();
 
-        MyProductOrderHistoryListResponseDto myProductOrderHistoryListResponseDto = productOrderService.getProductOrderHistory(userId, lastOrderId, size);
+        MyProductOrderHistoryListResponseDto myProductOrderHistoryListResponseDto = productOrderService.getProductOrderHistory(userId, cursorId, size);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 내역 조회 성공", myProductOrderHistoryListResponseDto));
     }
 
