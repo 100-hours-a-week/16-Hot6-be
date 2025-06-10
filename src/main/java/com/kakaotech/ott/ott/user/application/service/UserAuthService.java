@@ -8,7 +8,7 @@ public interface UserAuthService {
 
     CheckAiImageQuotaResponseDto remainQuota(Long userId);
 
-    boolean checkQuota(Long userId);
+    void checkQuota(Long userId);
 
     void logout(Long userId, HttpServletRequest request, HttpServletResponse response, String kakaoAccessToken);
 }
