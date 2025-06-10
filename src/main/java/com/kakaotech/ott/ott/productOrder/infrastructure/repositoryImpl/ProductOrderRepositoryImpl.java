@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +24,6 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     private final ProductOrderJpaRepository productOrderJpaRepository;
 
     @Override
-    @Transactional
     public ProductOrder save(ProductOrder productOrder, User user) {
 
         ProductOrderEntity productOrderEntity = ProductOrderEntity.from(productOrder, UserEntity.from(user));
@@ -34,10 +32,9 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
-    @Transactional
     public void deleteProductOrder(ProductOrder productOrder, User user) {
 
-        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(productOrder.getId(), user.getId())
+        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(productOrder.getId(), user.getId(), ProductOrderStatus.PENDING)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         beforeProductOrderEntity.setStatus(productOrder.getStatus());
@@ -45,11 +42,9 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
-    @Transactional
     public ProductOrder confirmProductOrder(ProductOrder productOrder, User user) {
 
-        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(productOrder.getId(), user.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(productOrder.getId(), user.getId(), ProductOrderStatus.PENDING)                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         beforeProductOrderEntity.setConfirmedAt(productOrder.getConfirmedAt());
         beforeProductOrderEntity.setStatus(productOrder.getStatus());
@@ -58,7 +53,6 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
-    @Transactional
     public void confirmProductOrder(ProductOrder productOrder) {
 
         ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndDeletedAtIsNull(productOrder.getId())
@@ -69,11 +63,9 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
-    @Transactional
     public void cancelProductOrder(ProductOrder productOrder, User user) {
 
-        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(
-                productOrder.getId(), user.getId())
+        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(productOrder.getId(), user.getId(), ProductOrderStatus.PENDING)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         beforeProductOrderEntity.setCanceledAt(productOrder.getCanceledAt());
@@ -81,7 +73,16 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    public void refundProductOrder(ProductOrder productOrder, User user) {
+
+        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(productOrder.getId(), user.getId(), ProductOrderStatus.PENDING)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        beforeProductOrderEntity.setRefundedAt(productOrder.getRefundedAt());
+        beforeProductOrderEntity.setStatus(productOrder.getStatus());
+    }
+
+    @Override
     public Slice<ProductOrder> findAllByUserId(Long userId, Long lastOrderId, int size) {
 
         Slice<ProductOrderEntity> slice = productOrderJpaRepository.findUserAllProductOrders(userId, lastOrderId, PageRequest.of(0, size));
@@ -90,17 +91,15 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ProductOrder findByIdAndUserId(Long orderId, Long userId) {
 
-        ProductOrderEntity productOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(orderId, userId)
+        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(orderId, userId, ProductOrderStatus.PENDING)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
-        return productOrderEntity.toDomain();
+        return beforeProductOrderEntity.toDomain();
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ProductOrder> findOrdersToAutoConfirm(LocalDateTime now) {
 
         return productOrderJpaRepository.findOrdersToAutoConfirm(now)

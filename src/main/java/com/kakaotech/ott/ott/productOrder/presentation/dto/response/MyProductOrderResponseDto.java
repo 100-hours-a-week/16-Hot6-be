@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.productOrder.presentation.dto.response;
 
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
+import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
+import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,12 +21,14 @@ public class MyProductOrderResponseDto {
     private List<ProductInfo> products;
     private UserInfo user;
     private PaymentInfo payment;
+    private RefundInfo refund;
 
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class OrderInfo {
         private Long id;
+        private ProductOrderStatus status;
         private String orderNumber;
         private LocalDateTime orderedAt;
     }
@@ -34,6 +38,7 @@ public class MyProductOrderResponseDto {
     @AllArgsConstructor
     public static class ProductInfo {
         private Long id;
+        private Long productId;
         private String name;
         private OrderItemStatus status;
         private String imagePath;
@@ -56,5 +61,13 @@ public class MyProductOrderResponseDto {
         private String paymentMethod;   // TODO: 타입 ENUM으로 바꿔야됨
         private int paymentAmount;
         private int discountAmount;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RefundInfo {
+        private String refundMethod;
+        private int refundAmount;
     }
 }
