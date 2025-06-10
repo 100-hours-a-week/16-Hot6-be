@@ -11,6 +11,7 @@ import com.kakaotech.ott.ott.pointHistory.domain.model.PointHistory;
 import com.kakaotech.ott.ott.pointHistory.domain.repository.PointHistoryRepository;
 import com.kakaotech.ott.ott.post.domain.model.MyDeskState;
 import com.kakaotech.ott.ott.post.domain.model.Post;
+import com.kakaotech.ott.ott.post.domain.model.PostType;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAuthorResponseDto;
@@ -56,6 +57,9 @@ public class UserServiceImpl implements UserService {
 
     @Value("${cloud.aws.s3.base-url}")
     private String baseUrl;
+
+    @Value("${cloud.aws.s3.basic-profile}")
+    private String baseImage;
 
     @Override
     @Transactional(readOnly = true)
@@ -176,10 +180,16 @@ public class UserServiceImpl implements UserService {
                 .map(scrap -> {
                     String thumbnailImage;
                     if(scrap.getType().equals(ScrapType.POST)) {
+
                         Post post = postRepository.findById(scrap.getTargetId());
-                        thumbnailImage = post.getImages().isEmpty()
-                                ? null
-                                : post.getImages().get(0).getImageUuid();
+
+                        if(post.getType().equals(PostType.FREE)) {
+                            thumbnailImage = post.getImages().isEmpty()
+                                    ? baseImage
+                                    : post.getImages().get(0).getImageUuid();
+                        } else {
+                            thumbnailImage = aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
+                        }
                     } else {
                         DeskProduct deskProduct = deskProductRepository.findById(scrap.getTargetId());
                         thumbnailImage = deskProduct.getImagePath();
