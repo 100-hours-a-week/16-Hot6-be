@@ -35,7 +35,7 @@ class LikeServiceImplTest {
     private LikeServiceImpl likeServiceImpl;
 
     @Test
-    void 게시글_좋아요를_누르면_좋아요가_생성된다() {
+    void 게시글에_좋아요_성공시_저장_및_카운트_증가_메서드_호출() {
 
         // given
         Long userId = 1L;
@@ -62,7 +62,7 @@ class LikeServiceImplTest {
     }
 
     @Test
-    void 이미_좋아요한_게시글에_좋아요를_하면_예외가_발생한다() {
+    void 이미_좋아요한_게시글에_좋아요시_LIKE_ALREADY_EXISTS_예외발생() {
 
         // given
         Long userId = 1L;
@@ -85,9 +85,55 @@ class LikeServiceImplTest {
         assertEquals("이미 좋아요한 게시글입니다.", exception.getMessage());
     }
 
+    @Test
+    void 게시글에_좋아요시_사용자_정보없음으로_USER_NOT_FOUND_예외발생() {
+
+        // given
+        Long userId = 999L;
+        LikeType type = LikeType.POST;
+        Long targetId = 1L;
+
+        LikeRequestDto likeRequestDto = new LikeRequestDto(type, targetId);
+
+        when(userAuthRepository.findById(userId)).thenThrow(new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // when & then
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> likeServiceImpl.likePost(userId, likeRequestDto)
+        );
+
+        assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
+        assertEquals("해당 사용자가 존재하지 않습니다.", exception.getMessage());
+    }
 
     @Test
-    void 이미_좋아요한_게시글에_좋아요를_취소하면_좋아요가_취소된다() {
+    void 게시글에_좋아요시_게시글_정보없음으로_POST_NOT_FOUND_예외발생() {
+
+        // given
+        Long userId = 1L;
+        LikeType type = LikeType.POST;
+        Long targetId = 999L;
+
+        LikeRequestDto likeRequestDto = new LikeRequestDto(type, targetId);
+
+        when(userAuthRepository.findById(userId)).thenReturn(mock(User.class));
+        when(postRepository.findById(targetId)).thenThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        // when & then
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> likeServiceImpl.likePost(userId, likeRequestDto)
+        );
+
+        verify(userAuthRepository, times(1)).findById(userId);
+        assertEquals(ErrorCode.POST_NOT_FOUND, exception.getErrorCode());
+        assertEquals("해당 게시글이 존재하지 않습니다.", exception.getMessage());
+    }
+
+
+    @Test
+    void 좋아요한_게시글_취소시_삭제_및_카운트_감소_메서드_호출() {
 
         // given
         Long userId = 1L;
@@ -111,7 +157,7 @@ class LikeServiceImplTest {
     }
 
     @Test
-    void 좋아요를_하지_않은_상태에서_좋아요가_취소되면_예외를_반환한다() {
+    void 좋아요하지_않은_게시글_취소시_LIKE_NOT_FOUND_예외발생() {
 
         // given
         Long userId = 1L;
@@ -131,5 +177,51 @@ class LikeServiceImplTest {
 
         assertEquals(ErrorCode.LIKE_NOT_FOUND, exception.getErrorCode());
         assertEquals("좋아요하지 않은 게시글입니다.", exception.getMessage());
+    }
+
+    @Test
+    void 게시글_좋아요취소시_사용자없음으로_USER_NOT_FOUND_예외발생() {
+
+        // given
+        Long userId = 999L;
+        LikeType type = LikeType.POST;
+        Long targetId = 1L;
+
+        LikeRequestDto likeRequestDto = new LikeRequestDto(type, targetId);
+
+        when(userAuthRepository.findById(userId)).thenThrow(new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        // when & then
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> likeServiceImpl.unlikePost(userId, likeRequestDto)
+        );
+
+        assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
+        assertEquals("해당 사용자가 존재하지 않습니다.", exception.getMessage());
+    }
+
+    @Test
+    void 게시글_좋아요취소시_게시글없음으로_POST_NOT_FOUND_예외발생() {
+
+        // given
+        Long userId = 1L;
+        LikeType type = LikeType.POST;
+        Long targetId = 999L;
+
+        LikeRequestDto likeRequestDto = new LikeRequestDto(type, targetId);
+
+        when(userAuthRepository.findById(userId)).thenReturn(mock(User.class));
+        when(postRepository.findById(targetId)).thenThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        // when & then
+        CustomException exception = assertThrows(
+                CustomException.class,
+                () -> likeServiceImpl.likePost(userId, likeRequestDto)
+        );
+
+        verify(userAuthRepository, times(1)).findById(userId);
+        assertEquals(ErrorCode.POST_NOT_FOUND, exception.getErrorCode());
+        assertEquals("해당 게시글이 존재하지 않습니다.", exception.getMessage());
     }
 }

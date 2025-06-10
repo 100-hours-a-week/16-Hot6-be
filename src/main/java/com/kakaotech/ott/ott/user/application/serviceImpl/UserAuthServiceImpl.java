@@ -23,7 +23,6 @@ import java.time.LocalDate;
 public class UserAuthServiceImpl implements UserAuthService {
 
     private final UserAuthRepository userAuthRepository;
-    private final JwtService jwtService;
     private final KakaoLogoutServiceImpl kakaoLogoutService;
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -40,7 +39,7 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         LocalDate lastGenerated = user.getAiImageGeneratedDate();
 
-        if(today.equals(lastGenerated) || lastGenerated == null)
+        if (lastGenerated != null && today.equals(lastGenerated))
             return new CheckAiImageQuotaResponseDto(0);
 
         //나중에는 이미지 생성 내역 테이블 불러와서 남은 횟수 반환(현재는 1개)
@@ -49,7 +48,7 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean checkQuota(Long userId) {
+    public void checkQuota(Long userId) {
 
         LocalDate today = LocalDate.now();
 
@@ -58,11 +57,8 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         LocalDate lastGenerated = user.getAiImageGeneratedDate();
 
-        if(today.equals(lastGenerated) || lastGenerated == null)
+        if (lastGenerated != null && today.equals(lastGenerated))
             throw new CustomException(ErrorCode.QUOTA_ALREADY_USED);
-
-
-        return lastGenerated == null || !today.equals(lastGenerated);
 
     }
 

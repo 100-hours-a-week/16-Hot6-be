@@ -2,6 +2,8 @@ package com.kakaotech.ott.ott.scrap.domain.repository;
 
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.infrastructure.entity.ScrapEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -23,4 +25,15 @@ public interface ScrapJpaRepository extends JpaRepository<ScrapEntity, Long> {
 
     @Query("SELECT COUNT(s) FROM ScrapEntity s WHERE s.targetId = :postId AND s.type = :type")
     int countByPostId(@Param("postId") Long postId);
+
+    // 나의 스크랩 조회
+    @Query("""
+    SELECT DISTINCT s 
+    FROM ScrapEntity s 
+    LEFT JOIN FETCH s.userEntity u 
+    WHERE u.id = :userId 
+      AND (:lastScrapId IS NULL OR s.id < :lastScrapId) 
+    ORDER BY s.id DESC
+""")
+    Page<ScrapEntity> findUserAllScraps(@Param("userId") Long userId, @Param("lastScrapId") Long lastPostId, Pageable pageable);
 }

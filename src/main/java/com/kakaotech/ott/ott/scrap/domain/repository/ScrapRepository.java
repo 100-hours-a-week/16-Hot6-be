@@ -1,7 +1,9 @@
 package com.kakaotech.ott.ott.scrap.domain.repository;
 
+import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 import java.util.Set;
@@ -17,4 +19,6 @@ public interface ScrapRepository {
     Set<Long> findScrappedPostIds(Long userId, List<Long> postIds);
 
     int findByPostId(Long postId, ScrapType type);
+
+    Slice<Scrap> findUserScrap(Long userId, Long cursorId, int size);
 }
