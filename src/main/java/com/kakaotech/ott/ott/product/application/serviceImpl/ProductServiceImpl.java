@@ -2,6 +2,9 @@ package com.kakaotech.ott.ott.product.application.serviceImpl;
 
 import java.io.IOException;
 
+import com.kakaotech.ott.ott.product.presentation.dto.response.ProductGetResponseDto;
+import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
+import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +43,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductVariantRepository variantRepository;
     private final ProductImageRepository imageRepository;
     private final ProductPromotionRepository promotionRepository;
+    private final ScrapRepository scrapRepository;
     private final S3Uploader s3Uploader;
 
     @Value("${cloud.aws.s3.base-url}")
@@ -110,13 +114,18 @@ public class ProductServiceImpl implements ProductService {
         return new ProductCreateResponseDto(savedProduct.getId());
     }
 
-//    @Override
-//    public ProductDetailResponseDto getProductDetail(Long productId) {
-//        ServiceProduct product = productRepository.findById(productId)
-//                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
-//
-//        return ProductDetailResponseDto.from(product);
-//    }
+    @Override
+    @Transactional(readOnly = true)
+    public ProductGetResponseDto getProduct(Long productId, Long userId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+        User user = userAuthRepository.findById(userId);
+
+        boolean scraped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+
+
+        return new ProductGetResponseDto();
+    }
 //
 //    @Override
 //    public ProductListResponseDto getProductList(String type, Long cursorId, int size) {
