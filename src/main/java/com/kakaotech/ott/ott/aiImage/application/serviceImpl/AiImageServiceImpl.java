@@ -6,15 +6,15 @@ import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
-import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
+import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
-import com.kakaotech.ott.ott.product.domain.repository.DeskProductRepository;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
 
 import com.kakaotech.ott.ott.aiImage.application.service.AiImageService;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.*;
-import com.kakaotech.ott.ott.product.presentation.dto.response.ProductResponseDto;
+import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.ProductResponseDto;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;

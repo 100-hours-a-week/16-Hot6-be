@@ -3,7 +3,7 @@ package com.kakaotech.ott.ott.scrap.application.serviceImpl;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
-import com.kakaotech.ott.ott.product.domain.repository.DeskProductRepository;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import com.kakaotech.ott.ott.scrap.application.service.ScrapService;
 import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
