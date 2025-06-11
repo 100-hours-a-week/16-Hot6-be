@@ -1,6 +1,5 @@
 package com.kakaotech.ott.ott.productOrder.presentation.dto.request;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,8 +11,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductOrderRequestDto {
+public class ProductOrderPartialCancelRequestDto {
 
-    @NotNull
-    private List<ServiceProductDto> products;
+    private List<Long> orderItemIds;
 }

@@ -9,13 +9,14 @@ import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -57,6 +58,14 @@ public class ScrapRepositoryImpl implements ScrapRepository {
     @Override
     public int findByPostId(Long postId, ScrapType type) {
         return scrapJpaRepository.countByPostId(postId);
+    }
+
+    @Override
+    public Slice<Scrap> findUserScrap(Long userId, Long cursorId, int size) {
+
+        Slice<ScrapEntity> slice = scrapJpaRepository.findUserAllScraps(userId, cursorId, PageRequest.of(0, size));
+
+        return slice.map(ScrapEntity::toDomain);
     }
 
 }

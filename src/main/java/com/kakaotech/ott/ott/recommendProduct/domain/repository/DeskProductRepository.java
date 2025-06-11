@@ -15,4 +15,6 @@ public interface DeskProductRepository {
     List<DeskProduct> findTop7ByWeight();
 
     void incrementScrapCount(Long postId, Long delta);
+
+    DeskProduct findById(Long deskProductId);
 }

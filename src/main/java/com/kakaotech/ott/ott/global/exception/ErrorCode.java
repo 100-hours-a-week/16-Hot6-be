@@ -36,6 +36,7 @@ public enum ErrorCode {
     INVALID_IMAGE(HttpStatus.BAD_REQUEST, "올바른 데스크 이미지가 아닙니다."),
 
     // Product
+    DESK_PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 데스크 추천 상품이 존재하지 않습니다."),
     AI_PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 AI 이미지에 대한 추천 상품이 존재하지 않습니다."),
 
     // Scrap
@@ -55,9 +56,11 @@ public enum ErrorCode {
     // PRODUCTORDER
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 주문이 존재하지 않습니다."),
 
-    NOT_ORDERED_STATE(HttpStatus.BAD_REQUEST, "주문 대기 상태가 아닙니다."),
+    NOT_PENDING_STATE(HttpStatus.BAD_REQUEST, "결제 대기 상태가 아닙니다."),
     NOT_PAID_STATE(HttpStatus.BAD_REQUEST, "결제 완료 상태가 아닙니다."),
-    NOT_DELIVERABLE_STATE(HttpStatus.BAD_REQUEST, "배송 가능한 상태가 아닙니다."),
+    NOT_DELIVERED_STATE(HttpStatus.BAD_REQUEST, "배송 완료된 상태가 아닙니다."),
+    NOT_CONFIRMED_STATE(HttpStatus.BAD_REQUEST, "주문 확정된 상태가 아닙니다."),
+
 
     ALREADY_ORDERED(HttpStatus.BAD_REQUEST, "이미 주문된 상태입니다."),
     ALREADY_PAID(HttpStatus.BAD_REQUEST, "이미 결제된 주문입니다."),
@@ -76,10 +79,17 @@ public enum ErrorCode {
     // ORDERITEM
     NOT_ORDERED_ITEM_STATE(HttpStatus.BAD_REQUEST, "주문 대기 상태가 아닙니다."),
     NOT_PAID_ITEM_STATE(HttpStatus.BAD_REQUEST, "결제 완료 상태가 아닙니다."),
-    NOT_CANCELED_STATE(HttpStatus.BAD_REQUEST, "배송 가능한 상태가 아닙니다."),
+    NOT_REFUNDABLE_STATE(HttpStatus.BAD_REQUEST, "환불 가능한 상태가 아닙니다."),
+    NOT_CANCELABLE_STATE(HttpStatus.BAD_REQUEST, "주문 취소 가능한 상태가 아닙니다."),
+    NOT_CONFIRMABLE_STATE(HttpStatus.BAD_REQUEST, "주문 확정 가능한 상태가 아닙니다."),
+
+    ORDER_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 주문 상품이 존재하지 않습니다."),
 
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다."),
-    INVALID_INPUT(HttpStatus.BAD_REQUEST, "유효하지 않은 값을 입력했습니다.");
+    INVALID_INPUT(HttpStatus.BAD_REQUEST, "유효하지 않은 값을 입력했습니다."),
+
+    // POINTHISOTRY
+    POINT_HISTORY_NOT_FOUNR(HttpStatus.BAD_REQUEST, "포인트 내역이 존재하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

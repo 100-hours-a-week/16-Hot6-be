@@ -5,10 +5,7 @@ import com.kakaotech.ott.ott.user.application.service.UserService;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequestDto;
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.MyDeskImageResponseDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.MyInfoResponseDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.MyPostResponseDto;
-import com.kakaotech.ott.ott.user.presentation.dto.response.UserInfoUpdateResponseDto;
+import com.kakaotech.ott.ott.user.presentation.dto.response.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -78,6 +75,33 @@ public class UserController {
 
         return ResponseEntity.ok(ApiResponse.success("회원 정보 수정 성공", userInfoUpdateResponseDto));
     }
+
+    @GetMapping("/me/scraps")
+    public ResponseEntity<ApiResponse<MyScrapResponseDto>> getMyScrap(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam (value = "cursorId", required = false) Long cursorId,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Long userId = userPrincipal.getId();
+
+        MyScrapResponseDto myScrapResponseDto = userService.getMyScrap(userId, cursorId, size);
+
+        return ResponseEntity.ok(ApiResponse.success("스크랩 목록 조회 성공", myScrapResponseDto));
+    }
+
+    @GetMapping("/point")
+    public ResponseEntity<ApiResponse<MyPointHistoryResponseDto>> getMyPointHistory(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam (value = "cursorId", required = false) Long cursorId,
+            @RequestParam (defaultValue = "10") int size) {
+
+        Long userId = userPrincipal.getId();
+
+        MyPointHistoryResponseDto myPointHistoryResponseDto = userService.getMyPointHistory(userId, cursorId, size);
+
+        return ResponseEntity.ok(ApiResponse.success("포인트 내역 조회 성공", myPointHistoryResponseDto));
+    }
+
 
     @DeleteMapping
     public ResponseEntity<ApiResponse> deleteUser(

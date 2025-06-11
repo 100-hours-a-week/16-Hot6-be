@@ -1,7 +1,7 @@
 package com.kakaotech.ott.ott.productOrder.infrastructure.entity;
 
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
-import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStaus;
+import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,7 +32,7 @@ public class ProductOrderEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
-    private ProductOrderStaus status;
+    private ProductOrderStatus status;
 
     @Column(name = "subtotal_amount", nullable = false)
     private int subtotalAmount;
@@ -43,6 +43,18 @@ public class ProductOrderEntity {
     @CreatedDate
     @Column(name = "ordered_at", nullable = false, updatable = false)
     private LocalDateTime orderedAt;
+
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
+    @Column(name = "confirmed_at")
+    private LocalDateTime confirmedAt;
+
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
+
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
 
     @Column(name = "deleted_at", nullable = false)
     private LocalDateTime deletedAt;
@@ -57,6 +69,10 @@ public class ProductOrderEntity {
                 .subtotalAmount(this.subtotalAmount)
                 .discountAmount(this.discountAmount)
                 .orderedAt(this.orderedAt)
+                .deliveredAt(this.deliveredAt)
+                .confirmedAt(this.confirmedAt)
+                .canceledAt(this.canceledAt)
+                .refundedAt(this.refundedAt)
                 .deletedAt(this.deletedAt)
                 .build();
     }
@@ -69,10 +85,34 @@ public class ProductOrderEntity {
                 .status(productOrder.getStatus())
                 .subtotalAmount(productOrder.getSubtotalAmount())
                 .discountAmount(productOrder.getDiscountAmount())
+                .deliveredAt(productOrder.getDeliveredAt())
+                .confirmedAt(productOrder.getConfirmedAt())
+                .canceledAt(productOrder.getCanceledAt())
+                .refundedAt(productOrder.getRefundedAt())
                 .deletedAt(productOrder.getDeletedAt())
                 .build();
     }
 
+    public void setDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
 
+    public void setStatus(ProductOrderStatus productOrderStatus) {
+        this.status = productOrderStatus;
+    }
+
+    public void setDeliveredAt(LocalDateTime deliveredAt) {
+        this.deliveredAt = deliveredAt;
+    }
+
+    public void setConfirmedAt(LocalDateTime confirmedAt) {
+        this.confirmedAt = confirmedAt;
+    }
+
+    public void setCanceledAt(LocalDateTime canceledAt) {
+        this.canceledAt = canceledAt;
+    }
+
+    public void setRefundedAt(LocalDateTime refundedAt) { this.refundedAt = refundedAt; }
 
 }
