@@ -64,7 +64,7 @@ public class UserRepositoryImpl implements UserRepository {
         UserEntity userEntity = userJpaRepository.findById(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("해당 사용자가 존재하지 않습니다."));
 
-        userEntity.updateVerified();
+        userEntity.updateVerified(user.getNicknameKakao());
     }
 
     @Override
