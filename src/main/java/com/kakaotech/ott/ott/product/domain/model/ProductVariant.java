@@ -123,6 +123,9 @@ public class ProductVariant {
     // 특가 추가
     public void addPromotion(ProductPromotion promotion) {
         this.promotions.add(promotion);
-        this.isOnPromotion = true;
+    }
+
+    public boolean isActive() {
+        return this.status == VariantStatus.ACTIVE && this.availableQuantity > 0;
     }
 }
