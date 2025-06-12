@@ -46,7 +46,7 @@ public class ScrapServiceImpl implements ScrapService {
         else if (scrapRequestDto.getType().equals(ScrapType.PRODUCT))
             deskProductRepository.incrementScrapCount(scrapRequestDto.getTargetId(), 1L);
         else // 판매상품
-            productRepository.incrementScrapCount(scrapRequestDto.getTargetId());
+            productRepository.incrementScrapCount(scrapRequestDto.getTargetId(), 1L);
     }
 
     @Transactional
@@ -70,7 +70,7 @@ public class ScrapServiceImpl implements ScrapService {
         else if (scrapRequestDto.getType().equals(ScrapType.PRODUCT))
             deskProductRepository.incrementScrapCount(scrapRequestDto.getTargetId(), -1L);
         else // 판매상품
-            productRepository.incrementScrapCount(scrapRequestDto.getTargetId());
+            productRepository.incrementScrapCount(scrapRequestDto.getTargetId(), -1L);
     }
 
 
