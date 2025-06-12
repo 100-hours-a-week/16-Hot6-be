@@ -18,7 +18,7 @@ public interface AiImageJpaRepository extends JpaRepository<AiImageEntity, Long>
         SELECT ai 
         FROM AiImageEntity ai 
         WHERE ai.userEntity.id = :userId AND ai.state = 'SUCCESS'
-        AND ai.id < :cursorId
+        AND (:cursorId IS NULL OR ai.id < :cursorId)
         ORDER BY ai.id DESC
     """)
     Slice<AiImageEntity> findByUserWithCursor(

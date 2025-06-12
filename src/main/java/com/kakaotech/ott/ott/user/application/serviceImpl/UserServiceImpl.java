@@ -110,12 +110,14 @@ public class UserServiceImpl implements UserService {
         else
             myDeskState = MyDeskState.ALL_POSTS_WRITTEN;
 
+        MyDeskImageResponseDto.Pagination pagination = new MyDeskImageResponseDto.Pagination(size,
+                aiImages.hasNext() ? aiImages.getContent().get(aiImages.getNumberOfElements() - 1).getId() : null,
+                aiImages.hasNext());
+
         return new MyDeskImageResponseDto(
                 imageDtos,
                 myDeskState,
-                size,
-                aiImages.hasNext() ? aiImages.getContent().get(aiImages.getNumberOfElements() - 1).getId() : null,
-                aiImages.hasNext()
+                pagination
         );
     }
 
@@ -162,10 +164,11 @@ public class UserServiceImpl implements UserService {
                 })
                 .toList();
 
-        return new MyPostResponseDto(postSlice.getSize(), posts,
-                size,
+        MyPostResponseDto.Pagination pagination = new MyPostResponseDto.Pagination(size,
                 postSlice.hasNext() ? postSlice.getContent().get(postSlice.getNumberOfElements() - 1).getId() : null,
                 postSlice.hasNext());
+
+        return new MyPostResponseDto(posts, pagination);
     }
 
     @Override
