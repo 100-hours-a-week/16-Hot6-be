@@ -41,9 +41,10 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Product> findById(Long productId) {
+    public Product findById(Long productId) {
         return productJpaRepository.findById(productId)
-                .map(ProductEntity::toDomain);
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND))
+                .toDomain();
     }
 
     @Override

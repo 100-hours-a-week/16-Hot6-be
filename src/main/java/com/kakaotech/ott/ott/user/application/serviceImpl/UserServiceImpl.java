@@ -6,7 +6,6 @@ import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
-import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointHistory;
 import com.kakaotech.ott.ott.pointHistory.domain.repository.PointHistoryRepository;
 import com.kakaotech.ott.ott.post.domain.model.MyDeskState;
@@ -15,6 +14,8 @@ import com.kakaotech.ott.ott.post.domain.model.PostType;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAuthorResponseDto;
+import com.kakaotech.ott.ott.product.domain.model.Product;
+import com.kakaotech.ott.ott.product.domain.repository.ProductRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
@@ -51,6 +52,7 @@ public class UserServiceImpl implements UserService {
     private final ScrapRepository scrapRepository;
     private final DeskProductRepository deskProductRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final ProductRepository productRepository;
 
     @Value("${verified.code}")
     private String verifiedCode;
@@ -190,9 +192,12 @@ public class UserServiceImpl implements UserService {
                         } else {
                             thumbnailImage = aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
                         }
-                    } else {
+                    } else if (scrap.getType().equals(ScrapType.PRODUCT)){
                         DeskProduct deskProduct = deskProductRepository.findById(scrap.getTargetId());
                         thumbnailImage = deskProduct.getImagePath();
+                    } else {
+                        Product product = productRepository.findById(scrap.getTargetId());
+                        thumbnailImage = product.getImages().get(0).getImageUuid();
                     }
 
 
