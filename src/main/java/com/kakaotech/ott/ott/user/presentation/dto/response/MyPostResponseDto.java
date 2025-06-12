@@ -14,9 +14,15 @@ import java.util.List;
 @AllArgsConstructor
 public class MyPostResponseDto {
 
-    private int totalCount;
     private List<PostAllResponseDto.Posts> posts;
-    private int size;
-    private Long lastPostId;
-    private boolean hasNext;
+    private MyPostResponseDto.Pagination pagination;
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Pagination {
+        private int size;
+        private Long lastPostId;
+        private boolean hasNext;
+    }
 }
