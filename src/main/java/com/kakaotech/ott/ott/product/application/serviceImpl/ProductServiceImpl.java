@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.product.application.serviceImpl;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductGetResponseDto;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
@@ -78,7 +80,7 @@ public class ProductServiceImpl implements ProductService {
 
 
             // 3. 특가 정보가 있다면 추가
-            if (variantDto.getPromotions() != null) {
+            if (variantDto.getPromotions() != null && !variantDto.getPromotions().isEmpty()) {
                 for (PromotionDto promotionDto : variantDto.getPromotions()) {
                     if (promotionDto.getDiscountPrice() > variantDto.getPrice()) {
                         throw new CustomException(ErrorCode.INVALID_DISCOUNT);
@@ -96,6 +98,7 @@ public class ProductServiceImpl implements ProductService {
                     );
                     variant.addPromotion(promotion);
                 }
+                variant.setPromotionStatus(true);
             }
         }
         
@@ -117,12 +120,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductGetResponseDto getProduct(Long productId, Long userId) {
+        // 상품 조회
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
-        User user = userAuthRepository.findById(userId);
+        //
 
-        boolean scraped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+        boolean scraped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.SERVICE_PRODUCT, productId);
 
+        ProductGetResponseDto responseDto = new ProductGetResponseDto();
 
         return new ProductGetResponseDto();
     }
@@ -143,4 +148,65 @@ public class ProductServiceImpl implements ProductService {
 //    }
 
     // === Private Methods ===
+    private ProductGetResponseDto convertToResponse(Product product, boolean scraped) {
+        return ProductGetResponseDto.builder()
+                .productType(product.getType())
+                .productName(product.getName())
+                .description(product.getDescription())
+                .specification(product.getSpecification())
+                .variants(convertVariants(product.getVariants()))
+                .imageUrls(convertImageUrls(product.getImages()))
+                .scraped(scraped)  // 스크랩 여부 설정
+                .build();
+    }
+
+    private List<String> convertImageUrls(List<ProductImage> images) {
+        if (images == null || images.isEmpty()) {
+            return List.of(); // 빈 리스트 반환
+        }
+
+        return images.stream()
+                .sorted((img1, img2) -> Integer.compare(img1.getSequence(), img2.getSequence())) // 시퀀스 순 정렬
+                .map(ProductImage::getImageUuid) // UUID 추출
+                .collect(Collectors.toList());
+    }
+
+    private List<ProductGetResponseDto.VariantResponse> convertVariants(List<ProductVariant> variants) {
+        return variants.stream()
+                .filter(ProductVariant::isActive)
+                .map(this::convertVariant)
+                .collect(Collectors.toList());
+    }
+
+    private ProductGetResponseDto.VariantResponse convertVariant(ProductVariant variant) {
+        return ProductGetResponseDto.VariantResponse.builder()
+                .status(variant.getStatus())
+                .name(variant.getName())
+                .price(variant.getPrice())
+                .availableQuantity(variant.getAvailableQuantity())
+                .reservedQuantity(variant.getReservedQuantity())
+                .promotions(convertPromotions(variant.getPromotions()))
+                .build();
+    }
+
+    private List<ProductGetResponseDto.PromotionResponse> convertPromotions(List<ProductPromotion> promotions) {
+        return promotions.stream()
+                .filter(ProductPromotion::isActive) // 활성 프로모션만 필터링
+                .map(this::convertPromotion)
+                .collect(Collectors.toList());
+    }
+
+    private ProductGetResponseDto.PromotionResponse convertPromotion(ProductPromotion promotion) {
+        return ProductGetResponseDto.PromotionResponse.builder()
+                .status(promotion.getStatus())
+                .type(promotion.getType())
+                .name(promotion.getName())
+                .discountPrice(promotion.getDiscountPrice())
+                .rate(promotion.getRate())
+                .promotionQuantity(promotion.getPromotionQuantity())
+                .startAt(promotion.getStartAt())
+                .endAt(promotion.getEndAt())
+                .maxPerCustomer(promotion.getMaxPerCustomer())
+                .build();
+    }
 }

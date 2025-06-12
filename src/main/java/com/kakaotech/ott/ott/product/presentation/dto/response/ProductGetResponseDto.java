@@ -1,8 +1,13 @@
 package com.kakaotech.ott.ott.product.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kakaotech.ott.ott.product.domain.model.ProductType;
+import com.kakaotech.ott.ott.product.domain.model.PromotionStatus;
+import com.kakaotech.ott.ott.product.domain.model.PromotionType;
+import com.kakaotech.ott.ott.product.domain.model.VariantStatus;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -11,9 +16,10 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ProductGetResponseDto {
     @JsonProperty("product_type")
-    private String productType;
+    private ProductType productType;
 
     @JsonProperty("product_name")
     private String productName;
@@ -22,7 +28,7 @@ public class ProductGetResponseDto {
     private String description;
 
     @JsonProperty("specification")
-    private Map<String, String> specification;
+    private Map<String, Object> specification;
 
     @JsonProperty("variants")
     private List<VariantResponse> variants;
@@ -40,7 +46,7 @@ public class ProductGetResponseDto {
     public static class VariantResponse {
 
         @JsonProperty("status")
-        private String status;
+        private VariantStatus status;
 
         @JsonProperty("name")
         private String name;
@@ -65,10 +71,10 @@ public class ProductGetResponseDto {
     public static class PromotionResponse {
 
         @JsonProperty("status")
-        private String status;
+        private PromotionStatus status;
 
         @JsonProperty("type")
-        private String type;
+        private PromotionType type;
 
         @JsonProperty("name")
         private String name;
@@ -77,7 +83,7 @@ public class ProductGetResponseDto {
         private int discountPrice;
 
         @JsonProperty("rate")
-        private int rate;
+        private BigDecimal rate;
 
         @JsonProperty("promotion_quantity")
         private int promotionQuantity;
