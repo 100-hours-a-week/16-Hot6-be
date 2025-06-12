@@ -151,22 +151,14 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     @Transactional
-    public void incrementScrapCount(Long productId) {
-        ProductEntity entity = productJpaRepository.findById(productId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
+    public void incrementScrapCount(Long productId, Long delta) {
+        ProductEntity productEntity = productJpaRepository.findById(productId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND)); // 적절한 에러코드로 변경 필요
+
+        if(productEntity.getScrapCount() + delta < 0)
+            return;
 
         productJpaRepository.incrementScrapCount(productId, 1L);
     }
 
-    @Override
-    @Transactional
-    public void decrementScrapCount(Long productId) {
-        ProductEntity entity = productJpaRepository.findById(productId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
-
-        // 스크랩 수가 0보다 클 때만 감소
-        if (entity.getScrapCount() > 0) {
-            productJpaRepository.incrementScrapCount(productId, -1L);
-        }
-    }
 }

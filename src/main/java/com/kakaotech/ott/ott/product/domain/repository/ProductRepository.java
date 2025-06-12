@@ -37,7 +37,5 @@ public interface ProductRepository {
 
     void decrementSalesCount(Long productId);
 
-    void incrementScrapCount(Long productId);
-
-    void decrementScrapCount(Long productId);
+    void incrementScrapCount(Long productId, Long delta);
 }

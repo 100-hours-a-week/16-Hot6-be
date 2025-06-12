@@ -41,6 +41,10 @@ public interface    ProductJpaRepository extends JpaRepository<ProductEntity, Lo
     // 스크랩수 증가/감소
     @Modifying(clearAutomatically = true)
     @Transactional
-    @Query("UPDATE ProductEntity s SET s.scrapCount = GREATEST(0, s.scrapCount + :delta) WHERE s.id = :id")
+    @Query("""
+    UPDATE ProductEntity p 
+    SET p.scrapCount = GREATEST(0, p.scrapCount + :delta) 
+    WHERE p.id = :id
+    """)
     void incrementScrapCount(@Param("id") Long productId, @Param("delta") Long delta);
 }
