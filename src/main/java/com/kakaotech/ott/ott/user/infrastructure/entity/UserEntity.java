@@ -114,8 +114,9 @@ public class UserEntity extends AuditEntity {
         this.deletedAt = deletedAt;
     }
 
-    public void updateVerified() {
+    public void updateVerified(String nicknameKakao) {
         this.isVerified = true;
+        this.nicknameKakao = nicknameKakao;
     }
 
 }

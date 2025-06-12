@@ -66,8 +66,9 @@ public class User {
         this.deletedAt = currentTime;
     }
 
-    public void updateVerified() {
+    public void updateVerified(String nicknameKakao) {
         this.isVerified = true;
+        this.nicknameKakao = nicknameKakao;
     }
 
 }

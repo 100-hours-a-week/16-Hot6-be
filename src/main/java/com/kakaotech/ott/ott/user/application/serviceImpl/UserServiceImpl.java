@@ -327,7 +327,7 @@ public class UserServiceImpl implements UserService {
         if(!userVerifiedRequestDto.getCode().equals(verifiedCode))
             throw new CustomException(ErrorCode.INVALID_INPUT_CODE);
 
-        user.updateVerified();
+        user.updateVerified(userVerifiedRequestDto.getNicknameKakao());
         userRepository.certify(user);
     }
 
