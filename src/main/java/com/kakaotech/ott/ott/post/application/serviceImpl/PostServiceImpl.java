@@ -157,6 +157,7 @@ public class PostServiceImpl implements PostService {
                 })
                 .toList();
 
+
         boolean hasNext = dtoList.size() == size;
         Long nextLastId = hasNext ? dtoList.get(dtoList.size() - 1).getPostId() : null;
         Integer nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
