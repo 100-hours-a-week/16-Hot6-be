@@ -12,7 +12,7 @@ public interface ProductRepository {
     // 기본 CRUD
     Product save(Product product);
 
-    Optional<Product> findById(Long productId);
+    Product findById(Long productId);
 
     Product update(Product product);
 
