@@ -56,10 +56,14 @@ public interface ProductVariantJpaRepository extends JpaRepository<ProductVarian
     @Modifying(clearAutomatically = true)
     @Transactional
     @Query("""
-        UPDATE ProductVariantEntity v 
+        UPDATE ProductVariantEntity v
         SET v.availableQuantity = v.availableQuantity - :quantity,
-            v.reservedQuantity = v.reservedQuantity + :quantity
-        WHERE v.id = :variantId 
+        v.reservedQuantity = v.reservedQuantity + :quantity,
+        v.status = CASE
+            WHEN (v.availableQuantity - :quantity) = 0 THEN 'OUT_OF_STOCK'
+            ELSE v.status
+        END
+        WHERE v.id = :variantId
         AND v.status = 'ACTIVE'
         AND v.availableQuantity >= :quantity
         """)
@@ -72,10 +76,14 @@ public interface ProductVariantJpaRepository extends JpaRepository<ProductVarian
     @Modifying(clearAutomatically = true)
     @Transactional
     @Query("""
-        UPDATE ProductVariantEntity v 
+        UPDATE ProductVariantEntity v
         SET v.availableQuantity = v.availableQuantity + :quantity,
-            v.reservedQuantity = v.reservedQuantity - :quantity
-        WHERE v.id = :variantId 
+        v.reservedQuantity = v.reservedQuantity - :quantity,
+        v.status = CASE
+            WHEN v.status = 'OUT_OF_STOCK' AND (v.availableQuantity + :quantity) > 0 THEN 'ACTIVE'
+            ELSE v.status
+        END
+        WHERE v.id = :variantId
         AND v.reservedQuantity >= :quantity
         """)
     int releaseReservedStockForManageableVariant(@Param("variantId") Long variantId, @Param("quantity") int quantity);
