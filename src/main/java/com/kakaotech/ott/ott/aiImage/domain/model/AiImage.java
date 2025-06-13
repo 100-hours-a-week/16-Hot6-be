@@ -6,6 +6,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
+@Builder
 public class AiImage {
 
     private Long id;
@@ -13,6 +14,8 @@ public class AiImage {
     private Long userId;
 
     private Long postId;
+
+    private AiImageConcept concept;
 
     private AiImageState state;
 
@@ -22,22 +25,12 @@ public class AiImage {
 
     private LocalDateTime createdAt;
 
-    @Builder
-    public AiImage(Long id, Long userId, Long postId, AiImageState state, String beforeImagePath, String afterImagePath, LocalDateTime createdAt) {
-        this.id = id;
-        this.userId = userId;
-        this.postId = postId;
-        this.state = state;
-        this.beforeImagePath = beforeImagePath;
-        this.afterImagePath = afterImagePath;
-        this.createdAt = createdAt;
-    }
-
-    public static AiImage createAiImage(Long userId, String beforeImagePath) {
+    public static AiImage createAiImage(Long userId, AiImageConcept concept, String beforeImagePath) {
 
         return AiImage.builder()
                 .userId(userId)
                 .postId(null)
+                .concept(concept)
                 .state(AiImageState.PENDING)
                 .beforeImagePath(beforeImagePath)
                 .afterImagePath(null)
