@@ -28,9 +28,6 @@ public class Product {
     @Builder.Default
     private List<ProductVariant> variants = new ArrayList<>();
 
-    @Builder.Default
-    private List<ProductImage> images = new ArrayList<>();
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -111,15 +108,5 @@ public class Product {
     // 품목 추가
     public void addVariant(ProductVariant variant) {
         this.variants.add(variant);
-    }
-
-    // 이미지 추가
-    public void addImage(ProductImage image) {
-        this.images.add(image);
-    }
-
-    // 모든 이미지 제거
-    public void clearImages() {
-        this.images.clear();
     }
 }

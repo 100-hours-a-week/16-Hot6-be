@@ -27,6 +27,9 @@ public class ProductVariant {
     @Builder.Default
     private List<ProductPromotion> promotions = new ArrayList<>();
 
+    @Builder.Default
+    private List<ProductImage> images = new ArrayList<>();
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -127,5 +130,15 @@ public class ProductVariant {
 
     public boolean isActive() {
         return this.status == VariantStatus.ACTIVE && this.availableQuantity > 0;
+    }
+
+    // 이미지 추가
+    public void addImage(ProductImage image) {
+        this.images.add(image);
+    }
+
+    // 모든 이미지 제거
+    public void clearImages() {
+        this.images.clear();
     }
 }
