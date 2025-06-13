@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.product.infrastructure.entity;
 
+import com.kakaotech.ott.ott.product.domain.model.ProductImage;
 import com.kakaotech.ott.ott.product.domain.model.ProductPromotion;
 import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
 import com.kakaotech.ott.ott.product.domain.model.VariantStatus;
@@ -50,6 +51,10 @@ public class ProductVariantEntity extends AuditEntity {
     @Column(name = "is_on_promotion", nullable = false)
     private boolean isOnPromotion;
 
+    @Builder.Default
+    @OneToMany(mappedBy = "variantEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductImageEntity> images = new ArrayList<>();
+
     // 특가와의 관계 (1:N)
     @Builder.Default
     @OneToMany(mappedBy = "variantEntity", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -68,7 +73,15 @@ public class ProductVariantEntity extends AuditEntity {
                 .isOnPromotion(variant.isOnPromotion())
                 .build();
 
-        // 특가들 매핑
+        // 이미지들 매핑
+        if (variant.getImages() != null && !variant.getImages().isEmpty()) {
+            for (ProductImage image : variant.getImages()) {
+                ProductImageEntity imageEntity = ProductImageEntity.from(image, entity);
+                entity.getImages().add(imageEntity);
+            }
+        }
+
+            // 특가들 매핑
         if (variant.getPromotions() != null && !variant.getPromotions().isEmpty()) {
             for (ProductPromotion promotion : variant.getPromotions()) {
                 ProductPromotionEntity promotionEntity = ProductPromotionEntity.from(promotion, entity);
@@ -90,6 +103,9 @@ public class ProductVariantEntity extends AuditEntity {
                 .availableQuantity(this.availableQuantity)
                 .reservedQuantity(this.reservedQuantity)
                 .isOnPromotion(this.isOnPromotion)
+                .images(this.images != null
+                        ? this.images.stream().map(ProductImageEntity::toDomain).collect(Collectors.toList())
+                        : List.of())
                 .promotions(this.promotions != null
                         ? this.promotions.stream().map(ProductPromotionEntity::toDomain).collect(Collectors.toList())
                         : List.of())

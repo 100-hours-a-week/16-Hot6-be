@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.product.domain.repository;
 
+import com.kakaotech.ott.ott.product.domain.model.Product;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductEntity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -10,8 +11,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface    ProductJpaRepository extends JpaRepository<ProductEntity, Long> {
+public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long> {
 
     // 상품명 중복 체크
     boolean existsByName(String name);
