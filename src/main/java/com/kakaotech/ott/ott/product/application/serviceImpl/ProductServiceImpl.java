@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.product.application.serviceImpl;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductGetResponseDto;
@@ -68,8 +69,13 @@ public class ProductServiceImpl implements ProductService {
             requestDto.getProduct().getSpecification()
         );
         
-        // 2. 품목 추가
-        for (VariantDto variantDto : requestDto.getVariants()) {
+        // 2. 품목 및 이미지 추가
+        List<VariantDto> variantDtos = requestDto.getVariants();
+        Map<Integer, List<MultipartFile>> variantImagesMap = requestDto.getVariantImagesMap();
+        for (int i = 0; i < variantDtos.size(); i++) {
+            VariantDto variantDto = variantDtos.get(i);
+            List<MultipartFile> variantImages = variantImagesMap.get(i);
+
             ProductVariant variant = ProductVariant.createVariant(
                 product.getId(),
                 variantDto.getName(),
@@ -78,40 +84,16 @@ public class ProductServiceImpl implements ProductService {
             );
             product.addVariant(variant);
 
+            // 해당 Variant의 이미지들 업로드 및 추가
+            if (variantImages != null && !variantImages.isEmpty()) {
+                addVariantImages(variant, variantImages);
+            }
 
             // 3. 특가 정보가 있다면 추가
-            if (variantDto.getPromotions() != null && !variantDto.getPromotions().isEmpty()) {
-                for (PromotionDto promotionDto : variantDto.getPromotions()) {
-                    if (promotionDto.getDiscountPrice() > variantDto.getPrice()) {
-                        throw new CustomException(ErrorCode.INVALID_DISCOUNT);
-                    }
-                    ProductPromotion promotion = ProductPromotion.createPromotion(
-                        variant.getId(),
-                        promotionDto.getType(),
-                        promotionDto.getName(),
-                        variantDto.getPrice(),
-                        promotionDto.getDiscountPrice(),
-                        promotionDto.getPromotionQuantity(),
-                        promotionDto.getStartAt(),
-                        promotionDto.getEndAt(),
-                        promotionDto.getMaxPerCustomer()
-                    );
-                    variant.addPromotion(promotion);
-                }
-                variant.setPromotionStatus(true);
-            }
+            addVariantPromotions(variant, variantDto);
         }
         
-        // 4. 이미지 처리
-        if (requestDto.getImages() != null) {
-            int seq = 1;
-            for (MultipartFile file : requestDto.getImages()) {
-                String url = baseUrl + s3Uploader.upload(file);
-                product.addImage(ProductImage.createImage(product.getId(), seq++, url));
-            }
-        }
-        
-        // 5. 저장
+        // 4. 저장
         Product savedProduct = productRepository.save(product);
 
         return new ProductCreateResponseDto(savedProduct.getId());
@@ -122,13 +104,12 @@ public class ProductServiceImpl implements ProductService {
     public ProductGetResponseDto getProduct(Long productId, Long userId) {
         // 상품 조회
         Product product = productRepository.findById(productId);
-        //
 
         boolean scraped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.SERVICE_PRODUCT, productId);
 
-        ProductGetResponseDto responseDto = new ProductGetResponseDto();
+        ProductGetResponseDto productGetResponseDto = convertToProductGetResponse(product, scraped);
 
-        return new ProductGetResponseDto();
+        return productGetResponseDto;
     }
 //
 //    @Override
@@ -147,14 +128,47 @@ public class ProductServiceImpl implements ProductService {
 //    }
 
     // === Private Methods ===
-    private ProductGetResponseDto convertToResponse(Product product, boolean scraped) {
+
+    // Variant 이미지 추가 메서드
+    private void addVariantImages(ProductVariant variant, List<MultipartFile> variantImages) throws IOException {
+        int sequence = 1;
+        for (MultipartFile imageFile : variantImages) {
+            String imageUrl = baseUrl + s3Uploader.upload(imageFile);
+            ProductImage image = ProductImage.createImage(variant.getId(), sequence++, imageUrl);
+            variant.addImage(image);
+        }
+    }
+
+    private void addVariantPromotions(ProductVariant variant, VariantDto variantDto) {
+        if (variantDto.getPromotions() != null && !variantDto.getPromotions().isEmpty()) {
+            for (PromotionDto promotionDto : variantDto.getPromotions()) {
+                if (promotionDto.getDiscountPrice() > variantDto.getPrice()) {
+                    throw new CustomException(ErrorCode.INVALID_DISCOUNT);
+                }
+                ProductPromotion promotion = ProductPromotion.createPromotion(
+                        variant.getId(),
+                        promotionDto.getType(),
+                        promotionDto.getName(),
+                        variantDto.getPrice(),
+                        promotionDto.getDiscountPrice(),
+                        promotionDto.getPromotionQuantity(),
+                        promotionDto.getStartAt(),
+                        promotionDto.getEndAt(),
+                        promotionDto.getMaxPerCustomer()
+                );
+                variant.addPromotion(promotion);
+            }
+            variant.setPromotionStatus(true);
+        }
+    }
+
+    private ProductGetResponseDto convertToProductGetResponse(Product product, boolean scraped) {
         return ProductGetResponseDto.builder()
                 .productType(product.getType())
                 .productName(product.getName())
                 .description(product.getDescription())
                 .specification(product.getSpecification())
                 .variants(convertVariants(product.getVariants()))
-                .imageUrls(convertImageUrls(product.getImages()))
                 .scraped(scraped)  // 스크랩 여부 설정
                 .build();
     }
@@ -182,6 +196,7 @@ public class ProductServiceImpl implements ProductService {
                 .status(variant.getStatus())
                 .name(variant.getName())
                 .price(variant.getPrice())
+                .imageUrls(convertImageUrls(variant.getImages()))
                 .availableQuantity(variant.getAvailableQuantity())
                 .reservedQuantity(variant.getReservedQuantity())
                 .promotions(convertPromotions(variant.getPromotions()))
