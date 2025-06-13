@@ -27,9 +27,7 @@ public class ProductCreateRequestDto {
     @Valid
     private List<VariantDto> variants;
 
-    @NotNull(message = "이미지 정보는 필수입니다")
-    @Size(max = 5, message = "이미지는 최대 5개까지 업로드할 수 있습니다.")
-    private List<MultipartFile> images;
+    private Map<Integer, List<MultipartFile>> variantImagesMap;
 
     @Getter
     @Builder

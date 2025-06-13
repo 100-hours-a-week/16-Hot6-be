@@ -8,13 +8,13 @@ import lombok.Getter;
 public class ProductImage {
 
     private Long id;
-    private Long productId;
+    private Long variantId;
     private int sequence;
     private String imageUuid;
 
     // 이미지 생성 팩토리 메서드
     public static ProductImage createImage(
-            Long productId,
+            Long variantId,
             int sequence,
             String imageUuid) {
 
@@ -23,7 +23,7 @@ public class ProductImage {
         validateImageUuid(imageUuid);
 
         return ProductImage.builder()
-                .productId(productId)
+                .variantId(variantId)
                 .sequence(sequence)
                 .imageUuid(imageUuid)
                 .build();

@@ -57,10 +57,6 @@ public class ProductEntity extends AuditEntity {
     @OneToMany(mappedBy = "productEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariantEntity> variants = new ArrayList<>();
 
-    @Builder.Default
-    @OneToMany(mappedBy = "productEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImageEntity> images = new ArrayList<>();
-
     // Domain → Entity 변환
     public static ProductEntity from(Product product) {
         ProductEntity entity = ProductEntity.builder()
@@ -81,14 +77,6 @@ public class ProductEntity extends AuditEntity {
             }
         }
 
-        // 이미지들 매핑
-        if (product.getImages() != null && !product.getImages().isEmpty()) {
-            for (ProductImage image : product.getImages()) {
-                ProductImageEntity imageEntity = ProductImageEntity.from(image, entity);
-                entity.getImages().add(imageEntity);
-            }
-        }
-
         return entity;
     }
 
@@ -105,9 +93,6 @@ public class ProductEntity extends AuditEntity {
                 .scrapCount(this.scrapCount)
                 .variants(this.variants != null
                         ? this.variants.stream().map(ProductVariantEntity::toDomain).collect(Collectors.toList())
-                        : List.of())
-                .images(this.images != null
-                        ? this.images.stream().map(ProductImageEntity::toDomain).collect(Collectors.toList())
                         : List.of())
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())

@@ -19,8 +19,8 @@ public class ProductImageEntity {
 
     // 상품과의 관계 (N:1)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private ProductEntity productEntity;
+    @JoinColumn(name = "variant_id", nullable = false)
+    private ProductVariantEntity variantEntity;
 
     @Column(name = "sequence", nullable = false)
     private int sequence;
@@ -29,10 +29,10 @@ public class ProductImageEntity {
     private String imageUuid;
 
     // Domain → Entity 변환
-    public static ProductImageEntity from(ProductImage image, ProductEntity productEntity) {
+    public static ProductImageEntity from(ProductImage image, ProductVariantEntity productVariantEntity) {
         return ProductImageEntity.builder()
                 .id(image.getId())
-                .productEntity(productEntity)
+                .variantEntity(productVariantEntity)
                 .sequence(image.getSequence())
                 .imageUuid(image.getImageUuid())
                 .build();
@@ -42,7 +42,7 @@ public class ProductImageEntity {
     public ProductImage toDomain() {
         return ProductImage.builder()
                 .id(this.id)
-                .productId(this.productEntity.getId())
+                .variantId(this.variantEntity.getId())
                 .sequence(this.sequence)
                 .imageUuid(this.imageUuid)
                 .build();
