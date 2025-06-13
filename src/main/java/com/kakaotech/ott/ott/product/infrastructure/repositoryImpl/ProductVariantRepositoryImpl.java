@@ -43,9 +43,10 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ProductVariant> findById(Long variantId) {
+    public ProductVariant findById(Long variantId) {
         return productVariantJpaRepository.findById(variantId)
-                .map(ProductVariantEntity::toDomain);
+                .map(ProductVariantEntity::toDomain)
+                .orElseThrow(() -> new CustomException(ErrorCode.VARIANT_NOT_FOUND));
     }
 
     @Override

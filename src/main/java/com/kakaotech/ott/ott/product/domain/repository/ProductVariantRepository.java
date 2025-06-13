@@ -11,7 +11,7 @@ public interface ProductVariantRepository {
     // 기본 CRUD
     ProductVariant save(ProductVariant variant);
 
-    Optional<ProductVariant> findById(Long variantId);
+    ProductVariant findById(Long variantId);
 
     ProductVariant update(ProductVariant variant);
 

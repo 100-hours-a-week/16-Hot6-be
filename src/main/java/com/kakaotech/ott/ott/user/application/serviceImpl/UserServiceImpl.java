@@ -15,7 +15,9 @@ import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAuthorResponseDto;
 import com.kakaotech.ott.ott.product.domain.model.Product;
+import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
 import com.kakaotech.ott.ott.product.domain.repository.ProductRepository;
+import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
@@ -52,7 +54,7 @@ public class UserServiceImpl implements UserService {
     private final ScrapRepository scrapRepository;
     private final DeskProductRepository deskProductRepository;
     private final PointHistoryRepository pointHistoryRepository;
-    private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
 
     @Value("${verified.code}")
     private String verifiedCode;
@@ -199,8 +201,8 @@ public class UserServiceImpl implements UserService {
                         DeskProduct deskProduct = deskProductRepository.findById(scrap.getTargetId());
                         thumbnailImage = deskProduct.getImagePath();
                     } else {
-                        Product product = productRepository.findById(scrap.getTargetId());
-                        thumbnailImage = product.getImages().get(0).getImageUuid();
+                        ProductVariant productVariant = productVariantRepository.findById(scrap.getTargetId());
+                        thumbnailImage = productVariant.getImages().get(0).getImageUuid();
                     }
 
 
