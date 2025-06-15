@@ -43,9 +43,10 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ProductVariant> findById(Long variantId) {
+    public ProductVariant findById(Long variantId) {
         return productVariantJpaRepository.findById(variantId)
-                .map(ProductVariantEntity::toDomain);
+                .map(ProductVariantEntity::toDomain)
+                .orElseThrow(() -> new CustomException(ErrorCode.VARIANT_NOT_FOUND));
     }
 
     @Override
@@ -110,43 +111,105 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
 
     @Override
     @Transactional
-    public void updateQuantity(Long variantId, int quantity) {
-        ProductVariantEntity entity = productVariantJpaRepository.findById(variantId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
-
-        // 수량 검증
-        if (quantity < 0) {
-            throw new IllegalArgumentException("수량은 0 이상이어야 합니다.");
+    public void updateAvailableQuantity(Long variantId, int availableQuantity) {
+        // 1. 입력 검증
+        if (availableQuantity < 0) {
+            throw new IllegalArgumentException("재고 수량은 0 이상이어야 합니다.");
         }
 
-        productVariantJpaRepository.updateQuantity(variantId, quantity);
+        // 2. 품목 존재 여부 확인
+        validateVariantExists(variantId);
+        productVariantJpaRepository.updateAvailableQuantity(variantId, availableQuantity);
     }
 
     @Override
     @Transactional
-    public void reserveQuantity(Long variantId, int quantity) {
-        ProductVariantEntity entity = productVariantJpaRepository.findById(variantId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
+    public void reserveStock(Long variantId, int quantity) {
+        // 1. 입력 검증
+        validateQuantity(quantity);
 
-        // 예약 가능 수량 체크
-        if (entity.getReservedQuantity() < quantity) {
-            throw new IllegalArgumentException("예약 가능한 수량을 초과했습니다.");
+        // 2. 품목 존재 여부 및 활성 상태 확인
+        validateVariantExistsAndActive(variantId);
+
+        try {
+            // 3. 재고 예약 실행
+            int updatedRows = productVariantJpaRepository.reserveStockForActiveVariant(variantId, quantity);
+
+            // 4. 업데이트 실패 시 상세 원인 확인 후 예외 발생
+            if (updatedRows == 0) {
+                throw new IllegalArgumentException("재고 예약 실패");
+            }
+
+        } catch (CustomException | IllegalArgumentException e) {
+            throw e; // 이미 처리된 예외는 그대로 재발생
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
-
-        productVariantJpaRepository.reserveQuantity(variantId, quantity);
     }
 
     @Override
     @Transactional
-    public void releaseReservedQuantity(Long variantId, int quantity) {
-        ProductVariantEntity entity = productVariantJpaRepository.findById(variantId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
+    public void releaseReservedStock(Long variantId, int quantity) {
+        // 1. 입력 검증
+        validateQuantity(quantity);
 
-        // 예약 해제 수량 검증
-        if (entity.getReservedQuantity() < quantity) {
-            throw new IllegalArgumentException("예약 해제할 수량이 예약 수량보다 큽니다.");
+        // 2. 품목 존재 여부 확인
+        validateVariantExists(variantId);
+
+        try {
+            // 3. 예약 해제 실행
+            int updatedRows = productVariantJpaRepository.releaseReservedStockForManageableVariant(variantId, quantity);
+
+            // 4. 업데이트 실패 시 상세 원인 확인 후 예외 발생
+            if (updatedRows == 0) {
+                throw new IllegalArgumentException("재고 예약 실패");
+            }
+
+        } catch (CustomException | IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
-
-        productVariantJpaRepository.releaseReservedQuantity(variantId, quantity);
     }
+
+
+    // == private Method ==
+    // 수량 검증
+    private void validateQuantity(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("예약 수량은 0보다 커야 합니다.");
+        }
+    }
+
+    // 품목 존재 확인
+    private void validateVariantExists(Long variantId) {
+        if (!productVariantJpaRepository.existsById(variantId)) {
+            throw new CustomException(ErrorCode.VARIANT_NOT_FOUND);
+        }
+    }
+
+    // 품목 존재 여부 + 활성 상태 확인 (재고 예약용)
+    private void validateVariantExistsAndActive(Long variantId) {
+        if (!productVariantJpaRepository.existsByIdAndActiveStatus(variantId)) {
+            Optional<VariantStatus> status = productVariantJpaRepository.findStatusById(variantId);
+            if (status.isEmpty()) {
+                throw new CustomException(ErrorCode.VARIANT_NOT_FOUND);
+            } else {
+                throw new CustomException(ErrorCode.INVALID_VARIANT_STATUS);
+            }
+        }
+    }
+
+    // 품목 존재 여부 + 관리 가능 상태 확인 (예약 해제/확정용)
+    private void validateVariantExistsAndManageable(Long variantId) {
+        if (!productVariantJpaRepository.existsByIdAndManageableStatus(variantId)) {
+            Optional<VariantStatus> status = productVariantJpaRepository.findStatusById(variantId);
+            if (status.isEmpty()) {
+                throw new CustomException(ErrorCode.VARIANT_NOT_FOUND);
+            } else {
+                throw new CustomException(ErrorCode.INVALID_VARIANT_STATUS);
+            }
+        }
+    }
+
 }

@@ -1,12 +1,18 @@
 package com.kakaotech.ott.ott.product.presentation.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.product.application.service.ProductService;
 import com.kakaotech.ott.ott.product.presentation.dto.request.VariantDto;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductGetResponseDto;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +29,7 @@ import com.kakaotech.ott.ott.product.presentation.dto.response.ProductCreateResp
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 @Slf4j
 @RestController
@@ -38,13 +45,16 @@ public class ProductController {
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestPart("product") @Valid ProductCreateRequestDto.ProductInfo productInfo,
             @RequestPart("variants") @Valid List<VariantDto> variants,
-            @RequestPart("images") @Valid @Size(max=5) List<MultipartFile> images) throws IOException {
+            HttpServletRequest request) throws IOException {
             
         Long userId = userPrincipal.getId();
+        // 각 Variant별 이미지 추출
+        Map<Integer, List<MultipartFile>> variantImagesMap = extractVariantImages(request, variants.size());
+
         ProductCreateRequestDto productCreateRequestDto = ProductCreateRequestDto.builder()
                 .product(productInfo)
                 .variants(variants)
-                .images(images)
+                .variantImagesMap(variantImagesMap)
                 .build();
         ProductCreateResponseDto productCreateResponseDto = productService.createProduct(productCreateRequestDto, userId);
         
@@ -61,5 +71,30 @@ public class ProductController {
         ProductGetResponseDto productDetail = productService.getProduct(productId, userId);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("상품 상세 정보 조회 성공", productDetail));
+    }
+
+
+    // === Private Methods ===
+    // 각 Variant별 이미지 추출 메서드
+    private Map<Integer, List<MultipartFile>> extractVariantImages(HttpServletRequest request, int variantCount) {
+        Map<Integer, List<MultipartFile>> variantImagesMap = new HashMap<>();
+
+        try {
+            MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+
+            for (int i = 0; i < variantCount; i++) {
+                String paramName = "variant_" + i + "_images";
+                List<MultipartFile> images = multipartRequest.getFiles(paramName);
+
+                // 빈 리스트로 초기화 (null 방지)
+                variantImagesMap.put(i, images != null ? images : new ArrayList<>());
+            }
+
+        } catch (Exception e) {
+            log.error("이미지 추출 중 오류 발생", e);
+            throw new CustomException(ErrorCode.INVALID_INPUT_CODE);
+        }
+
+        return variantImagesMap;
     }
 }

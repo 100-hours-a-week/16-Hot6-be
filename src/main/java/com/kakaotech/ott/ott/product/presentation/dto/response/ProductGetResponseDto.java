@@ -33,9 +33,6 @@ public class ProductGetResponseDto {
     @JsonProperty("variants")
     private List<VariantResponse> variants;
 
-    @JsonProperty("image_urls")
-    private List<String> imageUrls;
-
     @JsonProperty("scraped")
     private Boolean scraped;
 
@@ -59,6 +56,9 @@ public class ProductGetResponseDto {
 
         @JsonProperty("reserved_quantity")
         private int reservedQuantity;
+
+        @JsonProperty("image_urls")
+        private List<String> imageUrls;
 
         @JsonProperty("promotions")
         private List<PromotionResponse> promotions;

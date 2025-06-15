@@ -12,19 +12,19 @@ import java.util.Optional;
 
 public interface ProductImageJpaRepository extends JpaRepository<ProductImageEntity, Long> {
 
-    // 상품별 이미지 조회 (시퀀스 순)
-    List<ProductImageEntity> findByProductEntityIdOrderBySequence(Long productId);
+    // 품목별 이미지 조회 (시퀀스 순)
+    List<ProductImageEntity> findByVariantEntityIdOrderBySequence(Long variantId);
 
     // 상품별 이미지 삭제
     @Modifying
     @Transactional
-    void deleteByProductEntityId(Long productId);
+    void deleteByVariantEntityId(Long productId);
 
     // 상품별 이미지 개수 카운트
-    int countByProductEntityId(Long productId);
+    int countByVariantEntityId(Long productId);
 
     // 메인 이미지 조회 (sequence = 1)
-    @Query("SELECT i FROM ProductImageEntity i WHERE i.productEntity = :productId AND i.sequence = 1")
+    @Query("SELECT i FROM ProductImageEntity i WHERE i.variantEntity = :productId AND i.sequence = 1")
     Optional<ProductImageEntity> findMainImage(@Param("productId") Long productId);
 
     // 시퀀스 업데이트

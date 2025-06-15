@@ -16,6 +16,8 @@ public class AiImageResponseDto {
 
     private Long imageId;
 
+    private Long postId;
+
     private AiImageState state;
 
     private String beforeImagePath;

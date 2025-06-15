@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.aiImage.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,8 +16,8 @@ public class FastApiRequestDto {
     @JsonProperty("initial_image_url")
     private String initialImageUrl;
 
-//    @JsonProperty("user_id")
-//    private Long user_id;
+    @JsonProperty("concept")
+    private AiImageConcept concept;
 
     public void fastApiUrl(String domain) {
         this.initialImageUrl = domain + this.initialImageUrl;

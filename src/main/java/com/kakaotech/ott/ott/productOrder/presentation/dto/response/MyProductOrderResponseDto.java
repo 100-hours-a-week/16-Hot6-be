@@ -59,6 +59,7 @@ public class MyProductOrderResponseDto {
     @AllArgsConstructor
     public static class PaymentInfo {
         private String paymentMethod;   // TODO: 타입 ENUM으로 바꿔야됨
+        private int originalAmount;
         private int paymentAmount;
         private int discountAmount;
     }

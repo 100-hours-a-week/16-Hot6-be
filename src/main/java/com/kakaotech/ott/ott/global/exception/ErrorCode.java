@@ -69,12 +69,15 @@ public enum ErrorCode {
     ALREADY_DELETED(HttpStatus.BAD_REQUEST, "이미 삭제된 주문내역입니다."),
 
     // product
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "이미지 처리 중 오류가 발생했습니다."),
     DUPLICATE_PRODUCT_NAME(HttpStatus.CONFLICT, "이미 존재하는 상품명입니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
+    VARIANT_NOT_FOUND(HttpStatus.NOT_FOUND, "품목을 찾을 수 없습니다."),
     INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "재고가 부족합니다."),
     INVALID_PRODUCT_STATUS(HttpStatus.BAD_REQUEST, "유효하지 않은 상품 상태입니다."),
     INVALID_DISCOUNT(HttpStatus.BAD_REQUEST, "할인가는 정가보다 클 수 없습니다."),
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
+    INVALID_VARIANT_STATUS(HttpStatus.BAD_REQUEST, "품목 상태가 올바르지 않습니다."),
 
     // ORDERITEM
     NOT_ORDERED_ITEM_STATE(HttpStatus.BAD_REQUEST, "주문 대기 상태가 아닙니다."),
