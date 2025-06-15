@@ -145,6 +145,45 @@ public class ProductPromotion {
         }
     }
 
+    // 판매 수량 감소
+    public void decreaseSoldQuantity(int quantity) {
+        if (quantity > this.soldQuantity) {
+            throw new IllegalArgumentException("이미 판매된 수량을 초과할 수 없습니다.");
+        }
+
+        this.soldQuantity -= quantity;
+
+    }
+
+    // 재고 수량 증가
+    public void increasePromotionQuantity(int quantity) {
+
+        validateQuantity(quantity);
+
+        if (quantity > this.soldQuantity) {
+            throw new IllegalArgumentException("이미 판매된 수량을 초과할 수 없습니다.");
+        }
+
+        if (this.promotionQuantity == 0) {
+            this.status = PromotionStatus.ACTIVE;
+        }
+
+        this.promotionQuantity += quantity;
+
+    }
+
+    // 재고 수량 감소
+    public void decreasePromotionQuantity(int quantity) {
+
+        validateQuantity(quantity);
+
+        if (quantity > this.promotionQuantity) {
+            throw new IllegalArgumentException("판매 가능 수량을 초과할 수 없습니다.");
+        }
+        this.promotionQuantity -= quantity;
+
+    }
+
     // 특가 활성 여부 확인
     public boolean isActive() {
         LocalDateTime now = LocalDateTime.now();

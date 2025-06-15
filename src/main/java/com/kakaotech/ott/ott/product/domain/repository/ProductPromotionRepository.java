@@ -13,7 +13,7 @@ public interface ProductPromotionRepository {
     // 기본 CRUD
     ProductPromotion save(ProductPromotion promotion);
 
-    Optional<ProductPromotion> findById(Long promotionId);
+    ProductPromotion findById(Long promotionId);
 
     ProductPromotion update(ProductPromotion promotion);
 
@@ -22,7 +22,7 @@ public interface ProductPromotionRepository {
     // 품목별 특가 조회
     List<ProductPromotion> findByVariantId(Long variantId);
 
-    List<ProductPromotion> findByVariantIdAndStatus(Long variantId, PromotionStatus status);
+    ProductPromotion findByVariantIdAndStatus(Long variantId, PromotionStatus status);
 
     // 특가 타입별 조회
     List<ProductPromotion> findByType(PromotionType type);
@@ -30,7 +30,7 @@ public interface ProductPromotionRepository {
     List<ProductPromotion> findActivePromotions(LocalDateTime now);
 
     // 비즈니스 메서드들
-    Optional<ProductPromotion> findCurrentPromotion(Long variantId, LocalDateTime now);
+    ProductPromotion findCurrentPromotion(Long variantId, LocalDateTime now);
 
     List<ProductPromotion> findExpiredPromotions(LocalDateTime now);
 

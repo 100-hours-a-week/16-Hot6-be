@@ -54,9 +54,10 @@ public class ProductPromotionRepositoryImpl implements ProductPromotionRepositor
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ProductPromotion> findById(Long promotionId) {
+    public ProductPromotion findById(Long promotionId) {
         return productPromotionJpaRepository.findById(promotionId)
-                .map(ProductPromotionEntity::toDomain);
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND))    // TODO: ErrorCode 재설정
+                .toDomain();
     }
 
     @Override
@@ -102,11 +103,10 @@ public class ProductPromotionRepositoryImpl implements ProductPromotionRepositor
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductPromotion> findByVariantIdAndStatus(Long variantId, PromotionStatus status) {
-        return productPromotionJpaRepository.findByVariantIdAndStatus(variantId, status.name())
-                .stream()
-                .map(ProductPromotionEntity::toDomain)
-                .collect(Collectors.toList());
+    public ProductPromotion findByVariantIdAndStatus(Long variantId, PromotionStatus status) {
+        return productPromotionJpaRepository.findByVariantIdAndStatus(variantId, status)
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND))
+                .toDomain();
     }
 
     @Override
@@ -129,9 +129,10 @@ public class ProductPromotionRepositoryImpl implements ProductPromotionRepositor
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ProductPromotion> findCurrentPromotion(Long variantId, LocalDateTime now) {
+    public ProductPromotion findCurrentPromotion(Long variantId, LocalDateTime now) {
         return productPromotionJpaRepository.findCurrentPromotion(variantId, now)
-                .map(ProductPromotionEntity::toDomain);
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND))    // TODO: ErrorCode 재설정
+                .toDomain();
     }
 
     @Override
