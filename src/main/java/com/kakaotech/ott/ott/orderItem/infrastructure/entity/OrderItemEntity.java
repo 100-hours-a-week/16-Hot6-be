@@ -1,7 +1,7 @@
 package com.kakaotech.ott.ott.orderItem.infrastructure.entity;
 
-import com.kakaotech.ott.ott.global.exception.CustomException;
-import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.product.infrastructure.entity.ProductPromotionEntity;
+import com.kakaotech.ott.ott.product.infrastructure.entity.ProductVariantEntity;
 import com.kakaotech.ott.ott.productOrder.infrastructure.entity.ProductOrderEntity;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
@@ -29,19 +29,29 @@ public class OrderItemEntity {
     @JoinColumn(name = "order_id")
     private ProductOrderEntity productOrderEntity;
 
-    // 제품 엔티티 들어가야 된다.
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variants_id")
+    private ProductVariantEntity productVariantEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "promotion_id")
+    private ProductPromotionEntity productPromotionEntity;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private OrderItemStatus status;
 
-    @Column(name = "price", nullable = false)
-    private int price;
+    @Column(name = "original_price", nullable = false)
+    private int originalPrice;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
+
+    @Column(name = "discount_amount", nullable = false)
+    private int discountAmount;
+
+    @Column(name = "final_price", nullable = false)
+    private int finalPrice;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "pending_product_status")
@@ -65,11 +75,13 @@ public class OrderItemEntity {
         return OrderItem.builder()
                 .id(this.id)
                 .orderId(this.productOrderEntity.getId())
-                // feat: productId 변경해야됨
-                .productId(1L)
+                .variantsId(this.productVariantEntity.getId())
+                .promotionId(this.productPromotionEntity != null ? this.productPromotionEntity.getId() : null)
                 .status(this.status)
-                .price(this.price)
+                .originalPrice(this.originalPrice)
                 .quantity(this.quantity)
+                .discountAmount(this.discountAmount)
+                .finalPrice(this.finalPrice)
                 .pendingProductStatus(this.pendingProductStatus)
                 .refundAmount(this.refundAmount)
                 .refundReason(this.refundReason)
@@ -78,29 +90,32 @@ public class OrderItemEntity {
                 .build();
     }
 
-    public static OrderItemEntity from(OrderItem orderItem, ProductOrderEntity productOrderEntity) {
+    public static OrderItemEntity from(OrderItem orderItem, ProductOrderEntity productOrderEntity, ProductVariantEntity productVariantEntity, ProductPromotionEntity productPromotionEntity) {
 
         return OrderItemEntity.builder()
                 .productOrderEntity(productOrderEntity)
-                .productId(orderItem.getProductId())
+                .productVariantEntity(productVariantEntity)
+                .productPromotionEntity(productPromotionEntity)
                 .status(orderItem.getStatus())
-                .price(orderItem.getPrice())
+                .originalPrice(orderItem.getOriginalPrice())
                 .quantity(orderItem.getQuantity())
+                .discountAmount(orderItem.getDiscountAmount())
+                .finalPrice(orderItem.getFinalPrice())
                 .pendingProductStatus(orderItem.getPendingProductStatus())
                 .build();
     }
 
     public void cancel(OrderItem item) {
         this.status = item.getStatus();
-        this.refundAmount = item.getPrice() * item.getQuantity();
+        this.refundAmount = item.getFinalPrice() * item.getQuantity();
         this.refundReason = item.getRefundReason();
-        this.refundedAt = item.getRefundedAt();
+        this.canceledAt = item.getCanceledAt();
     }
 
     public void refund(OrderItem item) {
 
         this.status = item.getStatus();
-        this.refundAmount = item.getPrice() * item.getQuantity();
+        this.refundAmount = item.getFinalPrice() * item.getQuantity();
         this.refundReason = item.getRefundReason();
         this.refundedAt = item.getRefundedAt();
     }
