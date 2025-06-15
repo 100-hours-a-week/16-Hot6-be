@@ -145,6 +145,20 @@ public class ProductPromotion {
         }
     }
 
+    // 판매 수량 감소
+    public void decreaseSoldQuantity(int quantity) {
+        if (quantity > this.soldQuantity) {
+            throw new IllegalArgumentException("판매된 수량을 초과할 수 없습니다.");
+        }
+
+        if (this.soldQuantity == this.promotionQuantity) {
+            this.status = PromotionStatus.ACTIVE;
+        }
+
+        this.soldQuantity -= quantity;
+    }
+
+
     // 특가 활성 여부 확인
     public boolean isActive() {
         LocalDateTime now = LocalDateTime.now();

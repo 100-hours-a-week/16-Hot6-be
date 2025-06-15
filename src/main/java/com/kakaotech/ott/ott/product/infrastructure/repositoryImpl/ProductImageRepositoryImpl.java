@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
@@ -44,9 +43,10 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ProductImage> findById(Long imageId) {
+    public ProductImage findById(Long imageId) {
         return productImageJpaRepository.findById(imageId)
-                .map(ProductImageEntity::toDomain);
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND))
+                .toDomain();
     }
 
     @Override
@@ -90,9 +90,10 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<ProductImage> findMainImage(Long productId) {
+    public ProductImage findMainImage(Long productId) {
         return productImageJpaRepository.findMainImage(productId)
-                .map(ProductImageEntity::toDomain);
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND))
+                .toDomain();
     }
 
     @Override

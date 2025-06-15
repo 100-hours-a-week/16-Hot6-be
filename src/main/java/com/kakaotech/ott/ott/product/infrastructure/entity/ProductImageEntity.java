@@ -19,7 +19,7 @@ public class ProductImageEntity {
 
     // 상품과의 관계 (N:1)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
+    @JoinColumn(name = "variants_id", nullable = false)
     private ProductEntity productEntity;
 
     @Column(name = "sequence", nullable = false)
