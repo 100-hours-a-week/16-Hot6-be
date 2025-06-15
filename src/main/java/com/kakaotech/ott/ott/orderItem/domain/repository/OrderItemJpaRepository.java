@@ -8,7 +8,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderItemJpaRepository extends JpaRepository<OrderItemEntity, Long> {
-    boolean existsByProductIdAndPendingProductStatus(Long productId, OrderItemStatus status);
 
+    boolean existsByProductVariantEntityIdAndPendingProductStatusAndStatus(
+            Long variantsId,
+            OrderItemStatus pendingStatus,
+            OrderItemStatus excludedStatus
+    );
     List<OrderItemEntity> findByProductOrderEntity_Id(Long productOrderId);
 }
