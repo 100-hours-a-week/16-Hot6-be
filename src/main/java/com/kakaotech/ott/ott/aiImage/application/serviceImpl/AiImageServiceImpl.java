@@ -100,7 +100,7 @@ public class AiImageServiceImpl implements AiImageService {
             throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
 
-        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
+        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getPostId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
 
         if(aiImage.getState().equals(AiImageState.FAILED) || aiImage.getState().equals(AiImageState.PENDING)) {
             return new AiImageAndProductResponseDto(aiImageResponseDto, null);
@@ -124,6 +124,8 @@ public class AiImageServiceImpl implements AiImageService {
                             product.getPrice(),
                             product.getPurchaseUrl(),
                             isScrapped,
+                            product.getCenterX(),
+                            product.getCenterY(),
                             product.getWeight()
                     );
                 })
