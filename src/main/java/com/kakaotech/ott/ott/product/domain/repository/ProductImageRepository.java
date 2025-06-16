@@ -10,7 +10,7 @@ public interface ProductImageRepository {
     // 기본 CRUD
     ProductImage save(ProductImage image);
 
-    Optional<ProductImage> findById(Long imageId);
+    ProductImage findById(Long imageId);
 
     void delete(Long imageId);
 
@@ -24,7 +24,7 @@ public interface ProductImageRepository {
 //
     int countByProductId(Long productId);
 
-    Optional<ProductImage> findMainImage(Long productId);
+    ProductImage findMainImage(Long productId);
 
     // 시퀀스 관리
     void updateSequence(Long imageId, int sequence);
