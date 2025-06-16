@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.aiImage.infrastructure.entity;
 
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.aiImage.domain.model.ImageGenerationHistory;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.*;
@@ -31,7 +32,7 @@ public class ImageGenerationHistoryEntity {
     private LocalDate dateKey;
 
     @Column(name = "prompt_summary")
-    private String promptSummary;
+    private AiImageConcept promptSummary;
 
     @CreatedDate
     @Column(name = "generated_at", nullable = false)

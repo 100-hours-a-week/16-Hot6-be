@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.aiImage.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.recommendProduct.presentation.dto.request.ProductDetailRequestDto;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -19,6 +20,9 @@ public class AiImageAndProductRequestDto {
 
     @JsonProperty("processed_image_url")
     private String processedImageUrl;
+
+    @JsonProperty("concept")
+    private AiImageConcept concept;
 
     @Builder.Default
     private List<ProductDetailRequestDto> products = new ArrayList<>();

@@ -5,6 +5,8 @@ import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
+import com.kakaotech.ott.ott.aiImage.domain.model.ImageGenerationHistory;
+import com.kakaotech.ott.ott.aiImage.domain.repository.ImageGenerationHistoryRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -40,6 +43,7 @@ public class AiImageServiceImpl implements AiImageService {
 
     private final ImageUploader imageUploader;
     private final FastApiClient fastApiClient;
+    private final ImageGenerationHistoryRepository imageGenerationHistoryRepository;
 
     @Override
     @Transactional
@@ -81,7 +85,8 @@ public class AiImageServiceImpl implements AiImageService {
 
         User user = userAuthRepository.findById(aiImage.getUserId());
 
-        user.renewGeneratedDate();
+        ImageGenerationHistory imageGenerationHistory = ImageGenerationHistory.createImageGenerationHisotry(user.getId(), LocalDate.now(), aiImageAndProductRequestDto.getConcept());
+        imageGenerationHistoryRepository.save(imageGenerationHistory, user);
 
         AiImage savedAiImage = aiImageRepository.saveImage(aiImage);
 
