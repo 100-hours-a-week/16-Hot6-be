@@ -4,7 +4,6 @@ import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.application.service.LikeService;
 import com.kakaotech.ott.ott.like.domain.model.Like;
-import com.kakaotech.ott.ott.like.domain.model.LikeType;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
 import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
 import com.kakaotech.ott.ott.post.domain.model.Post;
@@ -29,19 +28,19 @@ public class LikeServiceImpl implements LikeService {
 
         User user = userAuthRepository.findById(userId);
 
-        Post post = postRepository.findById(likeRequestDto.getTargetId());
+        Post post = postRepository.findById(likeRequestDto.getPostId());
 
-        boolean exists = likeRepository.existsByUserIdAndPostId(userId, likeRequestDto.getTargetId());
+        boolean exists = likeRepository.existsByUserIdAndPostId(userId, likeRequestDto.getPostId());
 
         // 이미 좋아요 상태라면 아무 동작 하지 않음
         if(exists) {
             throw new CustomException(ErrorCode.LIKE_ALREADY_EXISTS);
         }
 
-        Like like = Like.createLike(userId, LikeType.POST, likeRequestDto.getTargetId());
+        Like like = Like.createLike(userId, likeRequestDto.getPostId());
         Like savedLike = likeRepository.save(like);
 
-        postRepository.incrementLikeCount(likeRequestDto.getTargetId(), 1L);
+        postRepository.incrementLikeCount(likeRequestDto.getPostId(), 1L);
     }
 
     @Transactional
@@ -50,17 +49,17 @@ public class LikeServiceImpl implements LikeService {
 
         User user = userAuthRepository.findById(userId);
 
-        Post post = postRepository.findById(likeRequestDto.getTargetId());
+        Post post = postRepository.findById(likeRequestDto.getPostId());
 
-        boolean exists = likeRepository.existsByUserIdAndPostId(userId, likeRequestDto.getTargetId());
+        boolean exists = likeRepository.existsByUserIdAndPostId(userId, likeRequestDto.getPostId());
 
         // 이미 좋아요 상태라면 아무 동작 하지 않음
         if(!exists) {
             throw new CustomException(ErrorCode.LIKE_NOT_FOUND);
         }
 
-        likeRepository.deleteByUserEntityIdAndTargetId(userId, likeRequestDto.getTargetId());
+        likeRepository.deleteByUserEntityIdAndTargetId(userId, likeRequestDto.getPostId());
 
-        postRepository.incrementLikeCount(likeRequestDto.getTargetId(), -1L);
+        postRepository.incrementLikeCount(likeRequestDto.getPostId(), -1L);
     }
 }

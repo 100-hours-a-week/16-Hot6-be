@@ -24,7 +24,9 @@ public class Post {
     private List<PostImage> images = new ArrayList<>();
 
     private int commentCount;
-    private int likeCount;
+
+    @Builder.Default
+    private Long likeCount = 0L;
 
     @Builder.Default
     private Long viewCount = 0L;
@@ -42,7 +44,7 @@ public class Post {
                 .title(title)
                 .content(content)
                 .commentCount(0)
-                .likeCount(0)
+                .likeCount(0L)
                 .viewCount(0L)
                 .scrapCount(0)
                 .weight(0.0)

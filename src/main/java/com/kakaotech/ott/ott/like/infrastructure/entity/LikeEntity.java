@@ -1,7 +1,7 @@
 package com.kakaotech.ott.ott.like.infrastructure.entity;
 
 import com.kakaotech.ott.ott.like.domain.model.Like;
-import com.kakaotech.ott.ott.like.domain.model.LikeType;
+import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Table(name = "likes",
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_user_type_target",
-                columnNames = {"user_id", "type", "target_id"}
+                columnNames = {"user_id", "post_id"}
         )
 )
 @Getter
@@ -32,12 +32,9 @@ public class LikeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity userEntity;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
-    private LikeType type;
-
-    @Column(name = "target_id", nullable = false)
-    private Long targetId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    private PostEntity postEntity;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
@@ -50,20 +47,18 @@ public class LikeEntity {
         return Like.builder()
                 .id(this.id)
                 .userId(this.userEntity.getId())
-                .type(this.type)
-                .targetId(this.targetId)
+                .postId(this.postEntity.getId())
                 .isActive(this.isActive)
                 .createdAt(this.createdAt)
                 .build();
     }
 
-    public static LikeEntity from(Like like, UserEntity userEntity) {
+    public static LikeEntity from(Like like, UserEntity userEntity, PostEntity postEntity) {
 
         return LikeEntity.builder()
                 .id(like.getId())
                 .userEntity(userEntity)
-                .type(like.getType())
-                .targetId(like.getTargetId())
+                .postEntity(postEntity)
                 .isActive(like.getIsActive())
                 .createdAt(like.getCreatedAt())
                 .build();

@@ -20,7 +20,7 @@ public class PostAllResponseDto {
         private final String title;
         private final PostAuthorResponseDto author;
         private final String thumbnailUrl;
-        private final int likeCount;
+        private final Long likeCount;
         private final int commentCount;
         private final Long viewCount;
 
@@ -37,7 +37,7 @@ public class PostAllResponseDto {
     public static class Pagination {
         private final int size;
         private final Long lastPostId;
-        private final Integer lastLikeCount;
+        private final Long lastLikeCount;
         private final Long lastViewCount;
         private final boolean hasNext;
     }
