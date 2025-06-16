@@ -13,19 +13,16 @@ public class Like {
     private Long id;
     private Long userId;
 
-    private LikeType type;
-
-    private Long targetId;
+    private Long postId;
 
     private Boolean isActive;
 
     private LocalDateTime createdAt;
 
-    public static Like createLike(Long userId, LikeType type, Long targetId) {
+    public static Like createLike(Long userId, Long postId) {
         return Like.builder()
                 .userId(userId)
-                .type(type)
-                .targetId(targetId)
+                .postId(postId)
                 .isActive(true)  // 기본 활성화
                 .build();
     }

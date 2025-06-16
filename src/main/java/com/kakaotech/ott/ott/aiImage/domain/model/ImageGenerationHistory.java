@@ -16,16 +16,16 @@ public class ImageGenerationHistory {
 
     private LocalDate dateKey;
 
-    private String promptSummary;
+    private AiImageConcept promptSummary;
 
     private LocalDateTime generatedAt;
 
-    public static ImageGenerationHistory createImageGenerationHisotry(Long userId, LocalDate dateKey, String promptSummary) {
+    public static ImageGenerationHistory createImageGenerationHisotry(Long userId, LocalDate dateKey, AiImageConcept concept) {
 
         return ImageGenerationHistory.builder()
                 .userId(userId)
                 .dateKey(dateKey)
-                .promptSummary(promptSummary)
+                .promptSummary(concept)
                 .build();
     }
 }

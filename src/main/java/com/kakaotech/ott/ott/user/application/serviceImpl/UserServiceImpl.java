@@ -71,10 +71,12 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findById(userId);
 
+        PointHistory pointHistory = pointHistoryRepository.findLatestPointHistoryByUserId(user.getId());
+
         if (!user.isActive())
             throw new CustomException(ErrorCode.USER_DELETED);
 
-        return new MyInfoResponseDto(user.getNicknameCommunity(), user.getNicknameKakao(), user.getImagePath(), user.getPoint(), user.isVerified());
+        return new MyInfoResponseDto(user.getNicknameCommunity(), user.getNicknameKakao(), user.getImagePath(), pointHistory.getBalanceAfter(), user.isVerified());
     }
 
     @Override

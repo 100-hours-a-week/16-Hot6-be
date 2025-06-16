@@ -25,7 +25,7 @@ public class PostGetResponseDto {
 
     private PostAuthorResponseDto author;
 
-    private int likeCount;
+    private long likeCount;
 
     private int commentCount;
 

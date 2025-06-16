@@ -128,7 +128,7 @@ public class PostServiceImpl implements PostService {
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
                     boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
                     int commentCount = commentRepository.findByPostId(post.getId());
-                    int likeCount = likeRepository.findByPostId(post.getId());
+                    Long likeCount = likeRepository.findByPostId(post.getId());
 
                     String thumbnailImage = switch (post.getType()) {
                         case AI -> aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
@@ -160,7 +160,7 @@ public class PostServiceImpl implements PostService {
 
         boolean hasNext = dtoList.size() == size;
         Long nextLastId = hasNext ? dtoList.get(dtoList.size() - 1).getPostId() : null;
-        Integer nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
+        Long nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
         Long nextLastViewCount = hasNext ? dtoList.get(dtoList.size() - 1).getViewCount() : null;
 
         return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, nextLastLikeCount, nextLastViewCount, hasNext));
@@ -183,7 +183,7 @@ public class PostServiceImpl implements PostService {
         List<?> imageUrls = imageLoaderManager.loadImages(post.getType(), postId);
 
         int commentCount = commentRepository.findByPostId(post.getId());
-        int likeCount = likeRepository.findByPostId(post.getId());
+        Long likeCount = likeRepository.findByPostId(post.getId());
 
         boolean isActive = userAuthRepository.findById(post.getUserId()).isActive();
 
