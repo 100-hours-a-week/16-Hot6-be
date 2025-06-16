@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.product.domain.repository;
 
+import com.kakaotech.ott.ott.product.domain.model.PromotionStatus;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductPromotionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,8 +18,8 @@ public interface ProductPromotionJpaRepository extends JpaRepository<ProductProm
     List<ProductPromotionEntity> findByVariantEntityId(Long variantId);
 
     // 품목별 + 상태별 특가 조회
-    @Query("SELECT p FROM ProductPromotionEntity p WHERE p.variantEntity = :variantId AND p.status = :status")
-    List<ProductPromotionEntity> findByVariantIdAndStatus(@Param("variantId") Long variantId, @Param("status") String status);
+    @Query("SELECT p FROM ProductPromotionEntity p WHERE p.variantEntity.id = :variantId AND p.status = :status")
+    Optional<ProductPromotionEntity> findByVariantIdAndStatus(@Param("variantId") Long variantId, @Param("status") PromotionStatus status);
 
     // 특가 타입별 조회
     @Query("SELECT p FROM ProductPromotionEntity p WHERE p.type = :type")

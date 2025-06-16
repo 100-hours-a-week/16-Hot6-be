@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.aiImage.application.serviceImpl;
 import com.kakaotech.ott.ott.aiImage.application.service.FastApiClient;
 import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
@@ -42,12 +43,12 @@ public class AiImageServiceImpl implements AiImageService {
 
     @Override
     @Transactional
-    public AiImageSaveResponseDto handleImageValidation(MultipartFile image, Long userId) throws IOException {
+    public AiImageSaveResponseDto handleImageValidation(MultipartFile image, AiImageConcept concept, Long userId) throws IOException {
         // 1. 이미지 업로드 (S3에 저장 후 퍼블릭 URL 반환)
         String imageUrl = imageUploader.upload(image);
 
         // 2. FastAPI로 전송하여 이미지 유효성 검사
-        FastApiRequestDto request = new FastApiRequestDto(imageUrl);
+        FastApiRequestDto request = new FastApiRequestDto(imageUrl, concept);
         FastApiResponseDto response = fastApiClient.sendBeforeImageToFastApi(request);
 
         System.out.println("fastApi 결과 : " + response.isClassify());
@@ -58,7 +59,7 @@ public class AiImageServiceImpl implements AiImageService {
             throw new CustomException(ErrorCode.INVALID_IMAGE);
         }
 
-        AiImage aiImage = AiImage.createAiImage(userId, response.getInitialImageUrl());
+        AiImage aiImage = AiImage.createAiImage(userId, concept, response.getInitialImageUrl());
         AiImage savedAiImage = aiImageRepository.saveImage(aiImage);
 
         return new AiImageSaveResponseDto(savedAiImage.getId());
@@ -100,7 +101,7 @@ public class AiImageServiceImpl implements AiImageService {
             throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
 
-        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
+        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getPostId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
 
         if(aiImage.getState().equals(AiImageState.FAILED) || aiImage.getState().equals(AiImageState.PENDING)) {
             return new AiImageAndProductResponseDto(aiImageResponseDto, null);
@@ -124,6 +125,8 @@ public class AiImageServiceImpl implements AiImageService {
                             product.getPrice(),
                             product.getPurchaseUrl(),
                             isScrapped,
+                            product.getCenterX(),
+                            product.getCenterY(),
                             product.getWeight()
                     );
                 })

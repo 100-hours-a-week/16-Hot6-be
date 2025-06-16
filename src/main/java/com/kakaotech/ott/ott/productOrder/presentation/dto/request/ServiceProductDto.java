@@ -16,9 +16,15 @@ public class ServiceProductDto {
     private Long productId;
 
     @NotNull
-    private int price;
+    private Long promotionId;
+
+    @NotNull
+    private int originalPrice;
 
     @NotNull
     private int quantity;
+
+    @NotNull
+    private int discountPrice;
 
 }

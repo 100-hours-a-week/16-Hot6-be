@@ -32,8 +32,6 @@ public class FastApiClientImpl implements FastApiClient {
 
         fastApiRequestDto.fastApiUrl(baseUrl);
 
-        System.out.println(fastApiRequestDto.getInitialImageUrl());
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 

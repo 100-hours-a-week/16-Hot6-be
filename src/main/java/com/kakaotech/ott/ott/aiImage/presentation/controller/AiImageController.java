@@ -69,7 +69,7 @@ public class AiImageController {
                     .body(ApiResponse.error(400, "이미지 파일이 비어있습니다."));
         }
 
-        AiImageSaveResponseDto aiImageSaveResponseDto = aiImageService.handleImageValidation(image, userId);
+        AiImageSaveResponseDto aiImageSaveResponseDto = aiImageService.handleImageValidation(image, requestDto.getConcept(), userId);
 
         return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성 요청이 접수되었습니다.", aiImageSaveResponseDto));
     }

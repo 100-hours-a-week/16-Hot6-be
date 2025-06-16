@@ -24,7 +24,7 @@ public interface ProductImageRepository {
 //
     int countByVariantId(Long variantId);
 
-    Optional<ProductImage> findMainImage(Long variantId);
+    ProductImage findMainImage(Long productId);
 
     // 시퀀스 관리
     void updateSequence(Long imageId, int sequence);

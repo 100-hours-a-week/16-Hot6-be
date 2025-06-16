@@ -1,14 +1,15 @@
 package com.kakaotech.ott.ott.product.domain.repository;
 
-import com.kakaotech.ott.ott.product.infrastructure.entity.ProductImageEntity;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import com.kakaotech.ott.ott.product.infrastructure.entity.ProductImageEntity;
 
 public interface ProductImageJpaRepository extends JpaRepository<ProductImageEntity, Long> {
 
@@ -24,7 +25,7 @@ public interface ProductImageJpaRepository extends JpaRepository<ProductImageEnt
     int countByVariantEntityId(Long productId);
 
     // 메인 이미지 조회 (sequence = 1)
-    @Query("SELECT i FROM ProductImageEntity i WHERE i.variantEntity = :productId AND i.sequence = 1")
+    @Query("SELECT i FROM ProductImageEntity i WHERE i.variantEntity.id = :productId AND i.sequence = 1")
     Optional<ProductImageEntity> findMainImage(@Param("productId") Long productId);
 
     // 시퀀스 업데이트

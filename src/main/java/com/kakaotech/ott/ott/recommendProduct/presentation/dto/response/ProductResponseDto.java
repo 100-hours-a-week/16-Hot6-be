@@ -24,9 +24,9 @@ public class ProductResponseDto {
     private boolean isScraped;
 
     // 버전 업그레이드 때 진행
-//    private Integer centerX;
-//
-//    private Integer centerY;
+    private Integer centerX;
+
+    private Integer centerY;
 
     private double weight;
 
