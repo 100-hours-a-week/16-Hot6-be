@@ -22,7 +22,7 @@ public interface ProductPromotionRepository {
     // 품목별 특가 조회
     List<ProductPromotion> findByVariantId(Long variantId);
 
-    List<ProductPromotion> findByVariantIdAndStatus(Long variantId, PromotionStatus status);
+    ProductPromotion findByVariantIdAndStatus(Long variantId, PromotionStatus status);
 
     // 특가 타입별 조회
     List<ProductPromotion> findByType(PromotionType type);
