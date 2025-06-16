@@ -3,7 +3,10 @@ package com.kakaotech.ott.ott.product.application.service;
 import java.io.IOException;
 import java.util.List;
 
+import com.kakaotech.ott.ott.product.domain.model.ProductType;
+import com.kakaotech.ott.ott.product.domain.model.PromotionType;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductGetResponseDto;
+import com.kakaotech.ott.ott.product.presentation.dto.response.ProductListResponseDto;
 import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.ProductResponseDto;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,15 +17,16 @@ public interface ProductService {
 
     ProductCreateResponseDto createProduct(ProductCreateRequestDto productCreateRequestDto, Long userId) throws IOException;
 
-
-//    ProductCreateResponseDto updateProduct(Long productId, ProductCreateRequestDto request, List<MultipartFile> images);
-//
-//
-//    void deleteProduct(Long productId);
-
-
     ProductGetResponseDto getProduct(Long productId, Long userId);
 
+    ProductListResponseDto getProductList(
+            Long userId,
+            ProductType productType,
+            PromotionType promotionType,
+            Long lastProductId,
+            int size);
 
-//    ProductListResponseDto getProductList(String type, Long cursorId, int size);
+    //    ProductCreateResponseDto updateProduct(Long productId, ProductCreateRequestDto request, List<MultipartFile> images);
+    //    void deleteProduct(Long productId);
+
 }
