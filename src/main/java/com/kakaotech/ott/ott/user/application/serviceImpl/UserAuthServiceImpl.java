@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.user.application.serviceImpl;
 
+import com.kakaotech.ott.ott.aiImage.domain.repository.ImageGenerationHistoryRepository;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.CheckAiImageQuotaResponseDto;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
@@ -25,6 +26,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final UserAuthRepository userAuthRepository;
     private final KakaoLogoutServiceImpl kakaoLogoutService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final ImageGenerationHistoryRepository imageGenerationHistoryRepository;
 
     @Transactional(readOnly = true)
     public CheckAiImageQuotaResponseDto remainQuota(Long userId) {
@@ -37,13 +39,9 @@ public class UserAuthServiceImpl implements UserAuthService {
         // 1. 사용자가 존재하지 않으면 예외 발생 (404)
         User user = userAuthRepository.findById(userId);
 
-        LocalDate lastGenerated = user.getAiImageGeneratedDate();
+        int usedToken = imageGenerationHistoryRepository.checkGenerationTokenCount(user.getId(), today);
 
-        if (lastGenerated != null && today.equals(lastGenerated))
-            return new CheckAiImageQuotaResponseDto(0);
-
-        //나중에는 이미지 생성 내역 테이블 불러와서 남은 횟수 반환(현재는 1개)
-        return new CheckAiImageQuotaResponseDto(1);
+        return new CheckAiImageQuotaResponseDto(3-usedToken);
     }
 
     @Override

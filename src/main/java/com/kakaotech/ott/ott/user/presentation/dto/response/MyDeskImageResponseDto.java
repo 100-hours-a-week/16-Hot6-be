@@ -23,7 +23,7 @@ public class MyDeskImageResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ImageDto {
-        private Long aiImageId;
+            private Long aiImageId;
         private String beforeImagePath;
         private String afterImagePath;
         private LocalDateTime createdAt;

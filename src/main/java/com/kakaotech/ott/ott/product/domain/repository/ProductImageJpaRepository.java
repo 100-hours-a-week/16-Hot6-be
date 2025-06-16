@@ -24,7 +24,7 @@ public interface ProductImageJpaRepository extends JpaRepository<ProductImageEnt
     int countByProductEntityId(Long productId);
 
     // 메인 이미지 조회 (sequence = 1)
-    @Query("SELECT i FROM ProductImageEntity i WHERE i.productEntity = :productId AND i.sequence = 1")
+    @Query("SELECT i FROM ProductImageEntity i WHERE i.productEntity.id = :productId AND i.sequence = 1")
     Optional<ProductImageEntity> findMainImage(@Param("productId") Long productId);
 
     // 시퀀스 업데이트
