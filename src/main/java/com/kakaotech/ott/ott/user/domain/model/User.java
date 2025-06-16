@@ -15,11 +15,9 @@ public class User {
     private Role role;
     private String nicknameKakao;
     private String nicknameCommunity;
-    private int point;
     private String imagePath;
     private boolean isActive;
     private boolean isVerified;
-    private LocalDate aiImageGeneratedDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
@@ -30,20 +28,10 @@ public class User {
                 .role(Role.USER)
                 .nicknameKakao(null)
                 .nicknameCommunity(nicknameCommunity)
-                .point(500)
                 .imagePath(imagePath)
                 .isActive(true)
                 .isVerified(false)
-                .aiImageGeneratedDate(null)
                 .build();
-    }
-
-    public void renewGeneratedDate() {
-        this.aiImageGeneratedDate = LocalDate.now();
-    }
-
-    public void updatePoint(int point) {
-        this.point += point;
     }
 
     public void updateProfileImagePath(String imagePath) {

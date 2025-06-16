@@ -36,14 +36,14 @@ public class UserDomainServiceImpl implements UserDomainService {
             return optionalUser.get();
         }
 
-        // User 도메인 객체 생성
         User user = User.createUser(email, nickname, imagePath);
 
-        PointHistory pointHistory = PointHistory.createPointHistory(user.getId(), 500, 500, PointActionType.EARN, PointActionReason.SIGNUP);
-        pointHistoryRepository.save(pointHistory, user);
+        User savedUser = userAuthRepository.save(user);
 
-        // 저장 후 반환
-        return userAuthRepository.save(user);
+        PointHistory pointHistory = PointHistory.createPointHistory(savedUser.getId(), 500, 500, PointActionType.EARN, PointActionReason.SIGNUP);
+        pointHistoryRepository.save(pointHistory, savedUser);
+
+        return savedUser;
     }
 
     private String extractEmail(Map<String, Object> attributes) {
