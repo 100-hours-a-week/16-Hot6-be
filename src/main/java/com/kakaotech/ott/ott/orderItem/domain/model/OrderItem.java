@@ -15,13 +15,19 @@ public class OrderItem {
 
     private Long orderId;
 
-    private Long productId;
+    private Long variantsId;
+
+    private Long promotionId;
 
     private OrderItemStatus status;
 
-    private int price;
+    private int originalPrice;
 
     private int quantity;
+
+    private int discountAmount;
+
+    private int finalPrice;
 
     private OrderItemStatus pendingProductStatus;
 
@@ -33,14 +39,17 @@ public class OrderItem {
 
     private LocalDateTime refundedAt;
 
-    public static OrderItem createOrderItem(Long orderId, Long productId, int price, int quantity) {
+    public static OrderItem createOrderItem(Long orderId, Long variantsId, Long promotionId, int originalPrice, int quantity, int discountAmount, int finalPrice) {
 
         return OrderItem.builder()
                 .orderId(orderId)
-                .productId(productId)
+                .variantsId(variantsId)
+                .promotionId(promotionId)
                 .status(OrderItemStatus.PENDING)
-                .price(price)
+                .originalPrice(originalPrice)
                 .quantity(quantity)
+                .discountAmount(discountAmount)
+                .finalPrice(finalPrice)
                 .pendingProductStatus(OrderItemStatus.PENDING)
                 .build();
     }
@@ -69,7 +78,7 @@ public class OrderItem {
         if (this.status != OrderItemStatus.PAID) throw new CustomException(ErrorCode.NOT_CANCELABLE_STATE);
 
         this.status = OrderItemStatus.CANCELED;
-        this.refundAmount = this.getPrice() * this.getQuantity();
+        this.refundAmount = this.finalPrice * this.getQuantity();
         this.refundReason = refundReason;
         this.canceledAt = canceledAt;
     }
@@ -78,7 +87,7 @@ public class OrderItem {
         if (this.status != OrderItemStatus.DELIVERED) throw new CustomException(ErrorCode.NOT_REFUNDABLE_STATE);
 
         this.status = OrderItemStatus.REFUND;
-        this.refundAmount = this.getPrice() * this.getQuantity();
+        this.refundAmount = this.finalPrice * this.getQuantity();
         this.refundReason = refundReason;
         this.refundedAt = refundedAt;
     }
@@ -86,7 +95,7 @@ public class OrderItem {
     public void confirm() {
         if (this.status != OrderItemStatus.DELIVERED) throw new CustomException(ErrorCode.NOT_CONFIRMABLE_STATE);
 
-        this.status = OrderItemStatus.CONFIRM;
+        this.status = OrderItemStatus.CONFIRMED;
     }
 
 }
