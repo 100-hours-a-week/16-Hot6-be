@@ -12,16 +12,16 @@ import java.util.List;
 public interface LikeJpaRepository extends JpaRepository<LikeEntity, Long> {
 
 
-    boolean existsByUserEntityIdAndTargetId(Long userId, Long postId);
+    boolean existsByUserEntityIdAndPostEntityId(Long userId, Long postId);
 
     @Modifying(clearAutomatically = true)
-    @Query("DELETE FROM LikeEntity l WHERE l.userEntity.id = :userId AND l.targetId = :postId")
+    @Query("DELETE FROM LikeEntity l WHERE l.userEntity.id = :userId AND l.postEntity.id = :postId")
     void deleteByUserEntityIdAndTargetId(Long userId, Long postId);
 
-    @Query("SELECT COUNT(l) FROM LikeEntity l WHERE l.targetId = :postId")
-    int countByPostId(@Param("postId") Long postId);
+    @Query("SELECT COUNT(l) FROM LikeEntity l WHERE l.postEntity.id = :postId")
+    Long countByPostId(@Param("postId") Long postId);
 
     // Batch 조회 쿼리
-    @Query("SELECT l.targetId FROM LikeEntity l WHERE l.userEntity.id = :userId AND l.targetId IN :postIds")
+    @Query("SELECT l.postEntity.id FROM LikeEntity l WHERE l.userEntity.id = :userId AND l.postEntity.id IN :postIds")
     List<Long> findLikedPostIds(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
 }

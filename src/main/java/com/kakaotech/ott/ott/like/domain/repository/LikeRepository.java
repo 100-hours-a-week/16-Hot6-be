@@ -13,7 +13,7 @@ public interface LikeRepository {
 
     boolean existsByUserIdAndPostId(Long userId, Long postId);
 
-    int findByPostId(Long postId);
+    Long findByPostId(Long postId);
 
     Set<Long> findLikedPostIdsByUserId(Long userId, List<Long> postIds);
 }

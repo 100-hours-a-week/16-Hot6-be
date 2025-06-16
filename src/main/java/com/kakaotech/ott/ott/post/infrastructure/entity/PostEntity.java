@@ -47,8 +47,10 @@ public class PostEntity extends AuditEntity {
 
     @Column(name = "comment_count", nullable = false)
     private int commentCount;
+
+    @Builder.Default
     @Column(name = "like_count", nullable = false)
-    private int likeCount;
+    private Long likeCount = 0L;
 
     @Builder.Default
     @Column(name = "view_count", nullable = false)
