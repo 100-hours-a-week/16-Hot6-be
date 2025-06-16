@@ -125,7 +125,7 @@ public class AiImageServiceImpl implements AiImageService {
                             product.getPrice(),
                             product.getPurchaseUrl(),
                             isScrapped,
-                            product.getCenterY(),
+                            product.getCenterX(),
                             product.getCenterY(),
                             product.getWeight()
                     );
