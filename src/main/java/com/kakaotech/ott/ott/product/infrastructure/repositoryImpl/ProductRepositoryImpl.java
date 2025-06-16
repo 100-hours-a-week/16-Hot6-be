@@ -4,8 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.kakaotech.ott.ott.product.domain.model.ProductImage;
-import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
+import com.kakaotech.ott.ott.product.domain.model.*;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductImageEntity;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductVariantEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
@@ -17,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
-import com.kakaotech.ott.ott.product.domain.model.ProductType;
-import com.kakaotech.ott.ott.product.domain.model.Product;
 import com.kakaotech.ott.ott.product.domain.repository.ProductJpaRepository;
 import com.kakaotech.ott.ott.product.domain.repository.ProductRepository;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductEntity;
@@ -128,6 +125,39 @@ public class ProductRepositoryImpl implements ProductRepository {
 
         return productJpaRepository.findByOrderByScrapCountDesc(pageable)
                 .stream()
+                .map(ProductEntity::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Product> findProductsByCursor(ProductType productType, Long lastProductId, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+
+        List<ProductEntity> entities;
+
+        if (productType == null) {
+            // 전체 상품 조회
+            entities = productJpaRepository.findAllProductsByCursor(lastProductId, pageable);
+        } else {
+            // 상품 타입별 조회
+            entities = productJpaRepository.findProductsByTypeByCursor(productType, lastProductId, pageable);
+        }
+
+        return entities.stream()
+                .map(ProductEntity::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Product> findPromotionProductsByCursor(PromotionType promotionType, Long lastProductId, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+
+        List<ProductEntity> entities = productJpaRepository.findPromotionProductsByCursor(
+                promotionType, lastProductId, pageable);
+
+        return entities.stream()
                 .map(ProductEntity::toDomain)
                 .collect(Collectors.toList());
     }

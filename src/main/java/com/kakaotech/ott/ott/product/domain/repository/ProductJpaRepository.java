@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.product.domain.repository;
 
 import com.kakaotech.ott.ott.product.domain.model.Product;
+import com.kakaotech.ott.ott.product.domain.model.ProductType;
+import com.kakaotech.ott.ott.product.domain.model.PromotionType;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductEntity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -33,6 +35,61 @@ public interface ProductJpaRepository extends JpaRepository<ProductEntity, Long>
     // 스크랩순 Top N 조회
     @Query("SELECT s FROM ProductEntity s ORDER BY s.scrapCount DESC")
     List<ProductEntity> findByOrderByScrapCountDesc(Pageable pageable);
+
+
+    // 전체 일반 상품 목록 조회(특가 제외, 최신순 정렬)
+    @Query("""
+        SELECT DISTINCT p FROM ProductEntity p 
+        LEFT JOIN FETCH p.variants v 
+        LEFT JOIN FETCH v.images img 
+        WHERE p.status = 'ACTIVE' 
+        AND v.status = 'ACTIVE' 
+        AND v.isOnPromotion = false 
+        AND (:lastProductId IS NULL OR p.id < :lastProductId) 
+        AND img.sequence = 1 
+        ORDER BY p.createdAt DESC
+        """)
+    List<ProductEntity> findAllProductsByCursor(@Param("lastProductId") Long lastProductId, Pageable pageable);
+
+    // 상품 타입별 목록 조회(특가 제외, 최신순 정렬)
+    @Query("""
+        SELECT DISTINCT p FROM ProductEntity p 
+        LEFT JOIN FETCH p.variants v 
+        LEFT JOIN FETCH v.images img 
+        WHERE p.status = 'ACTIVE' 
+        AND p.type = :productType 
+        AND v.status = 'ACTIVE' 
+        AND v.isOnPromotion = false 
+        AND (:lastProductId IS NULL OR p.id < :lastProductId) 
+        AND img.sequence = 1 
+        ORDER BY p.createdAt DESC
+        """)
+    List<ProductEntity> findProductsByTypeByCursor(
+            @Param("productType") ProductType productType,
+            @Param("lastProductId") Long lastProductId,
+            Pageable pageable);
+
+    // 특가 상품 목록 조회(할일 종료 시간 기준 오름차순 정렬; 마감 임박 순)
+    @Query("""
+        SELECT DISTINCT p FROM ProductEntity p 
+        LEFT JOIN FETCH p.variants v 
+        LEFT JOIN FETCH v.promotions pr 
+        LEFT JOIN FETCH v.images img 
+        WHERE p.status = 'ACTIVE' 
+        AND v.status = 'ACTIVE' 
+        AND v.isOnPromotion = true 
+        AND pr.status = 'ACTIVE' 
+        AND pr.type = :promotionType 
+        AND pr.endAt > CURRENT_TIMESTAMP 
+        AND (:lastProductId IS NULL OR p.id > :lastProductId) 
+        AND img.sequence = 1 
+        ORDER BY pr.endAt ASC, p.id ASC
+        """)
+    List<ProductEntity> findPromotionProductsByCursor(
+            @Param("promotionType") PromotionType promotionType,
+            @Param("lastProductId") Long lastProductId,
+            Pageable pageable);
+
 
     // 판매수 증가/감소
     @Modifying(clearAutomatically = true)
