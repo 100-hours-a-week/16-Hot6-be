@@ -26,8 +26,34 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      #  Run Checkstyle(lint)
+      - name: Run Checkstyle
+        run: ./gradlew checkstyleMain checkstyleTest
+
+      # Upload Checkstyle(lint) Report
+      - name: Upload checkstyle report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: build/reports/checkstyle/
+
+      # Run tests
+      - name: Run tests
+        run: ./gradlew test
+
+      # Upload Test Report (HTML)
+      - name: Upload only index.html test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-html
+          path: |
+            build/reports/tests/test/index.html
+            build/reports/tests/test/css/
+
       - name: Build with Gradle
-        run: ./gradlew bootJar -x test
+        run: ./gradlew bootJar
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -120,7 +146,7 @@ jobs:
             sudo apt update && sudo apt install -y lsof
             fi
 
-            echo " 기존 8080 포트 사용 중인 프로세스 종료"
+            # echo " 기존 8080 포트 사용 중인 프로세스 종료"
             PID=$(sudo lsof -t -i:8080 || true)
             if [ -n "$PID" ]; then
                 echo "포트를 점유 중인 프로세스 종료 (PID: $PID)"

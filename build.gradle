@@ -2,10 +2,14 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'checkstyle'
 }
 
 group = 'com.kakaotech.ott'
 version = '0.0.1-SNAPSHOT'
+
+compileJava.options.encoding = 'UTF-8'
+compileTestJava.options.encoding = 'UTF-8'
 
 java {
 	toolchain {
@@ -18,6 +22,19 @@ configurations {
 		extendsFrom annotationProcessor
 	}
 }
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+checkstyle {
+    configFile = file("checkstyle/naver-checkstyle-rules.xml")
+    configProperties = ["suppressionFile": "checkstyle/naver-checkstyle-suppressions.xml"]
+}
+
 
 repositories {
 	mavenCentral()
