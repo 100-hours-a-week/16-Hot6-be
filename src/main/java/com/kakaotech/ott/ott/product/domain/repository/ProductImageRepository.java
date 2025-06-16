@@ -14,20 +14,20 @@ public interface ProductImageRepository {
 
     void delete(Long imageId);
 
-    // 상품별 이미지 조회
-    List<ProductImage> findByProductId(Long productId);
+    // 품목별 이미지 조회
+    List<ProductImage> findByVariantId(Long variantId);
 
-    List<ProductImage> findByProductIdOrderBySequence(Long productId);
+    List<ProductImage> findByVariantIdOrderBySequence(Long variantId);
 
     // 비즈니스 메서드들
-    void deleteByProductId(Long productId);
+    void deleteByVariantId(Long variantId);
 //
-    int countByProductId(Long productId);
+    int countByVariantId(Long variantId);
 
     ProductImage findMainImage(Long productId);
 
     // 시퀀스 관리
     void updateSequence(Long imageId, int sequence);
 
-    void reorderSequences(Long productId, List<Long> imageIds);
+    void reorderSequences(Long variantId, List<Long> imageIds);
 }

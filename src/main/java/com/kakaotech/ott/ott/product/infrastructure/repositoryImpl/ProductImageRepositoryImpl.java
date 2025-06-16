@@ -3,11 +3,10 @@ package com.kakaotech.ott.ott.product.infrastructure.repositoryImpl;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.product.domain.model.ProductImage;
-import com.kakaotech.ott.ott.product.domain.repository.ProductImageJpaRepository;
-import com.kakaotech.ott.ott.product.domain.repository.ProductImageRepository;
-import com.kakaotech.ott.ott.product.domain.repository.ProductJpaRepository;
+import com.kakaotech.ott.ott.product.domain.repository.*;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductEntity;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductImageEntity;
+import com.kakaotech.ott.ott.product.infrastructure.entity.ProductVariantEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,22 +19,22 @@ import java.util.stream.Collectors;
 public class ProductImageRepositoryImpl implements ProductImageRepository {
 
     private final ProductImageJpaRepository productImageJpaRepository;
-    private final ProductJpaRepository productJpaRepository;
+    private final ProductVariantJpaRepository productVariantJpaRepository;
 
     @Override
     @Transactional
     public ProductImage save(ProductImage image) {
-        // 상품 존재 여부 확인
-        ProductEntity productEntity = productJpaRepository.findById(image.getProductId())
+        // 품목 존재 여부 확인
+        ProductVariantEntity productVariantEntity = productVariantJpaRepository.findById(image.getVariantId())
                 .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         // 최대 이미지 개수 체크 (5개 제한)
-        int currentImageCount = countByProductId(image.getProductId());
+        int currentImageCount = countByVariantId(image.getVariantId());
         if (image.getId() == null && currentImageCount >= 5) {
             throw new IllegalArgumentException("상품 이미지는 최대 5개까지만 등록 가능합니다.");
         }
 
-        ProductImageEntity entity = ProductImageEntity.from(image, productEntity);
+        ProductImageEntity entity = ProductImageEntity.from(image, productVariantEntity);
         ProductImageEntity savedEntity = productImageJpaRepository.save(entity);
 
         return savedEntity.toDomain();
@@ -45,8 +44,8 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
     @Transactional(readOnly = true)
     public ProductImage findById(Long imageId) {
         return productImageJpaRepository.findById(imageId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND))
-                .toDomain();
+                .map(ProductImageEntity::toDomain)
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
     }
 
     @Override
@@ -60,8 +59,8 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductImage> findByProductId(Long productId) {
-        return productImageJpaRepository.findByProductEntityIdOrderBySequence(productId)
+    public List<ProductImage> findByVariantId(Long variantId) {
+        return productImageJpaRepository.findByVariantEntityIdOrderBySequence(variantId)
                 .stream()
                 .map(ProductImageEntity::toDomain)
                 .collect(Collectors.toList());
@@ -69,8 +68,8 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductImage> findByProductIdOrderBySequence(Long productId) {
-        return productImageJpaRepository.findByProductEntityIdOrderBySequence(productId)
+    public List<ProductImage> findByVariantIdOrderBySequence(Long variantId) {
+        return productImageJpaRepository.findByVariantEntityIdOrderBySequence(variantId)
                 .stream()
                 .map(ProductImageEntity::toDomain)
                 .collect(Collectors.toList());
@@ -78,14 +77,14 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
 
     @Override
     @Transactional
-    public void deleteByProductId(Long productId) {
-        productImageJpaRepository.deleteByProductEntityId(productId);
+    public void deleteByVariantId(Long variantId) {
+        productImageJpaRepository.deleteByVariantEntityId(variantId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public int countByProductId(Long productId) {
-        return productImageJpaRepository.countByProductEntityId(productId);
+    public int countByVariantId(Long variantId) {
+        return productImageJpaRepository.countByVariantEntityId(variantId);
     }
 
     @Override
@@ -113,12 +112,12 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
     @Override
     @Transactional
     public void reorderSequences(Long productId, List<Long> imageIds) {
-        // 상품 존재 여부 확인
-        productJpaRepository.findById(productId)
+        // 품목 존재 여부 확인
+        productVariantJpaRepository.findById(productId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
 
         // 이미지 ID들이 해당 상품에 속하는지 확인
-        List<ProductImageEntity> existingImages = productImageJpaRepository.findByProductEntityIdOrderBySequence(productId);
+        List<ProductImageEntity> existingImages = productImageJpaRepository.findByVariantEntityIdOrderBySequence(productId);
         List<Long> existingImageIds = existingImages.stream()
                 .map(ProductImageEntity::getId)
                 .collect(Collectors.toList());

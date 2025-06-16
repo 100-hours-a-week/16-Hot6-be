@@ -28,9 +28,11 @@ public interface ProductVariantRepository {
     List<ProductVariant> findAvailableVariants(Long productId);
 
     // 재고 관리
-    void updateQuantity(Long variantId, int quantity);
+    void updateAvailableQuantity(Long variantId, int quantity);
 
-    void reserveQuantity(Long variantId, int quantity);
+    // 재고 예약
+    void reserveStock(Long variantId, int quantity);
 
-    void releaseReservedQuantity(Long variantId, int quantity);
+    // 예약재고 해제
+    void releaseReservedStock(Long variantId, int quantity);
 }
