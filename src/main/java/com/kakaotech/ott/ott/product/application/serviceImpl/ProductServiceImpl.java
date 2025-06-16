@@ -164,6 +164,7 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductGetResponseDto convertToProductGetResponse(Product product, boolean scraped) {
         return ProductGetResponseDto.builder()
+                .productId(product.getId())
                 .productType(product.getType())
                 .productName(product.getName())
                 .description(product.getDescription())
@@ -193,6 +194,7 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductGetResponseDto.VariantResponse convertVariant(ProductVariant variant) {
         return ProductGetResponseDto.VariantResponse.builder()
+                .variantId(variant.getId())
                 .status(variant.getStatus())
                 .name(variant.getName())
                 .price(variant.getPrice())
@@ -212,6 +214,7 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductGetResponseDto.PromotionResponse convertPromotion(ProductPromotion promotion) {
         return ProductGetResponseDto.PromotionResponse.builder()
+                .promotionId(promotion.getId())
                 .status(promotion.getStatus())
                 .type(promotion.getType())
                 .name(promotion.getName())

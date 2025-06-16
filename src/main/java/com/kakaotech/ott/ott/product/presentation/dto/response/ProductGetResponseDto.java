@@ -18,6 +18,9 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class ProductGetResponseDto {
+    @JsonProperty("product_id")
+    private Long productId;
+
     @JsonProperty("product_type")
     private ProductType productType;
 
@@ -41,6 +44,8 @@ public class ProductGetResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class VariantResponse {
+        @JsonProperty("variant_id")
+        private Long variantId;
 
         @JsonProperty("status")
         private VariantStatus status;
@@ -69,6 +74,8 @@ public class ProductGetResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PromotionResponse {
+        @JsonProperty("promotion_id")
+        private Long promotionId;
 
         @JsonProperty("status")
         private PromotionStatus status;
