@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.user.application.serviceImpl;
 
+import com.kakaotech.ott.ott.aiImage.domain.model.ImageGenerationHistory;
 import com.kakaotech.ott.ott.aiImage.domain.repository.ImageGenerationHistoryRepository;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.CheckAiImageQuotaResponseDto;
 import com.kakaotech.ott.ott.global.exception.CustomException;
@@ -48,14 +49,11 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Transactional(readOnly = true)
     public void checkQuota(Long userId) {
 
-        LocalDate today = LocalDate.now();
-
-        // 1. 사용자가 존재하지 않으면 예외 발생 (404)
         User user = userAuthRepository.findById(userId);
 
-        LocalDate lastGenerated = user.getAiImageGeneratedDate();
+        int remainToken = imageGenerationHistoryRepository.checkGenerationTokenCount(userId, LocalDate.now());
 
-        if (lastGenerated != null && today.equals(lastGenerated))
+        if (remainToken == 0)
             throw new CustomException(ErrorCode.QUOTA_ALREADY_USED);
 
     }
