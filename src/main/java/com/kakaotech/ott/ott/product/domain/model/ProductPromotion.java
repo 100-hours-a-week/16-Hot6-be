@@ -19,8 +19,11 @@ public class ProductPromotion {
     private int originalPrice;
     private int discountPrice;
     private BigDecimal rate;
-    private int promotionQuantity;
+    private int totalQuantity;
 
+
+    @Builder.Default
+    private int reservedQuantity = 0;
     @Builder.Default
     private int soldQuantity = 0;
 
@@ -30,6 +33,17 @@ public class ProductPromotion {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // 판매 가능 수량 (총 수량 - 예약수량 - 판매수량)
+    public int getAvailableQuantity() {
+        return totalQuantity - reservedQuantity - soldQuantity;
+    }
+
+
+    // 특가 재고 충분여부 확인
+    public boolean hasAvailableStock(int requestedQuantity) {
+        return getAvailableQuantity() >= requestedQuantity;
+    }
+
     // 특가 생성 팩토리 메서드
     public static ProductPromotion createPromotion(
             Long variantId,
@@ -37,7 +51,7 @@ public class ProductPromotion {
             String name,
             int originalPrice,
             int discountPrice,
-            int promotionQuantity,
+            int totalQuantity,
             LocalDateTime startAt,
             LocalDateTime endAt,
             int maxPerCustomer) {
@@ -58,12 +72,107 @@ public class ProductPromotion {
                 .originalPrice(originalPrice)
                 .discountPrice(discountPrice)
                 .rate(rate)
-                .promotionQuantity(promotionQuantity)
+                .totalQuantity(totalQuantity)
+                .reservedQuantity(0)
                 .soldQuantity(0)
                 .startAt(startAt)
                 .endAt(endAt)
                 .maxPerCustomer(maxPerCustomer)
                 .build();
+    }
+
+    // 특가 재고 예약 (주문 생성 시)
+    public void reservePromotionStock(int quantity) {
+        validateQuantity(quantity);
+
+        if (!hasAvailableStock(quantity)) {
+            throw new IllegalArgumentException("특가 재고가 부족합니다.");
+        }
+
+        this.reservedQuantity += quantity;
+
+        // 특가 재고 부족 시 상태 변경
+        if (getAvailableQuantity() == 0) {
+            this.status = PromotionStatus.SOLD_OUT;
+        }
+    }
+
+    // 특가 예약 취소 (주문 취소 시)
+    public void cancelPromotionReservation(int quantity) {
+        validateQuantity(quantity);
+
+        if (quantity > this.reservedQuantity) {
+            throw new IllegalArgumentException("예약된 특가 수량을 초과할 수 없습니다.");
+        }
+
+        this.reservedQuantity -= quantity;
+
+        // 특가 재고가 다시 생긴 경우 상태 복구
+        if (this.status == PromotionStatus.SOLD_OUT && getAvailableQuantity() > 0) {
+            this.status = PromotionStatus.ACTIVE;
+        }
+    }
+
+    // 특가 판매 확정 (결제 완료 시)
+    public void confirmPromotionSale(int quantity) {
+        validateQuantity(quantity);
+
+        if (quantity > this.reservedQuantity) {
+            throw new IllegalArgumentException("예약된 특가 수량을 초과할 수 없습니다.");
+        }
+
+        this.reservedQuantity -= quantity;
+        this.soldQuantity += quantity;
+
+        // 완판 체크
+        if (this.soldQuantity == this.totalQuantity) {
+            this.status = PromotionStatus.SOLD_OUT;
+        }
+    }
+
+    // 특가 판매 취소 (환불 시)
+    public void cancelPromotionSale(int quantity) {
+        validateQuantity(quantity);
+
+        if (quantity > this.soldQuantity) {
+            throw new IllegalArgumentException("판매된 특가 수량을 초과할 수 없습니다.");
+        }
+
+        this.soldQuantity -= quantity;
+
+        // 특가 재고가 다시 생긴 경우 상태 복구
+        if (this.status == PromotionStatus.SOLD_OUT && getAvailableQuantity() > 0) {
+            this.status = PromotionStatus.ACTIVE;
+        }
+    }
+
+    // 특가 수량 추가
+    public void addPromotionStock(int quantity) {
+        validateQuantity(quantity);
+        this.totalQuantity += quantity;
+
+        // 특가 재고가 생긴 경우 상태 복구
+        if (this.status == PromotionStatus.SOLD_OUT && getAvailableQuantity() > 0) {
+            this.status = PromotionStatus.ACTIVE;
+        }
+    }
+
+    // 특가 수량 차감
+    public void reducePromotionStock(int quantity) {
+        validateQuantity(quantity);
+
+        // 최소한 예약된 수량 + 판매된 수량은 유지해야 함
+        int minimumRequired = this.reservedQuantity + this.soldQuantity;
+        if (this.totalQuantity - quantity < minimumRequired) {
+            throw new IllegalArgumentException("특가 총 할당량은 최소 " + minimumRequired + "개 이상이어야 합니다.");
+        }
+
+        this.totalQuantity -= quantity;
+
+        // 특가 재고 부족 시 상태 변경
+        if (getAvailableQuantity() == 0) {
+            this.status = PromotionStatus.SOLD_OUT;
+        }
     }
 
     // 특가명 검증
@@ -133,63 +242,12 @@ public class ProductPromotion {
         this.status = status;
     }
 
-    // 판매 수량 증가
-    public void increaseSoldQuantity(int quantity) {
-        if (this.soldQuantity + quantity > this.promotionQuantity) {
-            throw new IllegalArgumentException("특가 할당 수량을 초과할 수 없습니다.");
-        }
-        this.soldQuantity += quantity;
-
-        if (this.soldQuantity == this.promotionQuantity) {
-            this.status = PromotionStatus.SOLD_OUT;
-        }
-    }
-
-    // 판매 수량 감소
-    public void decreaseSoldQuantity(int quantity) {
-        if (quantity > this.soldQuantity) {
-            throw new IllegalArgumentException("이미 판매된 수량을 초과할 수 없습니다.");
-        }
-
-        this.soldQuantity -= quantity;
-
-    }
-
-    // 재고 수량 증가
-    public void increasePromotionQuantity(int quantity) {
-
-        validateQuantity(quantity);
-
-        if (quantity > this.soldQuantity) {
-            throw new IllegalArgumentException("이미 판매된 수량을 초과할 수 없습니다.");
-        }
-
-        if (this.promotionQuantity == 0) {
-            this.status = PromotionStatus.ACTIVE;
-        }
-
-        this.promotionQuantity += quantity;
-
-    }
-
-    // 재고 수량 감소
-    public void decreasePromotionQuantity(int quantity) {
-
-        validateQuantity(quantity);
-
-        if (quantity > this.promotionQuantity) {
-            throw new IllegalArgumentException("판매 가능 수량을 초과할 수 없습니다.");
-        }
-        this.promotionQuantity -= quantity;
-
-    }
-
     // 특가 활성 여부 확인
     public boolean isActive() {
         LocalDateTime now = LocalDateTime.now();
         return this.status == PromotionStatus.ACTIVE
                 && now.isAfter(startAt)
                 && now.isBefore(endAt)
-                && this.soldQuantity < this.promotionQuantity;
+                && getAvailableQuantity() > 0;
     }
 }

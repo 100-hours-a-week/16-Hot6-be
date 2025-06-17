@@ -51,8 +51,11 @@ public class ProductPromotionEntity extends AuditEntity {
     @Column(name = "rate", nullable = false, precision = 5, scale = 2)
     private BigDecimal rate;
 
-    @Column(name = "promotion_quantity", nullable = false)
-    private int promotionQuantity;
+    @Column(name = "total_quantity", nullable = false)
+    private int totalQuantity;
+
+    @Column(name = "reserved_quantity", nullable = false)
+    private int reservedQuantity;
 
     @Column(name = "sold_quantity", nullable = false)
     private int soldQuantity;
@@ -66,6 +69,11 @@ public class ProductPromotionEntity extends AuditEntity {
     @Column(name = "max_per_customer", nullable = false)
     private int maxPerCustomer;
 
+    // 판매 가능한 특가 수량 계산
+    public int getAvailableQuantity() {
+        return totalQuantity - reservedQuantity - soldQuantity;
+    }
+
     // Domain → Entity 변환
     public static ProductPromotionEntity from(ProductPromotion promotion, ProductVariantEntity variantEntity) {
         return ProductPromotionEntity.builder()
@@ -77,7 +85,8 @@ public class ProductPromotionEntity extends AuditEntity {
                 .originalPrice(promotion.getOriginalPrice())
                 .discountPrice(promotion.getDiscountPrice())
                 .rate(promotion.getRate())
-                .promotionQuantity(promotion.getPromotionQuantity())
+                .totalQuantity(promotion.getTotalQuantity())
+                .reservedQuantity(promotion.getReservedQuantity())
                 .soldQuantity(promotion.getSoldQuantity())
                 .startAt(promotion.getStartAt())
                 .endAt(promotion.getEndAt())
@@ -96,7 +105,8 @@ public class ProductPromotionEntity extends AuditEntity {
                 .originalPrice(this.originalPrice)
                 .discountPrice(this.discountPrice)
                 .rate(this.rate)
-                .promotionQuantity(this.promotionQuantity)
+                .totalQuantity(this.totalQuantity)
+                .reservedQuantity(this.reservedQuantity)
                 .soldQuantity(this.soldQuantity)
                 .startAt(this.startAt)
                 .endAt(this.endAt)

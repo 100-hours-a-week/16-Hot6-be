@@ -73,7 +73,8 @@ public class ProductPromotionRepositoryImpl implements ProductPromotionRepositor
         entity.setOriginalPrice(promotion.getOriginalPrice());
         entity.setDiscountPrice(promotion.getDiscountPrice());
         entity.setRate(promotion.getRate());
-        entity.setPromotionQuantity(promotion.getPromotionQuantity());
+        entity.setTotalQuantity(promotion.getTotalQuantity());
+        entity.setReservedQuantity(promotion.getReservedQuantity());
         entity.setSoldQuantity(promotion.getSoldQuantity());
         entity.setStartAt(promotion.getStartAt());
         entity.setEndAt(promotion.getEndAt());
@@ -146,23 +147,9 @@ public class ProductPromotionRepositoryImpl implements ProductPromotionRepositor
 
     @Override
     @Transactional
-    public void increaseSoldQuantity(Long promotionId, int quantity) {
-        ProductPromotionEntity entity = productPromotionJpaRepository.findById(promotionId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
-
-        // 할당 수량 초과 체크
-        if (entity.getSoldQuantity() + quantity > entity.getPromotionQuantity()) {
-            throw new IllegalArgumentException("특가 할당 수량을 초과할 수 없습니다.");
-        }
-
-        productPromotionJpaRepository.increaseSoldQuantity(promotionId, quantity);
-    }
-
-    @Override
-    @Transactional
     public void updateStatus(Long promotionId, PromotionStatus status) {
         ProductPromotionEntity entity = productPromotionJpaRepository.findById(promotionId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
+                .orElseThrow(() -> new CustomException(ErrorCode.PROMOTION_NOT_FOUND));
 
         productPromotionJpaRepository.updateStatus(promotionId, status.name());
     }

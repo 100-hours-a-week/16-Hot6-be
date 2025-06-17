@@ -18,6 +18,9 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class ProductGetResponseDto {
+    @JsonProperty("product_id")
+    private Long productId;
+
     @JsonProperty("product_type")
     private ProductType productType;
 
@@ -41,6 +44,8 @@ public class ProductGetResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class VariantResponse {
+        @JsonProperty("variant_id")
+        private Long variantId;
 
         @JsonProperty("status")
         private VariantStatus status;
@@ -54,9 +59,6 @@ public class ProductGetResponseDto {
         @JsonProperty("available_quantity")
         private int availableQuantity;
 
-        @JsonProperty("reserved_quantity")
-        private int reservedQuantity;
-
         @JsonProperty("image_urls")
         private List<String> imageUrls;
 
@@ -69,6 +71,8 @@ public class ProductGetResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PromotionResponse {
+        @JsonProperty("promotion_id")
+        private Long promotionId;
 
         @JsonProperty("status")
         private PromotionStatus status;
@@ -85,8 +89,8 @@ public class ProductGetResponseDto {
         @JsonProperty("rate")
         private BigDecimal rate;
 
-        @JsonProperty("promotion_quantity")
-        private int promotionQuantity;
+        @JsonProperty("available_quantity")
+        private int availableQuantity;
 
         @JsonProperty("start_at")
         private LocalDateTime startAt;

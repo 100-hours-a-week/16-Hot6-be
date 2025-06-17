@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.product.domain.repository;
 
 import com.kakaotech.ott.ott.product.domain.model.ProductType;
 import com.kakaotech.ott.ott.product.domain.model.Product;
+import com.kakaotech.ott.ott.product.domain.model.PromotionType;
 import org.springframework.data.domain.Slice;
 
 import java.util.List;
@@ -24,6 +25,12 @@ public interface ProductRepository {
     Slice<Product> findAllByType(ProductType type, Long cursorId, int size);
 
     Slice<Product> findAllByStatus(String status, Long cursorId, int size);
+
+    // 일반 상품 조회
+    List<Product> findProductsByCursor(ProductType productType, Long lastProductId, int size);
+    // 특가 상품 조회
+    List<Product> findPromotionProductsByCursor(PromotionType promotionType, Long lastProductId, int size);
+
 
     // 비즈니스 메서드들
     boolean existsByName(String name);

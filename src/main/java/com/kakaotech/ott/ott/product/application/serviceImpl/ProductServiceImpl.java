@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.kakaotech.ott.ott.product.domain.model.*;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductGetResponseDto;
+import com.kakaotech.ott.ott.product.presentation.dto.response.ProductListResponseDto;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,10 +19,6 @@ import com.kakaotech.ott.ott.aiImage.application.serviceImpl.S3Uploader;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.product.application.service.ProductService;
-import com.kakaotech.ott.ott.product.domain.model.Product;
-import com.kakaotech.ott.ott.product.domain.model.ProductImage;
-import com.kakaotech.ott.ott.product.domain.model.ProductPromotion;
-import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
 import com.kakaotech.ott.ott.product.domain.repository.ProductImageRepository;
 import com.kakaotech.ott.ott.product.domain.repository.ProductPromotionRepository;
 import com.kakaotech.ott.ott.product.domain.repository.ProductRepository;
@@ -80,7 +78,7 @@ public class ProductServiceImpl implements ProductService {
                 product.getId(),
                 variantDto.getName(),
                 variantDto.getPrice(),
-                variantDto.getAvailableQuantity()
+                variantDto.getTotalQuantity()
             );
             product.addVariant(variant);
 
@@ -111,21 +109,29 @@ public class ProductServiceImpl implements ProductService {
 
         return productGetResponseDto;
     }
-//
-//    @Override
-//    public ProductListResponseDto getProductList(String type, Long cursorId, int size) {
-//        Slice<ServiceProduct> products;
-//
-//        if (type != null && !type.isEmpty()) {
-//            ProductType productType = ProductType.valueOf(type.toUpperCase());
-//            products = productRepository.findAllByType(productType, cursorId, size);
-//        } else {
-//            // 전체 조회 로직 필요
-//            products = productRepository.findAllByStatus("ACTIVE", cursorId, size);
-//        }
-//
-//        return ProductListResponseDto.from(products);
-//    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProductListResponseDto getProductList(Long userId, ProductType productType, PromotionType promotionType,
+                                                 Long lastProductId, int size) {
+        // 상품 목록 조회
+        List<Product> products = fetchProducts(productType, promotionType, lastProductId, size);
+
+        List<ProductListResponseDto.Products> productDtos = products.stream()
+                .map(product -> convertToProductListDto(product, userId, promotionType != null))
+                .collect(Collectors.toList());
+
+        boolean hasNext = productDtos.size() == size;
+        Long nextLastProductId = hasNext ? productDtos.get(productDtos.size() - 1).getProductId() : null;
+
+        ProductListResponseDto.Pagination pagination = new ProductListResponseDto.Pagination(
+                size, nextLastProductId, hasNext);
+
+        return ProductListResponseDto.builder()
+                .products(productDtos)
+                .pagination(pagination)
+                .build();
+    }
 
     // === Private Methods ===
 
@@ -151,7 +157,7 @@ public class ProductServiceImpl implements ProductService {
                         promotionDto.getName(),
                         variantDto.getPrice(),
                         promotionDto.getDiscountPrice(),
-                        promotionDto.getPromotionQuantity(),
+                        promotionDto.getTotalQuantity(),
                         promotionDto.getStartAt(),
                         promotionDto.getEndAt(),
                         promotionDto.getMaxPerCustomer()
@@ -164,6 +170,7 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductGetResponseDto convertToProductGetResponse(Product product, boolean scraped) {
         return ProductGetResponseDto.builder()
+                .productId(product.getId())
                 .productType(product.getType())
                 .productName(product.getName())
                 .description(product.getDescription())
@@ -193,12 +200,12 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductGetResponseDto.VariantResponse convertVariant(ProductVariant variant) {
         return ProductGetResponseDto.VariantResponse.builder()
+                .variantId(variant.getId())
                 .status(variant.getStatus())
                 .name(variant.getName())
                 .price(variant.getPrice())
                 .imageUrls(convertImageUrls(variant.getImages()))
                 .availableQuantity(variant.getAvailableQuantity())
-                .reservedQuantity(variant.getReservedQuantity())
                 .promotions(convertPromotions(variant.getPromotions()))
                 .build();
     }
@@ -212,15 +219,118 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductGetResponseDto.PromotionResponse convertPromotion(ProductPromotion promotion) {
         return ProductGetResponseDto.PromotionResponse.builder()
+                .promotionId(promotion.getId())
                 .status(promotion.getStatus())
                 .type(promotion.getType())
                 .name(promotion.getName())
                 .discountPrice(promotion.getDiscountPrice())
                 .rate(promotion.getRate())
-                .promotionQuantity(promotion.getPromotionQuantity())
+                .availableQuantity(promotion.getAvailableQuantity())
                 .startAt(promotion.getStartAt())
                 .endAt(promotion.getEndAt())
                 .maxPerCustomer(promotion.getMaxPerCustomer())
                 .build();
+    }
+
+    private ProductListResponseDto.Products createRegularProductDto(
+            Product product,
+            ProductVariant variant,
+            String imageUrl,
+            boolean scraped) {
+
+        return ProductListResponseDto.Products.builder()
+                .productId(product.getId())
+                .productName(product.getName())
+                .productType(product.getType().toString())
+                .variantName(variant.getName())
+                .imageUrl(imageUrl)
+                .originalPrice(variant.getPrice())
+                .discountPrice(null)
+                .discountRate(null)
+                .promotionEndAt(null)
+                .promotion(false)
+                .scraped(scraped)
+                .createdAt(product.getCreatedAt())
+                .build();
+    }
+
+    // 상품 목록 조회
+    private List<Product> fetchProducts(ProductType productType, PromotionType promotionType, Long lastProductId, int size) {
+        if (promotionType != null) {
+            // 특가 상품 조회 (종료 임박순)
+            return productRepository.findPromotionProductsByCursor(promotionType, lastProductId, size);
+        } else {
+            // 일반 상품 조회 (특가 상품 제외, 최신순)
+            return productRepository.findProductsByCursor(productType, lastProductId, size);
+        }
+    }
+
+    /**
+     * 특가 상품용 DTO 생성 팩토리 메서드
+     */
+    private ProductListResponseDto.Products createPromotionProductDto(
+            Product product,
+            ProductVariant variant,
+            ProductPromotion promotion,
+            String imageUrl,
+            boolean scraped) {
+
+        return ProductListResponseDto.Products.builder()
+                .productId(product.getId())
+                .productName(product.getName())
+                .productType(product.getType().toString())
+                .variantName(variant.getName())
+                .imageUrl(imageUrl)
+                .originalPrice(promotion.getOriginalPrice())
+                .discountPrice(promotion.getDiscountPrice())
+                .discountRate(promotion.getRate())
+                .availableQuantity(promotion.getAvailableQuantity())
+                .promotionEndAt(promotion.getEndAt())
+                .promotion(true)
+                .scraped(scraped)
+                .createdAt(product.getCreatedAt())
+                .build();
+    }
+
+    private ProductListResponseDto.Products convertToProductListDto(Product product, Long userId, boolean isPromotionProduct) {
+        // 공통 데이터 추출
+        ProductVariant firstVariant = getFirstActiveVariant(product);
+        String imageUrl = getFirstImageUrl(firstVariant);
+        boolean scrapped = isProductScrapped(userId, product.getId());
+
+        if (isPromotionProduct) {
+            ProductPromotion activePromotion = getActivePromotion(firstVariant);
+            return createPromotionProductDto(product, firstVariant, activePromotion, imageUrl, scrapped);
+        } else {
+            return createRegularProductDto(product, firstVariant, imageUrl, scrapped);
+        }
+    }
+
+    // == 헬퍼 메서드 ==
+    private ProductVariant getFirstActiveVariant(Product product) {
+        return product.getVariants().stream()
+                .filter(ProductVariant::isActive)
+                .min((v1, v2) -> Long.compare(v1.getId(), v2.getId()))
+                .orElseThrow(() -> new CustomException(ErrorCode.VARIANT_NOT_FOUND));
+    }
+
+    private String getFirstImageUrl(ProductVariant variant) {
+        return variant.getImages().stream()
+                .filter(img -> img.getSequence() == 1)
+                .map(ProductImage::getImageUuid)
+                .findFirst()
+                .orElse("");
+    }
+
+    private boolean isProductScrapped(Long userId, Long productId) {
+        return (userId != null) &&
+                scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.SERVICE_PRODUCT, productId);
+    }
+
+    private ProductPromotion getActivePromotion(ProductVariant variant) {
+        return variant.getPromotions().stream()
+                .filter(ProductPromotion::isActive)
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.PROMOTION_NOT_FOUND));
     }
 }

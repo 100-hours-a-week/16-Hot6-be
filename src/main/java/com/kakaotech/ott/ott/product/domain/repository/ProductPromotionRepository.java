@@ -34,9 +34,6 @@ public interface ProductPromotionRepository {
 
     List<ProductPromotion> findExpiredPromotions(LocalDateTime now);
 
-    // 판매 수량 증가
-    void increaseSoldQuantity(Long promotionId, int quantity);
-
     // 상태 업데이트
     void updateStatus(Long promotionId, PromotionStatus status);
 

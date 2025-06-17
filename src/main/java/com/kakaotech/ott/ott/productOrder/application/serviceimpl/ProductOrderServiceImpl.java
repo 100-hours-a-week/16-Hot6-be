@@ -64,11 +64,10 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             if (productVariant.isOnPromotion()) {
                 ProductPromotion productPromotion = productPromotionRepository.findByVariantIdAndStatus(productVariant.getId(), PromotionStatus.ACTIVE);
-                productPromotion.decreasePromotionQuantity(serviceProduct.getQuantity());
-                productPromotion.increaseSoldQuantity(serviceProduct.getQuantity());
+                productPromotion.reservePromotionStock(serviceProduct.getQuantity());
                 productPromotionRepository.update(productPromotion);
             } else {
-                productVariant.decreaseQuantity(quantity);
+                productVariant.reserveStock(quantity);
                 // TODO: 예약 재고 증가 호출
 
                 productVariantRepository.update(productVariant);
@@ -242,11 +241,10 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                     ProductVariant productVariant = productVariantRepository.findById(item.getVariantsId());
                     if (productVariant.isOnPromotion()) {
                         ProductPromotion productPromotion = productPromotionRepository.findByVariantIdAndStatus(productVariant.getId(), PromotionStatus.ACTIVE);
-                        productPromotion.increasePromotionQuantity(item.getQuantity());
-                        productPromotion.decreaseSoldQuantity(item.getQuantity());
+                        productPromotion.cancelPromotionSale(item.getQuantity());
                         productPromotionRepository.update(productPromotion);
                     } else {
-                        productVariant.increaseQuantity(item.getQuantity());
+                        productVariant.cancelSale(item.getQuantity());
                         productVariantRepository.update(productVariant);
                     }
                 }
@@ -276,11 +274,10 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                 ProductVariant productVariant = productVariantRepository.findById(item.getVariantsId());
                 if (productVariant.isOnPromotion()) {
                     ProductPromotion productPromotion = productPromotionRepository.findByVariantIdAndStatus(productVariant.getId(), PromotionStatus.ACTIVE);
-                    productPromotion.increasePromotionQuantity(item.getQuantity());
-                    productPromotion.decreaseSoldQuantity(item.getQuantity());
+                    productPromotion.cancelPromotionSale(item.getQuantity());
                     productPromotionRepository.update(productPromotion);
                 } else {
-                    productVariant.increaseQuantity(item.getQuantity());
+                    productVariant.cancelSale(item.getQuantity());
                     productVariantRepository.update(productVariant);
                 }
             }
