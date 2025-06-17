@@ -80,15 +80,7 @@ public class AiImageController {
 
         AiImage aiImage = aiImageService.insertAiImage(requestDto);
 
-        List<DeskProduct> deskProduct = productDomainService.createdProduct(
-                requestDto, aiImage, aiImage.getUserId());
-
-        // 예외 방지: 빈 리스트 처리
-        if (deskProduct == null || deskProduct.isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.success("AI 이미지 저장에 실패했습니다.", null));
-        }
-
-        AiImageSaveResponseDto aiImageSaveResponseDto = new AiImageSaveResponseDto(deskProduct.get(0).getAiImageId());
+        AiImageSaveResponseDto aiImageSaveResponseDto =  productDomainService.createdProduct(requestDto, aiImage, aiImage.getUserId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("AI 이미지 저장이 완료됐습니다.", aiImageSaveResponseDto));
     }

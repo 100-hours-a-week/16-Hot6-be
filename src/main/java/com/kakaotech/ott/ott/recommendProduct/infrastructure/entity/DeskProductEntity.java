@@ -21,9 +21,8 @@ public class DeskProductEntity {
     @JoinColumn(name = "sub_category_id") // FK 컬럼명
     private ProductSubCategoryEntity productSubCategoryEntity;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ai_image_id") // FK 컬럼명
-    private AiImageEntity aiImageEntity;
+    @Column(name = "product_code", nullable = false)
+    private String productCode;
 
     @Column(name = "name", nullable = false, length = 255)
     private String name;
@@ -42,11 +41,6 @@ public class DeskProductEntity {
     @Column(name = "purchase_url", nullable = false, length = 255)
     private String purchaseUrl;
 
-    @Column(name = "center_x", nullable = false)
-    private Integer centerX;
-    @Column(name = "center_y", nullable = false)
-    private Integer centerY;
-
     @Column(name = "image_path", nullable = false, length = 255)
     private String imagePath;
 
@@ -55,7 +49,7 @@ public class DeskProductEntity {
         return DeskProduct.builder()
                 .id(this.id)
                 .subCategoryId(this.productSubCategoryEntity.getId())
-                .aiImageId(this.aiImageEntity.getId())
+                .productCode(this.productCode)
                 .name(this.name)
                 .price(this.price)
                 .purchasePlace(this.purchasePlace)
@@ -63,8 +57,6 @@ public class DeskProductEntity {
                 .clickCount(this.clickCount)
                 .weight(this.weight)
                 .purchaseUrl(this.purchaseUrl)
-                .centerX(this.centerX)
-                .centerY(this.centerY)
                 .imagePath(this.imagePath)
                 .build();
 
@@ -74,7 +66,7 @@ public class DeskProductEntity {
 
         return DeskProductEntity.builder()
                 .productSubCategoryEntity(productSubCategoryEntity)
-                .aiImageEntity(aiImageEntity)
+                .productCode(deskProduct.getProductCode())
                 .name(deskProduct.getName())
                 .price(deskProduct.getPrice())
                 .purchasePlace(deskProduct.getPurchasePlace())
@@ -82,8 +74,6 @@ public class DeskProductEntity {
                 .clickCount(deskProduct.getClickCount())
                 .weight(deskProduct.getWeight())
                 .purchaseUrl(deskProduct.getPurchaseUrl())
-                .centerX(deskProduct.getCenterX())
-                .centerY(deskProduct.getCenterY())
                 .imagePath(deskProduct.getImagePath())
                 .build();
     }

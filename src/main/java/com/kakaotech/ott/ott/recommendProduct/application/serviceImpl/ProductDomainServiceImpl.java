@@ -1,11 +1,16 @@
 package com.kakaotech.ott.ott.recommendProduct.application.serviceImpl;
 
+import com.kakaotech.ott.ott.aiImage.presentation.dto.response.AiImageSaveResponseDto;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.recommendProduct.application.service.ProductDomainService;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.recommendProduct.domain.model.AiImageRecommendedProduct;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.ProductMainCategory;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.ProductSubCategory;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.AiImageRecommendedProductRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.ProductMainCategoryRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.ProductSubCategoryRepository;
@@ -38,11 +43,11 @@ public class ProductDomainServiceImpl implements ProductDomainService {
     private final AiImageRepository aiImageRepository;
     private final UserAuthRepository userAuthRepository;
     private final ScrapRepository scrapRepository;
+    private final AiImageRecommendedProductRepository aiImageRecommendedProductRepository;
 
     @Override
     @Transactional
-    public List<DeskProduct> createdProduct(AiImageAndProductRequestDto aiImageAndProductRequestDto, AiImage aiImage, Long userId) {
-        List<DeskProduct> savedDeskProducts = new ArrayList<>();
+    public AiImageSaveResponseDto createdProduct(AiImageAndProductRequestDto aiImageAndProductRequestDto, AiImage aiImage, Long userId) {
 
         User user = userAuthRepository.findById(userId);
 
@@ -53,7 +58,7 @@ public class ProductDomainServiceImpl implements ProductDomainService {
 
         // 제품 리스트가 비어있으면 바로 빈 리스트 반환
         if (productList == null || productList.isEmpty()) {
-            return savedDeskProducts;
+            throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
         for (ProductDetailRequestDto product : productList) {
@@ -73,19 +78,23 @@ public class ProductDomainServiceImpl implements ProductDomainService {
                     });
 
             DeskProduct deskProduct = DeskProduct.createDeskProduct(
-                    productSubCategoryEntity.getId(), aiImage.getId(),
+                    productSubCategoryEntity.getId(), product.getProductCode(),
                     product.getName(), product.getPrice(), product.getPurchasePlace(),
-                    product.getPurchaseUrl(), 0, 0, product.getImagePath()
+                    product.getPurchaseUrl(), product.getImagePath()
             );
 
             DeskProduct generatedDeskProduct = deskProductRepository.save(deskProduct, productSubCategoryEntity, aiImageEntity);
-            savedDeskProducts.add(generatedDeskProduct);
+
+            AiImageRecommendedProduct aiImageRecommendedProduct = AiImageRecommendedProduct.createAiImageRecommendedProduct(aiImage.getId(), generatedDeskProduct.getId(), product.getCenterX(), product.getCenterY());
+            aiImageRecommendedProductRepository.save(aiImageRecommendedProduct);
+
         }
 
-        return savedDeskProducts;
+        return new AiImageSaveResponseDto(aiImage.getId());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RecommendedItemsDto> getRecommendItems(Long userId) {
         return deskProductRepository.findTop7ByWeight().stream()
                 .map(deskProduct -> new RecommendedItemsDto(

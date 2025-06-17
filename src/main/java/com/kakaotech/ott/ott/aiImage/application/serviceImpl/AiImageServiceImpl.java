@@ -9,8 +9,10 @@ import com.kakaotech.ott.ott.aiImage.domain.model.ImageGenerationHistory;
 import com.kakaotech.ott.ott.aiImage.domain.repository.ImageGenerationHistoryRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.recommendProduct.domain.model.AiImageRecommendedProduct;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.AiImageRecommendedProductRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
 
@@ -44,6 +46,7 @@ public class AiImageServiceImpl implements AiImageService {
     private final ImageUploader imageUploader;
     private final FastApiClient fastApiClient;
     private final ImageGenerationHistoryRepository imageGenerationHistoryRepository;
+    private final AiImageRecommendedProductRepository aiImageRecommendedProductRepository;
 
     @Override
     @Transactional
@@ -114,25 +117,28 @@ public class AiImageServiceImpl implements AiImageService {
 
         aiImageResponseDto.updateAfterImagePath(aiImage.getAfterImagePath());
 
-        List<DeskProduct> deskProducts = deskProductRepository.findByAiImageId(imageId);
-        if (deskProducts.isEmpty()) {
-            throw new CustomException(ErrorCode.AI_PRODUCT_NOT_FOUND);
-        }
+        List<AiImageRecommendedProduct> aiImageRecommendedProducts = aiImageRecommendedProductRepository.findByAiImageId(aiImage.getId());
+
+        if(aiImageRecommendedProducts.isEmpty())
+            throw new CustomException(ErrorCode.DESK_PRODUCT_NOT_FOUND);
+
+        List<ProductResponseDto> productResponseDtos = aiImageRecommendedProducts.stream()
+                .map(recommendedProduct -> {
+
+                    DeskProduct deskProduct = deskProductRepository.findById(recommendedProduct.getDeskProductId());
+                    boolean isScrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.PRODUCT, deskProduct.getId());
 
 
-        List<ProductResponseDto> productResponseDtos = deskProducts.stream()
-                .map(product -> {
-                    boolean isScrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.PRODUCT, product.getId());
                     return new ProductResponseDto(
-                            product.getId(),
-                            product.getName(),
-                            product.getImagePath(),
-                            product.getPrice(),
-                            product.getPurchaseUrl(),
+                            deskProduct.getId(),
+                            deskProduct.getName(),
+                            deskProduct.getImagePath(),
+                            deskProduct.getPrice(),
+                            deskProduct.getPurchaseUrl(),
                             isScrapped,
-                            product.getCenterX(),
-                            product.getCenterY(),
-                            product.getWeight()
+                            recommendedProduct.getCenterX(),
+                            recommendedProduct.getCenterY(),
+                            deskProduct.getWeight()
                     );
                 })
                 .toList();

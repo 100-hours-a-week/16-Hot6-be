@@ -10,8 +10,6 @@ public interface DeskProductRepository {
 
     DeskProduct save(DeskProduct deskProduct, ProductSubCategoryEntity productSubCategoryEntity, AiImageEntity aiImageEntity);
 
-    List<DeskProduct> findByAiImageId(Long aiImageId);
-
     List<DeskProduct> findTop7ByWeight();
 
     void incrementScrapCount(Long postId, Long delta);
