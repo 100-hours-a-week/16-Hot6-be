@@ -33,4 +33,20 @@ public interface DeskProductJpaRepository extends JpaRepository<DeskProductEntit
     Page<DeskProductEntity> findAllDeskProductsByWeight(@Param("lastWeight") Double lastWeight,
                                         @Param("lastDeskPostId") Long lastDeskPostId,
                                         Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE desk_products d " +
+            "SET d.weight = (d.scrap_count * 0.5) + (d.click_count * 0.8)",
+            nativeQuery = true)
+    void batchUpdateWeights();
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+    UPDATE DeskProductEntity d 
+    SET d.clickCount = GREATEST(0, d.clickCount + :delta)
+    WHERE d.id = :deskProductId
+""")
+    void incrementClickCount(@Param("deskProductId") Long deskProductId, @Param("delta") Long delta);
+
 }

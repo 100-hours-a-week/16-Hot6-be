@@ -1,6 +1,5 @@
 package com.kakaotech.ott.ott.recommendProduct.domain.repository;
 
-import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
 import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.ProductSubCategoryEntity;
@@ -20,4 +19,8 @@ public interface DeskProductRepository {
     DeskProduct findById(Long deskProductId);
 
     Slice<DeskProduct> findDeskProductsByWeight(Double lastWeight, Long lastDeskProductId, int size);
+
+    void batchUpdateWeights();
+
+    void incrementClickCount(Long deskProductId, Long delta);
 }

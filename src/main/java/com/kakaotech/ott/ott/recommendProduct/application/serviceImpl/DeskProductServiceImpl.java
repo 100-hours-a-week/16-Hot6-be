@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.recommendProduct.application.serviceImpl;
 
+import com.kakaotech.ott.ott.recommendProduct.application.component.ClickCountAggregator;
 import com.kakaotech.ott.ott.recommendProduct.application.service.DeskProductService;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.ProductSubCategory;
@@ -9,8 +10,6 @@ import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.DeskProd
 import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.DeskProductListResponseDto;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
-import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -25,6 +24,7 @@ public class DeskProductServiceImpl implements DeskProductService {
     private final DeskProductRepository deskProductRepository;
     private final ScrapRepository scrapRepository;
     private final ProductSubCategoryRepository productSubCategoryRepository;
+    private final ClickCountAggregator clickCountAggregator;
 
     @Override
     @Transactional(readOnly = true)
@@ -59,8 +59,10 @@ public class DeskProductServiceImpl implements DeskProductService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public DeskProductDetailResponseDto getDeskProduct(Long userId, Long deskProductId) {
+
+        clickCountAggregator.increment(deskProductId);
 
         DeskProduct deskProduct = deskProductRepository.findById(deskProductId);
         ProductSubCategory productSubCategory = productSubCategoryRepository.findById(deskProduct.getSubCategoryId());

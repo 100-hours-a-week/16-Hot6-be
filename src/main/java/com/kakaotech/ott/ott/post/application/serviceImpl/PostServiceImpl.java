@@ -167,7 +167,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public PostGetResponseDto getPost(Long postId, Long userId) {
 
         viewCountAggregator.increment(postId);

@@ -2,7 +2,6 @@ package com.kakaotech.ott.ott.recommendProduct.infrastructure.repositoryImpl;
 
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
-import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductJpaRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
@@ -69,5 +68,23 @@ public class DeskProductRepositoryImpl implements DeskProductRepository {
         Slice<DeskProductEntity> slice = deskProductJpaRepository.findAllDeskProductsByWeight(lastWeight, lastDeskProductId, PageRequest.of(0, size));
 
         return slice.map(DeskProductEntity::toDomain);
+    }
+
+    @Override
+    public void batchUpdateWeights() {
+
+        deskProductJpaRepository.batchUpdateWeights();
+    }
+
+    @Override
+    public void incrementClickCount(Long deskProductId, Long delta) {
+
+        DeskProductEntity deskProductEntity = deskProductJpaRepository.findById(deskProductId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        if(deskProductEntity.getClickCount() + delta < 0)
+            return;
+
+        deskProductJpaRepository.incrementClickCount(deskProductId, delta);
     }
 }
