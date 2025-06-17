@@ -70,6 +70,7 @@ public enum ErrorCode {
 
     // product
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "이미지 처리 중 오류가 발생했습니다."),
+    VARIANT_IMAGE_REQUIRED(HttpStatus.BAD_REQUEST, "사진 정보는 필수입니다."),
     DUPLICATE_PRODUCT_NAME(HttpStatus.CONFLICT, "이미 존재하는 상품명입니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
     VARIANT_NOT_FOUND(HttpStatus.NOT_FOUND, "품목을 찾을 수 없습니다."),
