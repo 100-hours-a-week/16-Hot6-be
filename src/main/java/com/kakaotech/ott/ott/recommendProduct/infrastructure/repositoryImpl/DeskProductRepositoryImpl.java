@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.recommendProduct.infrastructure.repositoryImpl;
 
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductJpaRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
@@ -10,6 +11,7 @@ import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.DeskProductE
 import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.ProductSubCategoryEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,5 +62,12 @@ public class DeskProductRepositoryImpl implements DeskProductRepository {
         return deskProductJpaRepository.findById(deskProductId)
                 .orElseThrow(() -> new CustomException(ErrorCode.DESK_PRODUCT_NOT_FOUND))
                 .toDomain();
+    }
+
+    @Override
+    public Slice<DeskProduct> findDeskProductsByWeight(Double lastWeight, Long lastDeskProductId, int size) {
+        Slice<DeskProductEntity> slice = deskProductJpaRepository.findAllDeskProductsByWeight(lastWeight, lastDeskProductId, PageRequest.of(0, size));
+
+        return slice.map(DeskProductEntity::toDomain);
     }
 }

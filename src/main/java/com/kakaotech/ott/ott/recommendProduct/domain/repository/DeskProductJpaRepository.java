@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.recommendProduct.domain.repository;
 
 import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.DeskProductEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -24,4 +25,12 @@ public interface DeskProductJpaRepository extends JpaRepository<DeskProductEntit
     WHERE d.id = :id
     """)
     void incrementScrapCount(@Param("id") Long id, @Param("delta") Long delta);
+
+    @Query("SELECT DISTINCT d FROM DeskProductEntity d " +
+            "WHERE (:lastWeight IS NULL OR d.weight < :lastWeight " +
+            "OR (d.weight = :lastWeight AND d.id < :lastDeskPostId)) " +
+            "ORDER BY d.weight DESC, d.id DESC")
+    Page<DeskProductEntity> findAllDeskProductsByWeight(@Param("lastWeight") Double lastWeight,
+                                        @Param("lastDeskPostId") Long lastDeskPostId,
+                                        Pageable pageable);
 }

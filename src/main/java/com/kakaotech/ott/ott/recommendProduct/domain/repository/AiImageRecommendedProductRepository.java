@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.recommendProduct.domain.repository;
 
 import com.kakaotech.ott.ott.recommendProduct.domain.model.AiImageRecommendedProduct;
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 
