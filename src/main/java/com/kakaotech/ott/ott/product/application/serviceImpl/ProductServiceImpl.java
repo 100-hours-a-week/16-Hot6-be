@@ -78,7 +78,7 @@ public class ProductServiceImpl implements ProductService {
                 product.getId(),
                 variantDto.getName(),
                 variantDto.getPrice(),
-                variantDto.getAvailableQuantity()
+                variantDto.getTotalQuantity()
             );
             product.addVariant(variant);
 
@@ -157,7 +157,7 @@ public class ProductServiceImpl implements ProductService {
                         promotionDto.getName(),
                         variantDto.getPrice(),
                         promotionDto.getDiscountPrice(),
-                        promotionDto.getPromotionQuantity(),
+                        promotionDto.getTotalQuantity(),
                         promotionDto.getStartAt(),
                         promotionDto.getEndAt(),
                         promotionDto.getMaxPerCustomer()
@@ -206,7 +206,6 @@ public class ProductServiceImpl implements ProductService {
                 .price(variant.getPrice())
                 .imageUrls(convertImageUrls(variant.getImages()))
                 .availableQuantity(variant.getAvailableQuantity())
-                .reservedQuantity(variant.getReservedQuantity())
                 .promotions(convertPromotions(variant.getPromotions()))
                 .build();
     }
@@ -226,7 +225,7 @@ public class ProductServiceImpl implements ProductService {
                 .name(promotion.getName())
                 .discountPrice(promotion.getDiscountPrice())
                 .rate(promotion.getRate())
-                .promotionQuantity(promotion.getPromotionQuantity())
+                .availableQuantity(promotion.getAvailableQuantity())
                 .startAt(promotion.getStartAt())
                 .endAt(promotion.getEndAt())
                 .maxPerCustomer(promotion.getMaxPerCustomer())
@@ -237,7 +236,7 @@ public class ProductServiceImpl implements ProductService {
             Product product,
             ProductVariant variant,
             String imageUrl,
-            boolean scrapped) {
+            boolean scraped) {
 
         return ProductListResponseDto.Products.builder()
                 .productId(product.getId())
@@ -249,8 +248,8 @@ public class ProductServiceImpl implements ProductService {
                 .discountPrice(null)
                 .discountRate(null)
                 .promotionEndAt(null)
-                .isPromotion(false)
-                .scrapped(scrapped)
+                .promotion(false)
+                .scraped(scraped)
                 .createdAt(product.getCreatedAt())
                 .build();
     }
@@ -274,7 +273,7 @@ public class ProductServiceImpl implements ProductService {
             ProductVariant variant,
             ProductPromotion promotion,
             String imageUrl,
-            boolean scrapped) {
+            boolean scraped) {
 
         return ProductListResponseDto.Products.builder()
                 .productId(product.getId())
@@ -285,9 +284,10 @@ public class ProductServiceImpl implements ProductService {
                 .originalPrice(promotion.getOriginalPrice())
                 .discountPrice(promotion.getDiscountPrice())
                 .discountRate(promotion.getRate())
+                .availableQuantity(promotion.getAvailableQuantity())
                 .promotionEndAt(promotion.getEndAt())
-                .isPromotion(true)
-                .scrapped(scrapped)
+                .promotion(true)
+                .scraped(scraped)
                 .createdAt(product.getCreatedAt())
                 .build();
     }
