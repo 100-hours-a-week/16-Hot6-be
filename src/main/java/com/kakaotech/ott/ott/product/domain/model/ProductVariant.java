@@ -16,10 +16,12 @@ public class ProductVariant {
     private VariantStatus status;
     private String name;
     private int price;
-    private int availableQuantity;
+    private int totalQuantity;
 
     @Builder.Default
     private int reservedQuantity = 0;
+    @Builder.Default
+    private int soldQuantity = 0;
 
     @Builder.Default
     private boolean isOnPromotion = false;
@@ -33,12 +35,22 @@ public class ProductVariant {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    // 실제 판매 가능 수량 계산 (총 수량 - 예약 수량 - 판매 수량)
+    public int getAvailableQuantity() {
+        return totalQuantity - reservedQuantity - soldQuantity;
+    }
+
+    // 재고 충분여부 확인
+    public boolean hasAvailableStock(int requestedQuantity) {
+        return getAvailableQuantity() >= requestedQuantity;
+    }
+
     // 품목 생성 팩토리 메서드
     public static ProductVariant createVariant(
             Long productId,
             String name,
             Integer price,
-            Integer availableQuantity) {
+            Integer totalQuantity) {
 
         // 비즈니스 검증
 //        validateVariantName(name);
@@ -50,10 +62,100 @@ public class ProductVariant {
                 .status(VariantStatus.ACTIVE)
                 .name(name)
                 .price(price)
-                .availableQuantity(availableQuantity)
+                .totalQuantity(totalQuantity)
                 .reservedQuantity(0)
+                .soldQuantity(0)
                 .isOnPromotion(false)
                 .build();
+    }
+
+    // 재고 예약 (주문 생성 시)
+    public void reserveStock(int quantity) {
+        validateQuantity(quantity);
+
+        if (!hasAvailableStock(quantity)) {
+            throw new IllegalArgumentException("재고가 부족합니다.");
+        }
+
+        this.reservedQuantity += quantity;
+
+        // 재고 부족 시 상태 변경
+        if (getAvailableQuantity() == 0) {
+            this.status = VariantStatus.OUT_OF_STOCK;
+        }
+    }
+
+    // 예약 취소 (주문 취소 시)
+    public void cancelReservation(int quantity) {
+        validateQuantity(quantity);
+
+        if (quantity > this.reservedQuantity) {
+            throw new IllegalArgumentException("예약된 수량을 초과할 수 없습니다.");
+        }
+
+        this.reservedQuantity -= quantity;
+
+        // 재고가 다시 생긴 경우 상태 복구
+        if (this.status == VariantStatus.OUT_OF_STOCK && getAvailableQuantity() > 0) {
+            this.status = VariantStatus.ACTIVE;
+        }
+    }
+
+    // 판매 확정 (결제 완료 시)
+    public void confirmSale(int quantity) {
+        validateQuantity(quantity);
+
+        if (quantity > this.reservedQuantity) {
+            throw new IllegalArgumentException("예약된 수량을 초과할 수 없습니다.");
+        }
+
+        this.reservedQuantity -= quantity;
+        this.soldQuantity += quantity;
+    }
+
+    // 판매 취소 (환불 시)
+    public void cancelSale(int quantity) {
+        validateQuantity(quantity);
+
+        if (quantity > this.soldQuantity) {
+            throw new IllegalArgumentException("판매된 수량을 초과할 수 없습니다.");
+        }
+
+        this.soldQuantity -= quantity;
+
+        // 재고가 다시 생긴 경우 상태 복구
+        if (this.status == VariantStatus.OUT_OF_STOCK && getAvailableQuantity() > 0) {
+            this.status = VariantStatus.ACTIVE;
+        }
+    }
+
+    // 총 재고 추가 (입고 시)
+    public void addStock(int quantity) {
+        validateQuantity(quantity);
+        this.totalQuantity += quantity;
+
+        // 재고가 생긴 경우 상태 복구
+        if (this.status == VariantStatus.OUT_OF_STOCK && getAvailableQuantity() > 0) {
+            this.status = VariantStatus.ACTIVE;
+        }
+    }
+
+    // 총 재고 차감 (손실, 파손 등)
+    public void reduceStock(int quantity) {
+        validateQuantity(quantity);
+
+        // 최소한 예약된 수량 + 판매된 수량은 유지해야 함
+        int minimumRequired = this.reservedQuantity + this.soldQuantity;
+        if (this.totalQuantity - quantity < minimumRequired) {
+            throw new IllegalArgumentException("총 재고는 최소 " + minimumRequired + "개 이상이어야 합니다.");
+        }
+
+        this.totalQuantity -= quantity;
+
+        // 재고 부족 시 상태 변경
+        if (getAvailableQuantity() == 0) {
+            this.status = VariantStatus.OUT_OF_STOCK;
+        }
     }
 
     // 품목명 검증
@@ -81,41 +183,17 @@ public class ProductVariant {
     }
 
     // 품목 정보 수정
-    public void updateVariantInfo(String name, int price, int quantityAvailable) {
+    public void updateVariantInfo(String name, int price) {
         validateVariantName(name);
         validatePrice(price);
-        validateQuantity(quantityAvailable);
 
         this.name = name;
         this.price = price;
-        this.availableQuantity = quantityAvailable;
     }
 
     // 품목 상태 변경
     public void updateStatus(VariantStatus status) {
         this.status = status;
-    }
-
-    // 재고 수량 차감
-    public void decreaseQuantity(int quantity) {
-        if (this.availableQuantity < quantity) {
-            throw new IllegalArgumentException("재고가 부족합니다.");
-        }
-        this.availableQuantity -= quantity;
-
-        if (this.availableQuantity == 0) {
-            this.status = VariantStatus.OUT_OF_STOCK;
-        }
-    }
-
-    // 재고 수량 증가
-    public void increaseQuantity(int quantity) {
-        validateQuantity(quantity);
-        this.availableQuantity += quantity;
-
-        if (this.status == VariantStatus.OUT_OF_STOCK && this.availableQuantity > 0) {
-            this.status = VariantStatus.ACTIVE;
-        }
     }
 
     // 특가 상태 설정
@@ -129,7 +207,7 @@ public class ProductVariant {
     }
 
     public boolean isActive() {
-        return this.status == VariantStatus.ACTIVE && this.availableQuantity > 0;
+        return this.status == VariantStatus.ACTIVE && getAvailableQuantity() > 0;
     }
 
     // 이미지 추가
