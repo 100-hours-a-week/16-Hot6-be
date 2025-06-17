@@ -59,9 +59,6 @@ public class ProductGetResponseDto {
         @JsonProperty("available_quantity")
         private int availableQuantity;
 
-        @JsonProperty("reserved_quantity")
-        private int reservedQuantity;
-
         @JsonProperty("image_urls")
         private List<String> imageUrls;
 
@@ -92,8 +89,8 @@ public class ProductGetResponseDto {
         @JsonProperty("rate")
         private BigDecimal rate;
 
-        @JsonProperty("promotion_quantity")
-        private int promotionQuantity;
+        @JsonProperty("available_quantity")
+        private int availableQuantity;
 
         @JsonProperty("start_at")
         private LocalDateTime startAt;

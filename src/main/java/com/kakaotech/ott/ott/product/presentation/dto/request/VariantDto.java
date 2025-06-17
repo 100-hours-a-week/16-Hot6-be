@@ -23,9 +23,9 @@ public class VariantDto {
     @Min(value = 0, message = "가격은 0 이상이어야 합니다")
     private Integer price;
 
-    @NotNull(message = "판매 가능 수량은 필수입니다")
-    @Min(value = 0, message = "판매 가능 수량은 0 이상이어야 합니다")
-    private Integer availableQuantity;
+    @NotNull(message = "재고는 필수입니다")
+    @Min(value = 0, message = "재고는 0 이상이어야 합니다")
+    private Integer totalQuantity;
 
     @Valid
     private List<PromotionDto> promotions;
