@@ -292,11 +292,10 @@ public class UserServiceImpl implements UserService {
         }
         // 카카오 닉네임 변경 (인증된 사용자만)
         if (userInfoUpdateRequestDto.getNicknameKakao() != null) {
-            if (user.isVerified()) {
-                user.updateNicknameKakao(userInfoUpdateRequestDto.getNicknameKakao());
-            } else {
-                throw new CustomException(ErrorCode.USER_NOT_VERIFIED);
-            }
+
+            user.checkVerifiedUser();
+
+            user.updateNicknameKakao(userInfoUpdateRequestDto.getNicknameKakao());
         }
 
         User savedUser = userRepository.update(user);

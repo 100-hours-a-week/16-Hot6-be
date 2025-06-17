@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.productOrder.application.serviceimpl;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import com.kakaotech.ott.ott.product.domain.model.ProductImage;
@@ -47,6 +49,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     public ProductOrderResponseDto create(ProductOrderRequestDto productOrderRequestDto, Long userId) {
 
         User user = userRepository.findById(userId);
+
+        user.checkVerifiedUser();
 
         List<OrderItem> orderItems = new ArrayList<>();
         int totalAmount = 0;
@@ -104,6 +108,11 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Override
     @Transactional(readOnly = true)
     public MyProductOrderHistoryListResponseDto getProductOrderHistory(Long userId, Long lastId, int size) {
+
+        User user = userRepository.findById(userId);
+
+        user.checkVerifiedUser();
+
         Slice<ProductOrder> orders = productOrderRepository.findAllByUserId(userId, lastId, size);
 
         List<MyProductOrderHistoryResponseDto> dtoList = orders.stream().map(order -> {
@@ -148,6 +157,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         User user = userRepository.findById(userId);
 
+        user.checkVerifiedUser();
+
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
         List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(orderId);
 
@@ -191,6 +202,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         User user = userRepository.findById(userId);
 
+        user.checkVerifiedUser();
+
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
 
         productOrder.deleteOrder();
@@ -203,6 +216,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     public ProductOrderConfirmResponseDto confirmProductOrder(Long userId, Long orderId) {
 
         User user = userRepository.findById(userId);
+
+        user.checkVerifiedUser();
 
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
         productOrder.confirm();
@@ -225,6 +240,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     public void partialCancelProductOrder(Long userId, Long orderId, ProductOrderPartialCancelRequestDto productOrderPartialCancelRequestDto) {
 
         User user = userRepository.findById(userId);
+
+        user.checkVerifiedUser();
 
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
         productOrder.partialCancel();
@@ -262,6 +279,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     public void cancelProductOrder(Long userId, Long orderId) {
 
         User user = userRepository.findById(userId);
+
+        user.checkVerifiedUser();
 
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
         productOrder.cancel();
