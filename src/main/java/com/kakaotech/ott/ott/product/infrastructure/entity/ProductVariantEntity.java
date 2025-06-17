@@ -42,11 +42,14 @@ public class ProductVariantEntity extends AuditEntity {
     @Column(name = "price", nullable = false)
     private int price;
 
-    @Column(name = "available_quantity", nullable = false)
-    private int availableQuantity;
+    @Column(name = "total_quantity", nullable = false)
+    private int totalQuantity;
 
     @Column(name = "reserved_quantity", nullable = false)
     private int reservedQuantity;
+
+    @Column(name = "sold_quantity", nullable = false)
+    private int soldQuantity;
 
     @Column(name = "is_on_promotion", nullable = false)
     private boolean isOnPromotion;
@@ -60,6 +63,11 @@ public class ProductVariantEntity extends AuditEntity {
     @OneToMany(mappedBy = "variantEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductPromotionEntity> promotions = new ArrayList<>();
 
+    // 판매 가능 수량 확인
+    public int getAvailableQuantity() {
+        return totalQuantity - reservedQuantity - soldQuantity;
+    }
+
     // Domain → Entity 변환
     public static ProductVariantEntity from(ProductVariant variant, ProductEntity productEntity) {
         ProductVariantEntity entity = ProductVariantEntity.builder()
@@ -68,8 +76,9 @@ public class ProductVariantEntity extends AuditEntity {
                 .status(variant.getStatus())
                 .name(variant.getName())
                 .price(variant.getPrice())
-                .availableQuantity(variant.getAvailableQuantity())
+                .totalQuantity(variant.getTotalQuantity())
                 .reservedQuantity(variant.getReservedQuantity())
+                .soldQuantity(variant.getSoldQuantity())
                 .isOnPromotion(variant.isOnPromotion())
                 .build();
 
@@ -100,8 +109,9 @@ public class ProductVariantEntity extends AuditEntity {
                 .status(this.status)
                 .name(this.name)
                 .price(this.price)
-                .availableQuantity(this.availableQuantity)
+                .totalQuantity(this.totalQuantity)
                 .reservedQuantity(this.reservedQuantity)
+                .soldQuantity(this.soldQuantity)
                 .isOnPromotion(this.isOnPromotion)
                 .images(this.images != null
                         ? this.images.stream().map(ProductImageEntity::toDomain).collect(Collectors.toList())
