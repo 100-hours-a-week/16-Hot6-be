@@ -1,6 +1,6 @@
-package com.kakaotech.ott.ott.post.application.component;
+package com.kakaotech.ott.ott.recommendProduct.application.component;
 
-import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -9,14 +9,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
-public class PostWeightUpdater {
-    private final PostRepository postRepository;
+public class RecommendProductUpdater {
+
+    private final DeskProductRepository deskProductRepository;
 
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
-    @SchedulerLock(name = "update-post-weights", lockAtMostFor = "PT23H")
+    @SchedulerLock(name = "update-desk-products-weights", lockAtMostFor = "PT23H")
     @Transactional
     public void updateWeights() {
         // ✅ Native Query를 통해 Batch Update
-        postRepository.batchUpdateWeights();
+        deskProductRepository.batchUpdateWeights();
     }
 }
