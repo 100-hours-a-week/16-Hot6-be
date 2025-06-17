@@ -1,6 +1,5 @@
 package com.kakaotech.ott.ott.recommendProduct.presentation.dto.response;
 
-import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +22,8 @@ public class DeskProductListResponseDto {
         private Long productId;
 
         private String productName;
+
+        private String subCategory;
 
         private int price;
 

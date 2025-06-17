@@ -37,11 +37,14 @@ public class DeskProductServiceImpl implements DeskProductService {
                 .map(deskProduct -> {
                     User user = userAuthRepository.findById(userId);
 
+                    ProductSubCategory productSubCategory = productSubCategoryRepository.findById(deskProduct.getSubCategoryId());
+
                     boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.PRODUCT, deskProduct.getId());
 
                     return new DeskProductListResponseDto.DeskProducts(
                             deskProduct.getId(),
                             deskProduct.getName(),
+                            productSubCategory.getName(),
                             deskProduct.getPrice(),
                             scrapped,
                             deskProduct.getWeight(),
