@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.user.domain.model;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -57,6 +59,12 @@ public class User {
     public void updateVerified(String nicknameKakao) {
         this.isVerified = true;
         this.nicknameKakao = nicknameKakao;
+    }
+
+    public void checkVerifiedUser() {
+
+        if (!this.isVerified())
+            throw new CustomException(ErrorCode.USER_NOT_VERIFIED);
     }
 
 }
