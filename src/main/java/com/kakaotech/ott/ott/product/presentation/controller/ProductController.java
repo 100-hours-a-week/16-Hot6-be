@@ -54,13 +54,15 @@ public class ProductController {
         // 각 Variant별 이미지 추출
         Map<Integer, List<MultipartFile>> variantImagesMap = extractVariantImages(request, variants.size());
 
+        validateBasicImagePresence(variantImagesMap);
         ProductCreateRequestDto productCreateRequestDto = ProductCreateRequestDto.builder()
                 .product(productInfo)
                 .variants(variants)
                 .variantImagesMap(variantImagesMap)
                 .build();
         ProductCreateResponseDto productCreateResponseDto = productService.createProduct(productCreateRequestDto, userId);
-        
+
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("상품 등록 완료", productCreateResponseDto));
     }
@@ -125,5 +127,13 @@ public class ProductController {
         }
 
         return variantImagesMap;
+    }
+
+    private void validateBasicImagePresence(Map<Integer, List<MultipartFile>> imageMap) {
+        for (List<MultipartFile> images : imageMap.values()) {
+            if (images == null || images.stream().allMatch(MultipartFile::isEmpty)) {
+                throw new CustomException(ErrorCode.VARIANT_IMAGE_REQUIRED);
+            }
+        }
     }
 }
