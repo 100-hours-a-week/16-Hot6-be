@@ -23,7 +23,6 @@ import java.util.List;
 public class DeskProductServiceImpl implements DeskProductService {
 
     private final DeskProductRepository deskProductRepository;
-    private final UserAuthRepository userAuthRepository;
     private final ScrapRepository scrapRepository;
     private final ProductSubCategoryRepository productSubCategoryRepository;
 
@@ -35,7 +34,6 @@ public class DeskProductServiceImpl implements DeskProductService {
 
         List<DeskProductListResponseDto.DeskProducts> deskProductsList = deskProducts.stream()
                 .map(deskProduct -> {
-                    User user = userAuthRepository.findById(userId);
 
                     ProductSubCategory productSubCategory = productSubCategoryRepository.findById(deskProduct.getSubCategoryId());
 
