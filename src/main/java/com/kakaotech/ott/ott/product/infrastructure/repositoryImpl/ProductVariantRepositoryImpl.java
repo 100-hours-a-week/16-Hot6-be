@@ -59,8 +59,9 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
         entity.setStatus(variant.getStatus());
         entity.setName(variant.getName());
         entity.setPrice(variant.getPrice());
-        entity.setAvailableQuantity(variant.getAvailableQuantity());
+        entity.setTotalQuantity(variant.getTotalQuantity());
         entity.setReservedQuantity(variant.getReservedQuantity());
+        entity.setSoldQuantity(variant.getSoldQuantity());
         entity.setOnPromotion(variant.isOnPromotion());
 
         ProductVariantEntity savedEntity = productVariantJpaRepository.save(entity);
@@ -111,15 +112,15 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
 
     @Override
     @Transactional
-    public void updateAvailableQuantity(Long variantId, int availableQuantity) {
+    public void updateTotalQuantity(Long variantId, int totalQuantity) {
         // 1. 입력 검증
-        if (availableQuantity < 0) {
+        if (totalQuantity < 0) {
             throw new IllegalArgumentException("재고 수량은 0 이상이어야 합니다.");
         }
 
         // 2. 품목 존재 여부 확인
         validateVariantExists(variantId);
-        productVariantJpaRepository.updateAvailableQuantity(variantId, availableQuantity);
+        productVariantJpaRepository.updateTotalQuantity(variantId, totalQuantity);
     }
 
     @Override
@@ -133,7 +134,7 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
 
         try {
             // 3. 재고 예약 실행
-            int updatedRows = productVariantJpaRepository.reserveStockForActiveVariant(variantId, quantity);
+            int updatedRows = productVariantJpaRepository.reserveStock(variantId, quantity);
 
             // 4. 업데이트 실패 시 상세 원인 확인 후 예외 발생
             if (updatedRows == 0) {
@@ -149,7 +150,7 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
 
     @Override
     @Transactional
-    public void releaseReservedStock(Long variantId, int quantity) {
+    public void cancelReservation(Long variantId, int quantity) {
         // 1. 입력 검증
         validateQuantity(quantity);
 
@@ -158,7 +159,7 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
 
         try {
             // 3. 예약 해제 실행
-            int updatedRows = productVariantJpaRepository.releaseReservedStockForManageableVariant(variantId, quantity);
+            int updatedRows = productVariantJpaRepository.cancelReservation(variantId, quantity);
 
             // 4. 업데이트 실패 시 상세 원인 확인 후 예외 발생
             if (updatedRows == 0) {
