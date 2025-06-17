@@ -31,14 +31,6 @@ public class DeskProductRepositoryImpl implements DeskProductRepository {
     }
 
     @Override
-    public List<DeskProduct> findByAiImageId(Long aiImageId) {
-        return deskProductJpaRepository.findByAiImageEntity_Id(aiImageId)
-                .stream()
-                .map(DeskProductEntity::toDomain)
-                .toList();
-    }
-
-    @Override
     public List<DeskProduct> findTop7ByWeight() {
         // DB에서 직접 weight 기준 상위 7개 조회
         List<DeskProductEntity> entities = deskProductJpaRepository.findByOrderByWeightDesc(PageRequest.of(0, 7));

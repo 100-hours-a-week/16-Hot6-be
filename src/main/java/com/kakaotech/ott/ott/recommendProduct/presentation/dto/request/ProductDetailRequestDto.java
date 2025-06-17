@@ -23,15 +23,6 @@ public class ProductDetailRequestDto {
     @JsonProperty("purchase_url")
     private String purchaseUrl;
 
-    // 버전 업데이트 후 진행
-//    @NotNull(message = "center_x는 필수입니다.")
-//    @JsonProperty("center_x")
-//    private Integer centerX;
-//
-//    @NotNull(message = "center_y는 필수입니다.")
-//    @JsonProperty("center_y")
-//    private Integer centerY;
-
     @NotNull(message = "image_path는 필수입니다.")
     @JsonProperty("image_path")
     private String imagePath;
@@ -43,4 +34,15 @@ public class ProductDetailRequestDto {
     @NotNull(message = "sub_category는 필수입니다.")
     @JsonProperty("sub_category")
     private String subCategory;
+
+    // 버전 업데이트 후 진행
+    @JsonProperty("center_x")
+    private Integer centerX;
+
+    @JsonProperty("center_y")
+    private Integer centerY;
+
+    @NotNull(message = "product_code는 필수입니다.")
+    @JsonProperty("product_code")
+    private String productCode;
 }
