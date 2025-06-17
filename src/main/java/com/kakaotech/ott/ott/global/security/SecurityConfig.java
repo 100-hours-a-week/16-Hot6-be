@@ -111,6 +111,7 @@ public class SecurityConfig {
                 "/api/v1/posts/{postId}",
                 "/api/v1/posts/{postId}/comments",
                 "/api/v1/desk-products/**",
+                "/api/v1/products/**",
                 "/api/v1/auth/kakao",
                 "/oauth2/authorization/kakao",
                 "/login/**"
