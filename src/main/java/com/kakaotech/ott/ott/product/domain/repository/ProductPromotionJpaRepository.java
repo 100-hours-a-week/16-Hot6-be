@@ -37,12 +37,6 @@ public interface ProductPromotionJpaRepository extends JpaRepository<ProductProm
     @Query("SELECT p FROM ProductPromotionEntity p WHERE p.status = 'ACTIVE' AND p.endAt <= :now")
     List<ProductPromotionEntity> findExpiredPromotions(@Param("now") LocalDateTime now);
 
-    // 판매 수량 증가
-    @Modifying(clearAutomatically = true)
-    @Transactional
-    @Query("UPDATE ProductPromotionEntity p SET p.soldQuantity = p.soldQuantity + :quantity WHERE p.id = :id")
-    void increaseSoldQuantity(@Param("id") Long promotionId, @Param("quantity") int quantity);
-
     // 상태 업데이트
     @Modifying(clearAutomatically = true)
     @Transactional
