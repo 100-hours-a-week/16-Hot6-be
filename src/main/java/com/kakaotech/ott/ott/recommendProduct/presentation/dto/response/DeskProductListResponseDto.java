@@ -27,7 +27,7 @@ public class DeskProductListResponseDto {
 
         private int price;
 
-        private boolean isScraped;
+        private boolean isScrapped;
 
         private double weight;
 
