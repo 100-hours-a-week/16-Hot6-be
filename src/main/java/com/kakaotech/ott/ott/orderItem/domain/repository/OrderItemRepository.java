@@ -13,6 +13,8 @@ public interface OrderItemRepository {
 
     List<OrderItem> findByProductOrderId(Long productOrderId);
 
+    void payOrderItem(List<OrderItem> orderItems);
+
     void cancelOrderItem(List<OrderItem> orderItems);
 
     void refundOrderItem(List<OrderItem> orderItems);

@@ -32,3 +32,6 @@ public class PointHistory {
                 .build();
     }
 }
+// 포인트 넣기
+//insert into point_history (user_id, amount, balance_after, type, description)
+//values (2, 10000000, 10000700, 'EARN', 'POST_CREATE');
