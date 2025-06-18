@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.aiImage.presentation.controller;
 
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.recommendProduct.application.service.ProductDomainService;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
@@ -69,7 +70,7 @@ public class AiImageController {
                     .body(ApiResponse.error(400, "이미지 파일이 비어있습니다."));
         }
 
-        AiImageSaveResponseDto aiImageSaveResponseDto = aiImageService.handleImageValidation(image, requestDto.getConcept(), userId);
+        AiImageSaveResponseDto aiImageSaveResponseDto = aiImageService.handleImageValidation(image, AiImageConcept.BASIC, userId);
 
         return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성 요청이 접수되었습니다.", aiImageSaveResponseDto));
     }

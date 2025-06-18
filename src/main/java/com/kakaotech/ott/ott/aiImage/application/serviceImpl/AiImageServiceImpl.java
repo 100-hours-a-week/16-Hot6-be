@@ -88,7 +88,7 @@ public class AiImageServiceImpl implements AiImageService {
 
         User user = userAuthRepository.findById(aiImage.getUserId());
 
-        ImageGenerationHistory imageGenerationHistory = ImageGenerationHistory.createImageGenerationHisotry(user.getId(), LocalDate.now(), aiImageAndProductRequestDto.getConcept());
+        ImageGenerationHistory imageGenerationHistory = ImageGenerationHistory.createImageGenerationHisotry(user.getId(), LocalDate.now(), aiImage.getConcept());
         imageGenerationHistoryRepository.save(imageGenerationHistory, user);
 
         AiImage savedAiImage = aiImageRepository.saveImage(aiImage);

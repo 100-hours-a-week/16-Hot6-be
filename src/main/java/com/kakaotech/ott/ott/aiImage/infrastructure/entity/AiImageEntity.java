@@ -32,6 +32,7 @@ public class AiImageEntity {
     @Column(name = "post_id")
     private Long postId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "concept")
     private AiImageConcept concept;
 
