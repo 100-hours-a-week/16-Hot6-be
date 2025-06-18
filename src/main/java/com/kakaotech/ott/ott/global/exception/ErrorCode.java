@@ -94,7 +94,9 @@ public enum ErrorCode {
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "유효하지 않은 값을 입력했습니다."),
 
     // POINTHISOTRY
-    POINT_HISTORY_NOT_FOUNR(HttpStatus.BAD_REQUEST, "포인트 내역이 존재하지 않습니다.");
+    POINT_HISTORY_NOT_FOUNR(HttpStatus.BAD_REQUEST, "포인트 내역이 존재하지 않습니다."),
+    INSUFFICIENT_POINT_BALANCE(HttpStatus.BAD_REQUEST, "보유 포인트가 부족합니다."),
+    PAYMENT_POINT_BALANCE(HttpStatus.BAD_REQUEST, "결제 금액이 부족합니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

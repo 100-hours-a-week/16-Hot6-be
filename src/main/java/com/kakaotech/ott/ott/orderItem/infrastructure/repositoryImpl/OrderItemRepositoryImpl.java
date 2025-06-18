@@ -73,6 +73,26 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     }
 
     @Override
+    public void payOrderItem(List<OrderItem> orderItems) {
+
+        List<OrderItemEntity> entities = orderItemJpaRepository.findByProductOrderEntity_Id(orderItems.getFirst().getOrderId());
+
+        Map<Long, OrderItemEntity> entityMap = entities.stream()
+                .collect(Collectors.toMap(OrderItemEntity::getId, Function.identity()));
+
+        for (OrderItem item : orderItems) {
+
+            if(item.getStatus().equals(OrderItemStatus.PAID)) {
+                OrderItemEntity entity = entityMap.get(item.getId());
+                if(entity == null)
+                    throw new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+
+                entity.pay(item);
+            }
+        }
+    }
+
+    @Override
     public void cancelOrderItem(List<OrderItem> orderItems) {
 
         List<OrderItemEntity> entities = orderItemJpaRepository.findByProductOrderEntity_Id(orderItems.getFirst().getOrderId());

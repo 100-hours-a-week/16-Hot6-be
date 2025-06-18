@@ -32,6 +32,18 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
+    public ProductOrder paymentOrder(ProductOrder productOrder) {
+
+        ProductOrderEntity productOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(
+                productOrder.getId(), productOrder.getUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        productOrderEntity.setStatus(productOrder.getStatus());
+
+        return productOrderJpaRepository.save(productOrderEntity).toDomain();
+    }
+
+    @Override
     public void deleteProductOrder(ProductOrder productOrder, User user) {
 
         ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(productOrder.getId(), user.getId(), ProductOrderStatus.PENDING)
@@ -106,5 +118,13 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
                 .stream()
                 .map(ProductOrderEntity::toDomain)
                 .toList();
+    }
+
+    @Override
+    public ProductOrder findByIdAndUserIdToPayment(Long orderId, Long userId) {
+
+        return productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(orderId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND))
+                .toDomain();
     }
 }

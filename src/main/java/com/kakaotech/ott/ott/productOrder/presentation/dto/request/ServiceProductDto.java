@@ -28,3 +28,18 @@ public class ServiceProductDto {
     private int discountPrice;
 
 }
+
+// 주문하기
+//{
+//        "products":
+//        [
+//        {
+//        "productId": 1,
+//        "promotionId": 1,
+//        "originalPrice": 10000,
+//        "quantity": 1,
+//        "discountPrice": 5000
+//        }
+//        ]
+//
+//        }

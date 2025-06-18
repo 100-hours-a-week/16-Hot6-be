@@ -105,6 +105,11 @@ public class OrderItemEntity {
                 .build();
     }
 
+    public void pay(OrderItem item) {
+        this.status = item.getStatus();
+        this.pendingProductStatus = item.getPendingProductStatus();
+    }
+
     public void cancel(OrderItem item) {
         this.status = item.getStatus();
         this.refundAmount = item.getFinalPrice() * item.getQuantity();
