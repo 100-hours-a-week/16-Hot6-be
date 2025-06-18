@@ -38,7 +38,7 @@ public class PointHistoryRepositoryImpl implements PointHistoryRepository {
     @Override
     public PointHistory findLatestPointHistoryByUserId(Long userId) {
 
-        PointHistoryEntity pointHistoryEntity = pointHistoryJpaRepository.findLatestPointHistoryByUserId(userId)
+        PointHistoryEntity pointHistoryEntity = pointHistoryJpaRepository.findFirstByUserEntityIdOrderByIdDesc(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POINT_HISTORY_NOT_FOUNR));
 
         return pointHistoryEntity.toDomain();
