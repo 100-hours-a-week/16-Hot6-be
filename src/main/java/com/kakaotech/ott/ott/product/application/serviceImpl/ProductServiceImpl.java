@@ -247,6 +247,7 @@ public class ProductServiceImpl implements ProductService {
                 .originalPrice(variant.getPrice())
                 .discountPrice(null)
                 .discountRate(null)
+                .availableQuantity(variant.getAvailableQuantity())
                 .promotionEndAt(null)
                 .promotion(false)
                 .scraped(scraped)
