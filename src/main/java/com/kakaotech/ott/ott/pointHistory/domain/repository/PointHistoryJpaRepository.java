@@ -21,12 +21,6 @@ public interface PointHistoryJpaRepository extends JpaRepository<PointHistoryEnt
 """)
     Page<PointHistoryEntity> findUserAllPointHistory(@Param("userId") Long userId, @Param("lastPointHistoryId") Long lastPointHistoryId, Pageable pageable);
 
-    @Query("""
-    SELECT p 
-    FROM PointHistoryEntity p 
-    WHERE p.userEntity.id = :userId 
-    ORDER BY p.id DESC
-    """)
-    Optional<PointHistoryEntity> findLatestPointHistoryByUserId(@Param("userId") Long userId);
+    Optional<PointHistoryEntity> findFirstByUserEntityIdOrderByIdDesc(Long userId);
 
 }
