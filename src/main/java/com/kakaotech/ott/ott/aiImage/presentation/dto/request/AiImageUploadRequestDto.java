@@ -16,7 +16,6 @@ public class AiImageUploadRequestDto {
     @JsonProperty("before_image_path")
     private MultipartFile beforeImagePath;
 
-    @NotBlank(message = "컨셉은 필수입니다.")
     @JsonProperty("concept")
     private AiImageConcept concept;
 

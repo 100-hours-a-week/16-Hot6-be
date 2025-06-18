@@ -53,7 +53,7 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         int remainToken = imageGenerationHistoryRepository.checkGenerationTokenCount(userId, LocalDate.now());
 
-        if (remainToken == 0)
+        if (remainToken == 3)
             throw new CustomException(ErrorCode.QUOTA_ALREADY_USED);
 
     }

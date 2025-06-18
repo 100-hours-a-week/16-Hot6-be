@@ -57,6 +57,7 @@ public class AiImageRepositoryImpl implements AiImageRepository {
 
             aiImageEntity = AiImageEntity.builder()
                     .userEntity(userEntity)
+                    .concept(aiImage.getConcept())
                     .state(aiImage.getState())
                     .beforeImagePath(aiImage.getBeforeImagePath())
                     .afterImagePath(aiImage.getAfterImagePath())
