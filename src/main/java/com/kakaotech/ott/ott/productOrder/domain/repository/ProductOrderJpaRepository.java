@@ -20,8 +20,7 @@ public interface ProductOrderJpaRepository extends JpaRepository<ProductOrderEnt
     @Query("""
         SELECT p
         FROM ProductOrderEntity p
-        WHERE p.status <> ProductOrderStatus.PENDING
-          AND p.deletedAt IS NULL
+        WHERE p.deletedAt IS NULL
           AND p.userEntity.id = :userId
           AND (:lastProductOrderId IS NULL OR p.id < :lastProductOrderId)
         ORDER BY p.id DESC
@@ -39,8 +38,14 @@ public interface ProductOrderJpaRepository extends JpaRepository<ProductOrderEnt
     Optional<ProductOrderEntity> findByIdAndDeletedAtIsNull(Long orderId);
 
     @Query("SELECT o FROM ProductOrderEntity o " +
-            "WHERE o.orderedAt <= :now " +
-            "AND o.status <> 'CONFIRMED' " +
+            "WHERE o.orderedAt <= :threshold " +
+            "AND o.status = 'DELIVERED' " +
             "AND o.deletedAt IS NULL")
-    List<ProductOrderEntity> findOrdersToAutoConfirm(@Param("now") LocalDateTime now);
+    List<ProductOrderEntity> findOrdersToAutoConfirm(@Param("threshold") LocalDateTime threshold);
+
+    @Query("SELECT o FROM ProductOrderEntity o " +
+            "WHERE o.orderedAt <= :threshold " +
+            "AND o.status = 'PENDING' " +
+            "AND o.deletedAt IS NULL")
+    List<ProductOrderEntity> findOrdersToAutoDelete(@Param("threshold") LocalDateTime threshold);
 }

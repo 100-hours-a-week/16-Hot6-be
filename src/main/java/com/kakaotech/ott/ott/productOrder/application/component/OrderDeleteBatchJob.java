@@ -12,17 +12,20 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class OrderConfirmBatchJob {
+public class OrderDeleteBatchJob {
+
     private final ProductOrderRepository productOrderRepository;
 
-    @Scheduled(cron = "0 0 0 * * ?") // 매일 새벽 3시
+    @Scheduled(cron = "0 */1 * * * ?")
     @Transactional
-    public void confirmOrders() {
-        LocalDateTime threshold = LocalDateTime.now().minusDays(3);
-        List<ProductOrder> ordersToConfirm = productOrderRepository.findOrdersToAutoConfirm(threshold);
-        for (ProductOrder order : ordersToConfirm) {
-            order.confirm();
-            productOrderRepository.confirmProductOrder(order);
+    public void deleteOrders() {
+
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(30);
+        List<ProductOrder> ordersToDelete = productOrderRepository.findOrdersToAutoDelete(threshold);
+
+        for (ProductOrder order : ordersToDelete) {
+            order.deleteOrder();
+            productOrderRepository.deleteProductOrder(order);
         }
     }
 }

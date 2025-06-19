@@ -15,6 +15,8 @@ public interface ProductOrderRepository {
 
     void deleteProductOrder(ProductOrder productOrder, User user);
 
+    void deleteProductOrder(ProductOrder productOrder);
+
     ProductOrder confirmProductOrder(ProductOrder productOrder, User user);
 
     void confirmProductOrder(ProductOrder productOrder);
@@ -27,7 +29,9 @@ public interface ProductOrderRepository {
 
     ProductOrder findByIdAndUserId(Long orderId, Long userId);
 
-    List<ProductOrder> findOrdersToAutoConfirm(LocalDateTime now);
+    List<ProductOrder> findOrdersToAutoConfirm(LocalDateTime threshold);
+
+    List<ProductOrder> findOrdersToAutoDelete(LocalDateTime threshold);
 
     ProductOrder findByIdAndUserIdToPayment(Long orderId, Long userId);
 }
