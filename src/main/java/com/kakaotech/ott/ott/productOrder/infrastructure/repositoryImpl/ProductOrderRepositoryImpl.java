@@ -54,9 +54,20 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
+    public void deleteProductOrder(ProductOrder productOrder) {
+
+        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndDeletedAtIsNull(productOrder.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        beforeProductOrderEntity.setStatus(productOrder.getStatus());
+        beforeProductOrderEntity.setDeletedAt(productOrder.getDeletedAt());
+    }
+
+    @Override
     public ProductOrder confirmProductOrder(ProductOrder productOrder, User user) {
 
-        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(productOrder.getId(), user.getId(), ProductOrderStatus.PENDING)                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(productOrder.getId(), user.getId(), ProductOrderStatus.PENDING)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         beforeProductOrderEntity.setConfirmedAt(productOrder.getConfirmedAt());
         beforeProductOrderEntity.setStatus(productOrder.getStatus());
@@ -105,16 +116,24 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     @Override
     public ProductOrder findByIdAndUserId(Long orderId, Long userId) {
 
-        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(orderId, userId, ProductOrderStatus.PENDING)
+        ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNull(orderId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         return beforeProductOrderEntity.toDomain();
     }
 
     @Override
-    public List<ProductOrder> findOrdersToAutoConfirm(LocalDateTime now) {
+    public List<ProductOrder> findOrdersToAutoConfirm(LocalDateTime threshold) {
 
-        return productOrderJpaRepository.findOrdersToAutoConfirm(now)
+        return productOrderJpaRepository.findOrdersToAutoConfirm(threshold)
+                .stream()
+                .map(ProductOrderEntity::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<ProductOrder> findOrdersToAutoDelete(LocalDateTime threshold) {
+        return productOrderJpaRepository.findOrdersToAutoDelete(threshold)
                 .stream()
                 .map(ProductOrderEntity::toDomain)
                 .toList();
