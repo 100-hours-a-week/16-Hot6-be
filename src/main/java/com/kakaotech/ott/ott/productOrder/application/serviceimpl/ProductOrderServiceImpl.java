@@ -1,7 +1,5 @@
 package com.kakaotech.ott.ott.productOrder.application.serviceimpl;
 
-import com.kakaotech.ott.ott.global.exception.CustomException;
-import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import com.kakaotech.ott.ott.product.domain.model.ProductImage;
@@ -59,6 +57,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             Long variantId = serviceProduct.getVariantId();
             int quantity = serviceProduct.getQuantity();
             int productDiscountAmount = 0;
+            int productDiscountPrice = 0;
             Long promotionId = null;
 
             ProductVariant productVariant = productVariantRepository.findById(variantId);
@@ -72,7 +71,8 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                 promotionId = productPromotion.getId();
 
                 // 할인 금액 특가일 때만 계산
-                productDiscountAmount = productPromotion.getDiscountPrice();
+                productDiscountPrice = productPromotion.getDiscountPrice();
+                productDiscountAmount = productVariant.getPrice() - productDiscountPrice;
                 orderDiscountAmount += productDiscountAmount;
 
 
@@ -83,7 +83,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                 productVariantRepository.update(productVariant);
             }
 
-            int finalPrice = productVariant.getPrice() - productDiscountAmount;
+            int finalPrice = productVariant.getPrice() - productDiscountPrice;
 
             orderItemRepository.existsByProductIdAndPendingProductStatus(variantId, OrderItemStatus.PENDING, OrderItemStatus.PENDING);
 
