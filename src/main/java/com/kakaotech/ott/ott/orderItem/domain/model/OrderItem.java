@@ -44,7 +44,7 @@ public class OrderItem {
         return OrderItem.builder()
                 .orderId(orderId)
                 .variantsId(variantsId)
-                .promotionId(promotionId)
+                .promotionId(promotionId != null ? promotionId : null) // 삼항 연산자 사용
                 .status(OrderItemStatus.PENDING)
                 .originalPrice(originalPrice)
                 .quantity(quantity)

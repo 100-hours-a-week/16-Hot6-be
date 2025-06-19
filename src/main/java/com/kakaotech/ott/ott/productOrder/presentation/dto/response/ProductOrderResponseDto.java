@@ -1,7 +1,6 @@
 package com.kakaotech.ott.ott.productOrder.presentation.dto.response;
 
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ServiceProductDto;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,4 +30,26 @@ public class ProductOrderResponseDto {
 
     @NotNull
     private LocalDateTime createdAt;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ServiceProductDto {
+
+        @NotNull
+        private Long productId;
+
+        private Long promotionId;
+
+        @NotNull
+        private int originalPrice;
+
+        @NotNull
+        private int quantity;
+
+        @NotNull
+        private int discountPrice;
+
+    }
 }

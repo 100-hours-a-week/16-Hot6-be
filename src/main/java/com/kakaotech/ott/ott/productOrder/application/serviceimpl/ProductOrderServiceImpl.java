@@ -16,7 +16,6 @@ import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialCancelRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderRequestDto;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ServiceProductDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.response.*;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
@@ -43,7 +42,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     private final ProductImageRepository productImageRepository;
     private final ProductPromotionRepository productPromotionRepository;
 
-
+// 주문 요청 들어오면 해당 상품 id값을 조회하여
     @Override
     @Transactional
     public ProductOrderResponseDto create(ProductOrderRequestDto productOrderRequestDto, Long userId) {
@@ -56,20 +55,27 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         int totalAmount = 0;
         int orderDiscountAmount = 0;
 
-        for(ServiceProductDto serviceProduct : productOrderRequestDto.getProducts()) {
-            Long variantsId = serviceProduct.getProductId();
-            Long promotionId = serviceProduct.getPromotionId();
-            int originalPrice = serviceProduct.getOriginalPrice();
+        for(ProductOrderRequestDto.ServiceProductDto serviceProduct : productOrderRequestDto.getProducts()) {
+            Long variantId = serviceProduct.getVariantId();
             int quantity = serviceProduct.getQuantity();
-            int productDiscountAmount = serviceProduct.getDiscountPrice();
-            int finalPrice = originalPrice - productDiscountAmount;
+            int productDiscountAmount = 0;
+            Long promotionId = null;
 
-            ProductVariant productVariant = productVariantRepository.findById(variantsId);
+            ProductVariant productVariant = productVariantRepository.findById(variantId);
+            totalAmount += productVariant.getPrice() * quantity;
 
             if (productVariant.isOnPromotion()) {
                 ProductPromotion productPromotion = productPromotionRepository.findByVariantIdAndStatus(productVariant.getId(), PromotionStatus.ACTIVE);
                 productPromotion.reservePromotionStock(serviceProduct.getQuantity());
                 productPromotionRepository.update(productPromotion);
+
+                promotionId = productPromotion.getId();
+
+                // 할인 금액 특가일 때만 계산
+                productDiscountAmount = productPromotion.getDiscountPrice();
+                orderDiscountAmount += productDiscountAmount;
+
+
             } else {
                 productVariant.reserveStock(quantity);
                 // TODO: 예약 재고 증가 호출
@@ -77,31 +83,32 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                 productVariantRepository.update(productVariant);
             }
 
-            // 주문한 상품 총액 계산
-            totalAmount += originalPrice * quantity;
-            // 할인 금액 계산
-            orderDiscountAmount += productDiscountAmount;
+            int finalPrice = productVariant.getPrice() - productDiscountAmount;
 
-            orderItemRepository.existsByProductIdAndPendingProductStatus(variantsId, OrderItemStatus.PENDING, OrderItemStatus.PENDING);
+            orderItemRepository.existsByProductIdAndPendingProductStatus(variantId, OrderItemStatus.PENDING, OrderItemStatus.PENDING);
 
-            OrderItem orderItem = OrderItem.createOrderItem(null, variantsId, promotionId, originalPrice, quantity, productDiscountAmount, finalPrice);
+            OrderItem orderItem = OrderItem.createOrderItem(null, variantId, promotionId, productVariant.getPrice(), quantity, productDiscountAmount, finalPrice);
             orderItems.add(orderItem);
+
+
         }
 
         // 주문 생성
         ProductOrder productOrder = ProductOrder.createOrder(userId, totalAmount, orderDiscountAmount);
         ProductOrder savedProductOrder = productOrderRepository.save(productOrder, user);
 
+        List<ProductOrderResponseDto.ServiceProductDto> serviceProductDtos = new ArrayList<>();
         for (OrderItem orderItem : orderItems) {
             orderItem.setOrderId(savedProductOrder.getId());
             orderItemRepository.save(orderItem);
+            serviceProductDtos.add(new ProductOrderResponseDto.ServiceProductDto(orderItem.getOrderId(), orderItem.getPromotionId(), orderItem.getOriginalPrice(), orderItem.getQuantity(), orderItem.getDiscountAmount()));
         }
 
         return new ProductOrderResponseDto(
                 savedProductOrder.getId(),
-                productOrderRequestDto.getProducts(),
+                serviceProductDtos,
                 totalAmount,
-                productOrder.getStatus(),
+                savedProductOrder.getStatus(),
                 savedProductOrder.getOrderedAt());
     }
 
