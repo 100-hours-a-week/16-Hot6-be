@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.productOrder.domain.repository;
 
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
+import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import org.springframework.data.domain.Slice;
 
@@ -34,4 +35,6 @@ public interface ProductOrderRepository {
     List<ProductOrder> findOrdersToAutoDelete(LocalDateTime threshold);
 
     ProductOrder findByIdAndUserIdToPayment(Long orderId, Long userId);
+
+    boolean existsByUserIdAndFingerprint(Long userId, String fingerprint);
 }

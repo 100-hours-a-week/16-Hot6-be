@@ -40,6 +40,9 @@ public class ProductOrderEntity {
     @Column(name = "discount_amount", nullable = false)
     private int discountAmount;
 
+    @Column(name = "order_fingerprint", nullable = false, length = 64)
+    private String orderFingerprint;
+
     @CreatedDate
     @Column(name = "ordered_at", nullable = false, updatable = false)
     private LocalDateTime orderedAt;
@@ -68,6 +71,7 @@ public class ProductOrderEntity {
                 .status(this.status)
                 .subtotalAmount(this.subtotalAmount)
                 .discountAmount(this.discountAmount)
+                .orderFingerprint(this.orderFingerprint)
                 .orderedAt(this.orderedAt)
                 .deliveredAt(this.deliveredAt)
                 .confirmedAt(this.confirmedAt)
@@ -85,6 +89,7 @@ public class ProductOrderEntity {
                 .status(productOrder.getStatus())
                 .subtotalAmount(productOrder.getSubtotalAmount())
                 .discountAmount(productOrder.getDiscountAmount())
+                .orderFingerprint(productOrder.getOrderFingerprint())
                 .deliveredAt(productOrder.getDeliveredAt())
                 .confirmedAt(productOrder.getConfirmedAt())
                 .canceledAt(productOrder.getCanceledAt())

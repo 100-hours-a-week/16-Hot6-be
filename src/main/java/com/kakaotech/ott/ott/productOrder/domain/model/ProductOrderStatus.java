@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.productOrder.domain.model;
 
 public enum ProductOrderStatus {
+    FAILED,
     PENDING,
     PAID,
     CONFIRMED,

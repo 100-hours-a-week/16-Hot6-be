@@ -146,4 +146,10 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND))
                 .toDomain();
     }
+
+    @Override
+    public boolean existsByUserIdAndFingerprint(Long userId, String fingerprint) {
+
+        return productOrderJpaRepository.existsByUserEntityIdAndFingerprint(userId, fingerprint);
+    }
 }

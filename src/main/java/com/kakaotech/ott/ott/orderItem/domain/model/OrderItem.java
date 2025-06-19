@@ -62,6 +62,13 @@ public class OrderItem {
         this.pendingProductStatus = null;
     }
 
+    public void fail() {
+        if (this.status != OrderItemStatus.PENDING) throw new CustomException(ErrorCode.NOT_PENDING_STATE);
+
+        this.status = OrderItemStatus.FAILED;
+        this.pendingProductStatus = null;
+    }
+
     public void pay() {
         if (this.status != OrderItemStatus.PENDING) throw new CustomException(ErrorCode.NOT_PENDING_STATE);
 

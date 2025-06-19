@@ -24,6 +24,8 @@ public class ProductOrder {
 
     private int discountAmount;
 
+    private String orderFingerprint;
+
     private LocalDateTime orderedAt;
 
     private LocalDateTime deliveredAt;
@@ -38,7 +40,7 @@ public class ProductOrder {
 
     private static final ULID ulid = new ULID();
 
-    public static ProductOrder createOrder(Long userId, int subtotalAmount, int discountAmount) {
+    public static ProductOrder createOrder(Long userId, int subtotalAmount, int discountAmount, String orderFingerprint) {
 
         return ProductOrder.builder()
                 .userId(userId)
@@ -46,7 +48,16 @@ public class ProductOrder {
                 .status(ProductOrderStatus.PENDING)
                 .subtotalAmount(subtotalAmount)
                 .discountAmount(discountAmount)
+                .orderFingerprint(orderFingerprint)
                 .build();
+    }
+
+    public void fail() {
+        if (this.status != ProductOrderStatus.PENDING)
+            throw new CustomException(ErrorCode.NOT_PENDING_STATE);
+
+        this.status = ProductOrderStatus.FAILED;
+        this.deletedAt = LocalDateTime.now();
     }
 
     public void pay() {
@@ -87,7 +98,7 @@ public class ProductOrder {
         this.status = ProductOrderStatus.PARTIALLY_CANCELED;
     }
 
-    public void cancelRefund() {
+    public void partialRefund() {
         if (!(this.status == ProductOrderStatus.DELIVERED || this.status == ProductOrderStatus.PARTIALLY_REFUNDED))
             throw new CustomException(ErrorCode.NOT_DELIVERED_STATE);
 
