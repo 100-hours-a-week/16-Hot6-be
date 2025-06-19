@@ -105,6 +105,11 @@ public class OrderItemEntity {
                 .build();
     }
 
+    public void fail(OrderItem item) {
+        this.status = item.getStatus();
+        this.pendingProductStatus = item.getPendingProductStatus();
+    }
+
     public void pay(OrderItem item) {
         this.status = item.getStatus();
         this.pendingProductStatus = item.getPendingProductStatus();

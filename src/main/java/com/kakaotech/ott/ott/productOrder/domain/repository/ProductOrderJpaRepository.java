@@ -48,4 +48,14 @@ public interface ProductOrderJpaRepository extends JpaRepository<ProductOrderEnt
             "AND o.status = 'PENDING' " +
             "AND o.deletedAt IS NULL")
     List<ProductOrderEntity> findOrdersToAutoDelete(@Param("threshold") LocalDateTime threshold);
+
+    @Query("""
+        SELECT COUNT(p) > 0 FROM ProductOrderEntity p
+            WHERE p.userEntity.id = :userId
+                AND p.orderFingerprint = :fingerprint
+                AND p.status = 'PENDING'
+    """)
+    boolean existsByUserEntityIdAndFingerprint(
+            @Param("userId") Long userId,
+            @Param("fingerprint") String fingerprint);
 }

@@ -20,4 +20,6 @@ public interface OrderItemRepository {
     void refundOrderItem(List<OrderItem> orderItems);
 
     void confirmOrderItem(List<OrderItem> orderItems);
+
+    void deleteOrderItem(OrderItem orderItems);
 }

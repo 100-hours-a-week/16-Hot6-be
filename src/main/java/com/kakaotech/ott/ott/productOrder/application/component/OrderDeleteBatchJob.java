@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.productOrder.application.component;
 
+import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
+import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import java.util.List;
 public class OrderDeleteBatchJob {
 
     private final ProductOrderRepository productOrderRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Scheduled(cron = "0 */1 * * * ?")
     @Transactional
@@ -24,8 +27,15 @@ public class OrderDeleteBatchJob {
         List<ProductOrder> ordersToDelete = productOrderRepository.findOrdersToAutoDelete(threshold);
 
         for (ProductOrder order : ordersToDelete) {
-            order.deleteOrder();
+            order.fail();
             productOrderRepository.deleteProductOrder(order);
+
+            List<OrderItem> orderItem = orderItemRepository.findByProductOrderId(order.getId());
+
+            for(OrderItem item : orderItem) {
+                item.fail();
+                orderItemRepository.deleteOrderItem(item);
+            }
         }
     }
 }

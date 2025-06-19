@@ -145,4 +145,14 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
             entity.confirm(item);
         }
     }
+
+    @Override
+    public void deleteOrderItem(OrderItem orderItems) {
+
+        OrderItemEntity orderItemEntity = orderItemJpaRepository.findById(orderItems.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND));
+
+        orderItemEntity.fail(orderItems);
+
+    }
 }

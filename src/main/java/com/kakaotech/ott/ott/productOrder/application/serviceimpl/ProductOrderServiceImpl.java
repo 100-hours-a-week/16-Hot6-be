@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.productOrder.application.serviceimpl;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import com.kakaotech.ott.ott.product.domain.model.ProductImage;
@@ -11,6 +13,7 @@ import com.kakaotech.ott.ott.product.domain.repository.ProductPromotionRepositor
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
 import com.kakaotech.ott.ott.productOrder.application.service.ProductOrderService;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
+import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialCancelRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderRequestDto;
@@ -19,6 +22,7 @@ import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.util.validator.OrderFingerprintUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -48,6 +52,14 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         User user = userRepository.findById(userId);
 
         user.checkVerifiedUser();
+
+        String fingerprint = OrderFingerprintUtil.generateFingerprint(productOrderRequestDto.getProducts());
+
+        boolean exists = productOrderRepository.existsByUserIdAndFingerprint(userId, fingerprint);
+
+        if(exists) {
+            throw new CustomException(ErrorCode.ALREADY_ORDERED);
+        }
 
         List<OrderItem> orderItems = new ArrayList<>();
         int totalAmount = 0;
@@ -85,7 +97,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             int finalPrice = productVariant.getPrice() - productDiscountPrice;
 
-            orderItemRepository.existsByProductIdAndPendingProductStatus(variantId, OrderItemStatus.PENDING, OrderItemStatus.PENDING);
+            //orderItemRepository.existsByProductIdAndPendingProductStatus(variantId, OrderItemStatus.PENDING, OrderItemStatus.PENDING);
 
             OrderItem orderItem = OrderItem.createOrderItem(null, variantId, promotionId, productVariant.getPrice(), quantity, productDiscountAmount, finalPrice);
             orderItems.add(orderItem);
@@ -94,7 +106,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         }
 
         // 주문 생성
-        ProductOrder productOrder = ProductOrder.createOrder(userId, totalAmount, orderDiscountAmount);
+        ProductOrder productOrder = ProductOrder.createOrder(userId, totalAmount, orderDiscountAmount, fingerprint);
         ProductOrder savedProductOrder = productOrderRepository.save(productOrder, user);
 
         List<ProductOrderResponseDto.ServiceProductDto> serviceProductDtos = new ArrayList<>();
