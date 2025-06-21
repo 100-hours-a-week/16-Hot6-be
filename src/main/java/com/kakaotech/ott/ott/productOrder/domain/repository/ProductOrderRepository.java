@@ -37,4 +37,6 @@ public interface ProductOrderRepository {
     ProductOrder findByIdAndUserIdToPayment(Long orderId, Long userId);
 
     boolean existsByUserIdAndFingerprint(Long userId, String fingerprint);
+
+    ProductOrder findById(Long orderId);
 }

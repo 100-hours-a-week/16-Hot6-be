@@ -5,6 +5,7 @@ public enum OrderItemStatus {
     PENDING,
     PAID,
     DELIVERED,
+    REFUND_REQUEST,
     REFUND,
     CANCELED,
     CONFIRMED

@@ -152,4 +152,12 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
 
         return productOrderJpaRepository.existsByUserEntityIdAndFingerprint(userId, fingerprint);
     }
+
+    @Override
+    public ProductOrder findById(Long orderId) {
+
+        return productOrderJpaRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND))
+                .toDomain();
+    }
 }
