@@ -54,9 +54,9 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     }
 
     @Override
-    public void existsByProductIdAndPendingProductStatus(Long productId, OrderItemStatus orderItemStatusPending, OrderItemStatus orderItemStatusCanceled) {
+    public void existsByProductIdAndStatus(Long productId, OrderItemStatus orderItemStatusCanceled) {
 
-        boolean exists = orderItemJpaRepository.existsByProductVariantEntityIdAndPendingProductStatusAndStatus(productId, orderItemStatusPending, orderItemStatusCanceled);
+        boolean exists = orderItemJpaRepository.existsByProductVariantEntityIdAndStatus(productId, orderItemStatusCanceled);
 
         if(exists) {
             throw new CustomException(ErrorCode.ALREADY_ORDERED);

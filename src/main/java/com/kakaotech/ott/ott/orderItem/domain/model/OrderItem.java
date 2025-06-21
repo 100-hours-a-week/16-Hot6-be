@@ -29,8 +29,6 @@ public class OrderItem {
 
     private int finalPrice;
 
-    private OrderItemStatus pendingProductStatus;
-
     private int refundAmount;
 
     private RefundReason refundReason;
@@ -50,7 +48,6 @@ public class OrderItem {
                 .quantity(quantity)
                 .discountAmount(discountAmount)
                 .finalPrice(finalPrice)
-                .pendingProductStatus(OrderItemStatus.PENDING)
                 .build();
     }
 
@@ -58,22 +55,16 @@ public class OrderItem {
         this.orderId = orderId;
     }
 
-    public void setPendingProductPid() {
-        this.pendingProductStatus = null;
-    }
-
     public void fail() {
         if (this.status != OrderItemStatus.PENDING) throw new CustomException(ErrorCode.NOT_PENDING_STATE);
 
         this.status = OrderItemStatus.FAILED;
-        this.pendingProductStatus = null;
     }
 
     public void pay() {
         if (this.status != OrderItemStatus.PENDING) throw new CustomException(ErrorCode.NOT_PENDING_STATE);
 
         this.status = OrderItemStatus.PAID;
-        this.pendingProductStatus = null;
     }
 
     public void deliver() {
@@ -86,7 +77,7 @@ public class OrderItem {
         if (this.status != OrderItemStatus.PAID) throw new CustomException(ErrorCode.NOT_CANCELABLE_STATE);
 
         this.status = OrderItemStatus.CANCELED;
-        this.refundAmount = this.finalPrice * this.getQuantity();
+        this.refundAmount = this.finalPrice;
         this.refundReason = refundReason;
         this.canceledAt = canceledAt;
     }
@@ -95,7 +86,7 @@ public class OrderItem {
         if (this.status != OrderItemStatus.DELIVERED) throw new CustomException(ErrorCode.NOT_REFUNDABLE_STATE);
 
         this.status = OrderItemStatus.REFUND;
-        this.refundAmount = this.finalPrice * this.getQuantity();
+        this.refundAmount = this.finalPrice;
         this.refundReason = refundReason;
         this.refundedAt = refundedAt;
     }

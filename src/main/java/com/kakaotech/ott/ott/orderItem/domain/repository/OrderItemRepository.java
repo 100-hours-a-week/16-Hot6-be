@@ -9,7 +9,7 @@ public interface OrderItemRepository {
 
     OrderItem save(OrderItem orderItem);
 
-    void existsByProductIdAndPendingProductStatus(Long productId, OrderItemStatus orderItemStatusPending, OrderItemStatus orderItemStatusCanceled);
+    void existsByProductIdAndStatus(Long productId, OrderItemStatus orderItemStatusCanceled);
 
     List<OrderItem> findByProductOrderId(Long productOrderId);
 

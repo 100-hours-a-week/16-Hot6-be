@@ -53,10 +53,6 @@ public class OrderItemEntity {
     @Column(name = "final_price", nullable = false)
     private int finalPrice;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "pending_product_status")
-    private OrderItemStatus pendingProductStatus;
-
     @Column(name = "refund_amount")
     private int refundAmount;
 
@@ -82,7 +78,6 @@ public class OrderItemEntity {
                 .quantity(this.quantity)
                 .discountAmount(this.discountAmount)
                 .finalPrice(this.finalPrice)
-                .pendingProductStatus(this.pendingProductStatus)
                 .refundAmount(this.refundAmount)
                 .refundReason(this.refundReason)
                 .canceledAt(this.canceledAt)
@@ -101,18 +96,15 @@ public class OrderItemEntity {
                 .quantity(orderItem.getQuantity())
                 .discountAmount(orderItem.getDiscountAmount())
                 .finalPrice(orderItem.getFinalPrice())
-                .pendingProductStatus(orderItem.getPendingProductStatus())
                 .build();
     }
 
     public void fail(OrderItem item) {
         this.status = item.getStatus();
-        this.pendingProductStatus = item.getPendingProductStatus();
     }
 
     public void pay(OrderItem item) {
         this.status = item.getStatus();
-        this.pendingProductStatus = item.getPendingProductStatus();
     }
 
     public void cancel(OrderItem item) {
@@ -132,9 +124,5 @@ public class OrderItemEntity {
 
     public void confirm(OrderItem item) {
         this.status = item.getStatus();
-    }
-
-    public void setPendingProductStatus(OrderItemStatus pendingProductStatus) {
-        this.pendingProductStatus = pendingProductStatus;
     }
 }
