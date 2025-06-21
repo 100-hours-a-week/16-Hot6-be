@@ -55,7 +55,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductCreateResponseDto createProduct(ProductCreateRequestDto requestDto, Long userId) throws IOException {
         User user = userAuthRepository.findById(userId);
-        if (!user.getRole().equals(Role.ADMIN)) {
+        if (!user.getRole().equals(Role.ROLE_ADMIN)) {
             throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
 

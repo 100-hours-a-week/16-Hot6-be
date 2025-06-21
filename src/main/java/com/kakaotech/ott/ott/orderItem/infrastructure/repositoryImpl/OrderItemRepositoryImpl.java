@@ -155,4 +155,14 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
         orderItemEntity.fail(orderItems);
 
     }
+
+    @Override
+    public List<OrderItem> findByStatus(OrderItemStatus status) {
+
+        return orderItemJpaRepository.findByStatus(status)
+                .stream()
+                .map(OrderItemEntity::toDomain)
+                .collect(Collectors.toList());
+
+    }
 }

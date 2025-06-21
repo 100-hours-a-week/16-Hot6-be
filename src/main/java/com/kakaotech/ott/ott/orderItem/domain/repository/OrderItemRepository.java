@@ -22,4 +22,6 @@ public interface OrderItemRepository {
     void confirmOrderItem(List<OrderItem> orderItems);
 
     void deleteOrderItem(OrderItem orderItems);
+
+    List<OrderItem> findByStatus(OrderItemStatus status);
 }

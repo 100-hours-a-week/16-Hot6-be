@@ -29,17 +29,13 @@ public class UserPrincipal implements UserDetails {
                 user.getEmail(),
                 user.getRole(),
                 user.isActive(),
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                List.of(new SimpleGrantedAuthority(user.getRole().name()))
         );
     }
 
 
     public Long getId() {
         return id;
-    }
-
-    public Role getRole() {
-        return role;
     }
 
     public boolean getIsActive() { return isActive; }
