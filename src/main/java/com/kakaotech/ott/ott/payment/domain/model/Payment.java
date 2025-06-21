@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.payment.domain.model;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import de.huxhorn.sulky.ulid.ULID;
 import lombok.Builder;
 import lombok.Getter;

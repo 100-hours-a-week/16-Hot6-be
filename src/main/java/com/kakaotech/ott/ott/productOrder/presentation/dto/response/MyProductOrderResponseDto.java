@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.productOrder.presentation.dto.response;
 
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
+import com.kakaotech.ott.ott.payment.domain.model.PaymentMethod;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -58,7 +59,7 @@ public class MyProductOrderResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PaymentInfo {
-        private String paymentMethod;   // TODO: 타입 ENUM으로 바꿔야됨
+        private PaymentMethod paymentMethod;   // TODO: 타입 ENUM으로 바꿔야됨
         private int originalAmount;
         private int paymentAmount;
         private int discountAmount;
@@ -68,7 +69,7 @@ public class MyProductOrderResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RefundInfo {
-        private String refundMethod;
+        private PaymentMethod refundMethod;
         private int refundAmount;
     }
 }

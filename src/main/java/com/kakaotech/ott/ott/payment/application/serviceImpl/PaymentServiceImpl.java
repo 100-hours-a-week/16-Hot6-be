@@ -15,6 +15,10 @@ import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionReason;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointHistory;
 import com.kakaotech.ott.ott.pointHistory.domain.repository.PointHistoryRepository;
+import com.kakaotech.ott.ott.product.domain.model.ProductPromotion;
+import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
+import com.kakaotech.ott.ott.product.domain.repository.ProductPromotionRepository;
+import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
@@ -35,6 +39,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final ProductOrderRepository productOrderRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final OrderItemRepository orderItemRepository;
+    private final ProductPromotionRepository productPromotionRepository;
+    private final ProductVariantRepository productVariantRepository;
 
     @Override
     @Transactional
@@ -64,10 +70,8 @@ public class PaymentServiceImpl implements PaymentService {
             throw new CustomException(ErrorCode.ALREADY_PAID);
         }
 
-        if (!productOrder.getStatus().equals(ProductOrderStatus.PENDING)) {
-
-            throw new CustomException(ErrorCode.NOT_PENDING_STATE);
-        }
+        productOrder.pay();
+        productOrderRepository.paymentOrder(productOrder);
 
         Payment payment = Payment.createPayment(orderId, PaymentMethod.POINT, paymentRequestDto.getPoint());
 
@@ -75,12 +79,20 @@ public class PaymentServiceImpl implements PaymentService {
 
         PointHistory savedPointHistory = pointHistoryRepository.save(afterPointHistory, user);
 
-        productOrder.pay();
-        productOrderRepository.paymentOrder(productOrder);
-
         List<OrderItem> orderItemList = orderItemRepository.findByProductOrderId(productOrder.getId());
 
         for(OrderItem orderItem : orderItemList) {
+            if (orderItem.getPromotionId() != null) {
+                ProductPromotion productPromotion = productPromotionRepository.findById(orderItem.getPromotionId());
+                productPromotion.confirmPromotionSale(orderItem.getQuantity());
+                productPromotionRepository.update(productPromotion);
+
+            } else {
+                ProductVariant productVariant = productVariantRepository.findById(orderItem.getVariantsId());
+                productVariant.confirmSale(orderItem.getQuantity());
+                productVariantRepository.update(productVariant);
+            }
+
             if (orderItem.getStatus().equals(OrderItemStatus.PENDING))
                 orderItem.pay();
         }
