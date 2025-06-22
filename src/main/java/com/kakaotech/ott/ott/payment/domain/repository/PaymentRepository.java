@@ -7,4 +7,7 @@ public interface PaymentRepository {
 
     Payment save(Payment payment, User user);
 
+    void refund(Payment payment);
+
+    Payment findByProductOrderId(Long productOrderId);
 }

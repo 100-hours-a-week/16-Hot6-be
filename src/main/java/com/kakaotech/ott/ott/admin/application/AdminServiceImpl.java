@@ -6,6 +6,12 @@ import com.kakaotech.ott.ott.admin.presentation.dto.response.AdminRefundResponse
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
+import com.kakaotech.ott.ott.payment.domain.model.Payment;
+import com.kakaotech.ott.ott.payment.domain.repository.PaymentRepository;
+import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionReason;
+import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
+import com.kakaotech.ott.ott.pointHistory.domain.model.PointHistory;
+import com.kakaotech.ott.ott.pointHistory.domain.repository.PointHistoryRepository;
 import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
@@ -28,6 +34,8 @@ public class AdminServiceImpl implements AdminService{
     private final OrderItemRepository orderItemRepository;
     private final ProductOrderRepository productOrderRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final PaymentRepository paymentRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     @Transactional(readOnly = true)
     @Override
@@ -114,17 +122,25 @@ public class AdminServiceImpl implements AdminService{
         orderItemRepository.refundOrderItem(orderItem);
 
         ProductOrder productOrder = productOrderRepository.findById(orderItem.getOrderId());
+        User user = userRepository.findById(productOrder.getUserId());
+        Payment payment = paymentRepository.findByProductOrderId(productOrder.getId());
+        PointHistory lastPointHistory = pointHistoryRepository.findLatestPointHistoryByUserId(productOrder.getUserId());
+        PointHistory pointHistory = PointHistory.createPointHistory(productOrder.getUserId(), orderItem.getRefundAmount(), lastPointHistory.getBalanceAfter() + orderItem.getRefundAmount(),
+                PointActionType.EARN, PointActionReason.PRODUCT_REFUND);
 
         int remainNotRefundedProduct = orderItemRepository.countByProductOrderIdAndStatusNot(productOrder.getId(), OrderItemStatus.REFUND_APPROVED);
 
         if (remainNotRefundedProduct > 0) {
             productOrder.partialRefund();
+            payment.partialRefund(orderItem.getRefundAmount(), orderItem.getRefundedAt());
         } else {
             productOrder.refund();
+            payment.refund(orderItem.getRefundAmount(), orderItem.getRefundedAt());
         }
 
         productOrderRepository.refundProductOrder(productOrder);
-
+        paymentRepository.refund(payment);
+        pointHistoryRepository.save(pointHistory, user);
 
         return new AdminRefundResponseDto(true);
     }

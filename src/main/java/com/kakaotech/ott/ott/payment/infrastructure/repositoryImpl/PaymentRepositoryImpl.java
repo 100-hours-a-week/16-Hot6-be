@@ -37,4 +37,20 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
         return paymentJpaRepository.save(paymentEntity).toDomain();
     }
+
+    @Override
+    public void refund(Payment payment) {
+        PaymentEntity paymentEntity = paymentJpaRepository.findById(payment.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        paymentEntity.refund(payment);
+    }
+
+    @Override
+    public Payment findByProductOrderId(Long productOrderId) {
+
+        return paymentJpaRepository.findByProductOrderEntity_Id(productOrderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND))
+                .toDomain();
+    }
 }
