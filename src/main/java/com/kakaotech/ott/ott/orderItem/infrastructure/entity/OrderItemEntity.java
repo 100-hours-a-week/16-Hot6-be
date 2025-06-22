@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.orderItem.infrastructure.entity;
 
+import com.kakaotech.ott.ott.orderItem.domain.model.CancelReason;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductPromotionEntity;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductVariantEntity;
 import com.kakaotech.ott.ott.productOrder.infrastructure.entity.ProductOrderEntity;
@@ -60,6 +61,10 @@ public class OrderItemEntity {
     @Column(name = "refund_reason")
     private RefundReason refundReason;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cancel_reason")
+    private CancelReason cancelReason;
+
     @Column(name = "canceled_at")
     private LocalDateTime canceledAt;
 
@@ -83,6 +88,7 @@ public class OrderItemEntity {
                 .finalPrice(this.finalPrice)
                 .refundAmount(this.refundAmount)
                 .refundReason(this.refundReason)
+                .cancelReason(this.cancelReason)
                 .canceledAt(this.canceledAt)
                 .refundedAt(this.refundedAt)
                 .build();
@@ -113,7 +119,7 @@ public class OrderItemEntity {
     public void cancel(OrderItem item) {
         this.status = item.getStatus();
         this.refundAmount = item.getFinalPrice() * item.getQuantity();
-        this.refundReason = item.getRefundReason();
+        this.cancelReason = item.getCancelReason();
         this.canceledAt = item.getCanceledAt();
     }
 

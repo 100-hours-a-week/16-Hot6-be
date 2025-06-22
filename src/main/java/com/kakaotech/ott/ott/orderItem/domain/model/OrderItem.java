@@ -33,6 +33,8 @@ public class OrderItem {
 
     private RefundReason refundReason;
 
+    private CancelReason cancelReason;
+
     private LocalDateTime canceledAt;
 
     private LocalDateTime refundRequestedAt;
@@ -75,12 +77,12 @@ public class OrderItem {
         this.status = OrderItemStatus.DELIVERED;
     }
 
-    public void cancel(RefundReason refundReason, LocalDateTime canceledAt) {
+    public void cancel(CancelReason cancelReason, LocalDateTime canceledAt) {
         if (this.status != OrderItemStatus.PAID) throw new CustomException(ErrorCode.NOT_CANCELABLE_STATE);
 
         this.status = OrderItemStatus.CANCELED;
         this.refundAmount = this.finalPrice;
-        this.refundReason = refundReason;
+        this.cancelReason = cancelReason;
         this.canceledAt = canceledAt;
     }
 
