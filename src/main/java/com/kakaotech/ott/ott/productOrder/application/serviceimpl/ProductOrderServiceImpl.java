@@ -275,7 +275,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             if (!item.getStatus().equals(OrderItemStatus.CONFIRMED) && !item.getStatus().equals(OrderItemStatus.CANCELED)) {
 
                 if (productOrderPartialCancelRequestDto.getOrderItemIds().contains(item.getId())) {
-                    item.cancel(RefundReason.CUSTOMER_REQUEST, LocalDateTime.now());
+                    item.cancel(RefundReason.CHANGE_MIND, LocalDateTime.now());
                     refundMoney += item.getRefundAmount();
 
                     cancelItems.add(item);
@@ -319,7 +319,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         for(OrderItem item : orderItems)
             if(!item.getStatus().equals(OrderItemStatus.CANCELED) && !item.getStatus().equals(OrderItemStatus.CONFIRMED)) {
-                item.cancel(RefundReason.CUSTOMER_REQUEST, LocalDateTime.now());
+                item.cancel(RefundReason.CHANGE_MIND, LocalDateTime.now());
                 refundMoney += item.getRefundAmount();
 
                 if (item.getPromotionId() != null) {
