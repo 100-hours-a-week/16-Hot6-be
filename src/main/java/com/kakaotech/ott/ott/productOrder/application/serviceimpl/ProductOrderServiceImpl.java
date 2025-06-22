@@ -19,6 +19,7 @@ import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
 import com.kakaotech.ott.ott.productOrder.application.service.ProductOrderService;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
+import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderCancelRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialCancelRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.response.*;
@@ -275,7 +276,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             if (!item.getStatus().equals(OrderItemStatus.CONFIRMED) && !item.getStatus().equals(OrderItemStatus.CANCELED)) {
 
                 if (productOrderPartialCancelRequestDto.getOrderItemIds().contains(item.getId())) {
-                    item.cancel(RefundReason.CHANGE_MIND, LocalDateTime.now());
+                    item.cancel(productOrderPartialCancelRequestDto.getCancelReason(), LocalDateTime.now());
                     refundMoney += item.getRefundAmount();
 
                     cancelItems.add(item);
@@ -304,7 +305,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
     @Override
     @Transactional
-    public void cancelProductOrder(Long userId, Long orderId) {
+    public void cancelProductOrder(Long userId, Long orderId, ProductOrderCancelRequestDto productOrderCancelRequestDto) {
 
         User user = userRepository.findById(userId);
 
@@ -319,7 +320,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         for(OrderItem item : orderItems)
             if(!item.getStatus().equals(OrderItemStatus.CANCELED) && !item.getStatus().equals(OrderItemStatus.CONFIRMED)) {
-                item.cancel(RefundReason.CHANGE_MIND, LocalDateTime.now());
+                item.cancel(productOrderCancelRequestDto.getCancelReason(), LocalDateTime.now());
                 refundMoney += item.getRefundAmount();
 
                 if (item.getPromotionId() != null) {
