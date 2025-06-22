@@ -116,7 +116,7 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
             if(entity == null)
                 throw new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND);
 
-            entity.refund(item);
+            entity.refundRequest(item);
         }
     }
 

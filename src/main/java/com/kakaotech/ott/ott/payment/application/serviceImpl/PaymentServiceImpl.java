@@ -4,17 +4,21 @@ import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
+import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
 import com.kakaotech.ott.ott.payment.application.service.PaymentService;
 import com.kakaotech.ott.ott.payment.domain.model.Payment;
 import com.kakaotech.ott.ott.payment.domain.model.PaymentMethod;
 import com.kakaotech.ott.ott.payment.domain.repository.PaymentRepository;
 import com.kakaotech.ott.ott.payment.presentation.dto.request.PaymentRequestDto;
+import com.kakaotech.ott.ott.payment.presentation.dto.request.RefundRequestDto;
 import com.kakaotech.ott.ott.payment.presentation.dto.response.PaymentResponseDto;
+import com.kakaotech.ott.ott.payment.presentation.dto.response.RefundResponseDto;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionReason;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointHistory;
 import com.kakaotech.ott.ott.pointHistory.domain.repository.PointHistoryRepository;
+import com.kakaotech.ott.ott.product.domain.model.Product;
 import com.kakaotech.ott.ott.product.domain.model.ProductPromotion;
 import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
 import com.kakaotech.ott.ott.product.domain.repository.ProductPromotionRepository;
@@ -28,7 +32,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -100,5 +107,32 @@ public class PaymentServiceImpl implements PaymentService {
         orderItemRepository.payOrderItem(orderItemList);
 
         return new PaymentResponseDto(savedPointHistory.getId(), productOrder.getId(), savedPayment.getPaymentAmount(), savedPayment.getPaidAt());
+    }
+
+    @Override
+    @Transactional
+    public RefundResponseDto refundPayment(RefundRequestDto refundRequestDto, Long userId, Long orderId) {
+        User user = userRepository.findById(userId);
+        user.checkVerifiedUser();
+        // 해당 주문을 생성한 사용자인지 확인
+        ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
+        List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(orderId);
+
+        // DTO 리스트에서 환불사유 Map 구성
+        Map<Long, RefundReason> refundReasonMap = refundRequestDto.getRefundItems().stream()
+                .collect(Collectors.toMap(
+                        RefundRequestDto.RefundItemRequest::getOrderItemId,
+                        RefundRequestDto.RefundItemRequest::getReason
+                ));
+
+        for (OrderItem orderItem : orderItems) {
+            Long itemId = orderItem.getId();
+            if (refundReasonMap.containsKey(itemId)) {
+                orderItem.refundRequest(refundReasonMap.get(itemId), LocalDateTime.now());
+            }
+        }
+
+        orderItemRepository.refundRequestOrderItem(orderItems);
+        return new RefundResponseDto(orderId);
     }
 }
