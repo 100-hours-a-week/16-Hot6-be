@@ -4,7 +4,9 @@ import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
+import com.kakaotech.ott.ott.payment.domain.model.Payment;
 import com.kakaotech.ott.ott.payment.domain.model.PaymentMethod;
+import com.kakaotech.ott.ott.payment.domain.repository.PaymentRepository;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionReason;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointHistory;
@@ -49,6 +51,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     private final ProductImageRepository productImageRepository;
     private final ProductPromotionRepository productPromotionRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final PaymentRepository paymentRepository;
 
 // 주문 요청 들어오면 해당 상품 id값을 조회하여
     @Override
@@ -301,6 +304,10 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         orderItemRepository.cancelOrderItem(cancelItems);
 
         productOrderRepository.cancelProductOrder(productOrder, user);
+
+        Payment payment = paymentRepository.findByProductOrderId(productOrder.getId());
+        payment.partialRefund(refundMoney, cancelItems.getFirst().getCanceledAt());
+        paymentRepository.refund(payment);
     }
 
     @Override
@@ -341,6 +348,9 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         orderItemRepository.cancelOrderItem(orderItems);
 
         productOrderRepository.cancelProductOrder(productOrder, user);
+        Payment payment = paymentRepository.findByProductOrderId(productOrder.getId());
+        payment.refund(payment.getPaymentAmount(), productOrder.getCanceledAt());
+        paymentRepository.refund(payment);
     }
 
 }

@@ -42,16 +42,16 @@ public class Payment {
     }
 
     public void partialRefund(int refundedAmount, LocalDateTime lastRefundedAt) {
-        this.paymentStatus = PaymentStatus.PARTIAL_REFUNDED;
+        this.paymentStatus = PaymentStatus.PARTIALLY_REFUNDED;
         this.refundedAmount = refundedAmount;
-        this.lastRefundedAt = lastRefundedAt;
+        this.canceledAt = lastRefundedAt;
     }
 
     public void refund(int refundedAmount, LocalDateTime lastRefundedAt) {
         this.paymentStatus = PaymentStatus.REFUNDED;
         this.refundedAmount = refundedAmount;
-        this.lastRefundedAt = lastRefundedAt;
         this.canceledAt = lastRefundedAt;
+        this.lastRefundedAt = lastRefundedAt;
     }
 
 }

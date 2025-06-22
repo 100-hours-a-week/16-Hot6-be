@@ -29,9 +29,11 @@ public class PaymentEntity {
     @JoinColumn(name = "order_id", nullable = false)
     private ProductOrderEntity productOrderEntity;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethod;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false)
     private PaymentStatus paymentStatus;
 
@@ -83,5 +85,13 @@ public class PaymentEntity {
                 .lastRefundedAt(this.getLastRefundedAt())
                 .canceledAt(this.getCanceledAt())
                 .build();
+    }
+
+    public void refund(Payment payment) {
+        this.paymentStatus = payment.getPaymentStatus();
+        this.paymentMethod = payment.getPaymentMethod();
+        this.refundedAmount = payment.getRefundedAmount();
+        this.canceledAt = payment.getCanceledAt();
+        this.lastRefundedAt = payment.getLastRefundedAt();
     }
 }
