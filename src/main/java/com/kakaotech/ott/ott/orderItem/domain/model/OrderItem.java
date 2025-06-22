@@ -92,12 +92,18 @@ public class OrderItem {
         this.refundRequestedAt = refundRequestedAt;
     }
 
-    public void refund() {
+    public void refundApprove() {
         if (this.status != OrderItemStatus.REFUND_REQUEST) throw new CustomException(ErrorCode.NOT_REFUNDABLE_STATE);
 
-        this.status = OrderItemStatus.REFUND;
+        this.status = OrderItemStatus.REFUND_APPROVED;
         this.refundAmount = this.finalPrice;
         this.refundedAt = LocalDateTime.now();
+    }
+
+    public void refundReject() {
+        if (this.status != OrderItemStatus.REFUND_REQUEST) throw new CustomException(ErrorCode.NOT_REFUNDABLE_STATE);
+
+        this.status = OrderItemStatus.REFUND_REJECTED;
     }
 
     public void confirm() {

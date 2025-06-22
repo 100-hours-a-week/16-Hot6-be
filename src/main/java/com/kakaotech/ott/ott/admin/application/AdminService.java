@@ -10,5 +10,7 @@ public interface AdminService {
 
     AdminDeliveryResponseDto deliveryProduct(Long orderItemId);
 
-    AdminRefundResponseDto refundProduct(Long orderItemId);
+    AdminRefundResponseDto refundApproveProduct(Long orderItemId);
+
+    AdminRefundResponseDto refundRejectProduct(Long orderItemId);
 }

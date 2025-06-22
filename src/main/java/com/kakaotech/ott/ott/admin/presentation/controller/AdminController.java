@@ -40,12 +40,22 @@ public class AdminController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/orders/{orderItemId}/refund")
-    public ResponseEntity<ApiResponse<AdminRefundResponseDto>> refund (
+    @PatchMapping("/orders/{orderItemId}/refund/approve")
+    public ResponseEntity<ApiResponse<AdminRefundResponseDto>> refundApprove (
             @PathVariable Long orderItemId) {
 
-        AdminRefundResponseDto adminRefundResponseDto = adminService.refundProduct(orderItemId);
+        AdminRefundResponseDto adminRefundResponseDto = adminService.refundApproveProduct(orderItemId);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("상품 환불 완료", adminRefundResponseDto));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/orders/{orderItemId}/refund/reject")
+    public ResponseEntity<ApiResponse<AdminRefundResponseDto>> refundReject (
+            @PathVariable Long orderItemId) {
+
+        AdminRefundResponseDto adminRefundResponseDto = adminService.refundRejectProduct(orderItemId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("상품 환불 거부 완료", adminRefundResponseDto));
     }
 }

@@ -91,14 +91,14 @@ public class AdminServiceImpl implements AdminService{
 
     @Transactional
     @Override
-    public AdminRefundResponseDto refundProduct(Long orderItemId) {
+    public AdminRefundResponseDto refundApproveProduct(Long orderItemId) {
         OrderItem orderItem = orderItemRepository.findById(orderItemId);
-        orderItem.refund();
+        orderItem.refundApprove();
         orderItemRepository.refundOrderItem(orderItem);
 
         ProductOrder productOrder = productOrderRepository.findById(orderItem.getOrderId());
 
-        int remainNotRefundedProduct = orderItemRepository.countByProductOrderIdAndStatusNot(productOrder.getId(), OrderItemStatus.REFUND);
+        int remainNotRefundedProduct = orderItemRepository.countByProductOrderIdAndStatusNot(productOrder.getId(), OrderItemStatus.REFUND_APPROVED);
 
         if (remainNotRefundedProduct > 0) {
             productOrder.partialRefund();
@@ -108,6 +108,16 @@ public class AdminServiceImpl implements AdminService{
 
         productOrderRepository.refundProductOrder(productOrder);
 
+
+        return new AdminRefundResponseDto(true);
+    }
+
+    @Transactional
+    @Override
+    public AdminRefundResponseDto refundRejectProduct(Long orderItemId) {
+        OrderItem orderItem = orderItemRepository.findById(orderItemId);
+        orderItem.refundReject();
+        orderItemRepository.refundOrderItem(orderItem);
 
         return new AdminRefundResponseDto(true);
     }
