@@ -3,7 +3,9 @@ package com.kakaotech.ott.ott.payment.presentation.controller;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.payment.application.service.PaymentService;
 import com.kakaotech.ott.ott.payment.presentation.dto.request.PaymentRequestDto;
+import com.kakaotech.ott.ott.payment.presentation.dto.request.RefundRequestDto;
 import com.kakaotech.ott.ott.payment.presentation.dto.response.PaymentResponseDto;
+import com.kakaotech.ott.ott.payment.presentation.dto.response.RefundResponseDto;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,4 +33,18 @@ public class PaymentController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("상품 결제 성공", paymentResponseDto));
     }
+
+    @PatchMapping
+    public ResponseEntity<ApiResponse<RefundResponseDto>> refundPayment(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PathVariable Long orderId,
+            @RequestBody @Valid RefundRequestDto refundRequestDto) {
+
+        Long userId = userPrincipal.getId();
+
+        RefundResponseDto refundResponseDto = paymentService.refundPayment(refundRequestDto, userId, orderId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("환불 요청 성공", refundResponseDto));
+    }
+
 }
