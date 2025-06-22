@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,62 +29,77 @@ public class AdminServiceImpl implements AdminService{
     private final ProductOrderRepository productOrderRepository;
     private final ProductVariantRepository productVariantRepository;
 
+    @Transactional(readOnly = true)
     @Override
     public AdminProductStatusResponseDto getOrderProductStatus() {
 
         List<OrderItem> refundedProduct = orderItemRepository.findByStatus(OrderItemStatus.REFUND_REQUEST);
         List<OrderItem> paidProduct = orderItemRepository.findByStatus(OrderItemStatus.PAID);
 
-        List<AdminProductStatusResponseDto.RefundedProduct> refundList = refundedProduct.stream()
-                .map(product -> {
-
-                    Long ordererId = productOrderRepository.findById(product.getOrderId()).getUserId();
+        // 1. RefundedOrderItems 생성
+        List<AdminProductStatusResponseDto.RefundedOrderItems> refundedOrderItems = refundedProduct.stream()
+                .map(item -> {
+                    Long ordererId = productOrderRepository.findById(item.getOrderId()).getUserId();
                     User orderer = userRepository.findById(ordererId);
-                    ProductVariant productVariant = productVariantRepository.findById(product.getVariantsId());
+                    ProductVariant productVariant = productVariantRepository.findById(item.getVariantsId());
 
-                    return new AdminProductStatusResponseDto.RefundedProduct(
-                            product.getVariantsId(),
-                            product.getPromotionId(),
+                    return new AdminProductStatusResponseDto.RefundedOrderItems(
+                            item.getId(),
+                            item.getPromotionId(),
                             orderer.getNicknameKakao(),
                             productVariant.getName(),
-                            product.getQuantity(),
-                            product.getFinalPrice(),
-                            product.getRefundReason(),
-                            product.getRefundedAt()
+                            item.getQuantity(),
+                            item.getFinalPrice(),
+                            item.getRefundReason(),
+                            item.getRefundedAt()
                     );
                 })
                 .toList();
 
-        List<AdminProductStatusResponseDto.PaidProduct> paidList = paidProduct.stream()
-                .map(product -> {
-                    Long ordererId = productOrderRepository.findById(product.getOrderId()).getUserId();
-                    User orderer = userRepository.findById(ordererId);
-                    ProductVariant productVariant = productVariantRepository.findById(product.getVariantsId());
+        // 2. PaidProductOrder 그룹핑 처리 (ProductOrderId 기준)
+        Map<Long, List<OrderItem>> paidGrouped = paidProduct.stream()
+                .collect(Collectors.groupingBy(OrderItem::getOrderId));
 
-                    return new AdminProductStatusResponseDto.PaidProduct(
-                            product.getVariantsId(),
-                            product.getPromotionId(),
-                            orderer.getNicknameKakao(),
-                            productVariant.getName(),
-                            product.getQuantity(),
-                            product.getFinalPrice(),
-                            productVariant.getCreatedAt()
-                    );
+        List<AdminProductStatusResponseDto.PaidProductOrder> paidProductOrders = paidGrouped.entrySet().stream()
+                .map(entry -> {
+                    Long productOrderId = entry.getKey();
+                    List<AdminProductStatusResponseDto.PaidProductOrder.PaidOrderItem> paidOrderItems = entry.getValue().stream()
+                            .map(item -> {
+                                Long ordererId = productOrderRepository.findById(item.getOrderId()).getUserId();
+                                User orderer = userRepository.findById(ordererId);
+                                ProductVariant productVariant = productVariantRepository.findById(item.getVariantsId());
+
+                                return new AdminProductStatusResponseDto.PaidProductOrder.PaidOrderItem(
+                                        item.getId(),
+                                        item.getPromotionId(),
+                                        orderer.getNicknameKakao(),
+                                        productVariant.getName(),
+                                        item.getQuantity(),
+                                        item.getFinalPrice(),
+                                        productVariant.getCreatedAt()
+                                );
+                            })
+                            .toList();
+
+                    return new AdminProductStatusResponseDto.PaidProductOrder(productOrderId, paidOrderItems);
                 })
                 .toList();
 
-        return new AdminProductStatusResponseDto(refundList, paidList);
+        return new AdminProductStatusResponseDto(paidProductOrders, refundedOrderItems);
     }
 
     @Transactional
     @Override
-    public AdminDeliveryResponseDto deliveryProduct(Long orderItemId) {
+    public AdminDeliveryResponseDto deliveryProduct(Long productOrderId) {
 
-        OrderItem orderItem = orderItemRepository.findById(orderItemId);
-        orderItem.deliver();
-        orderItemRepository.deliveryOrderItem(orderItem);
+        List<OrderItem> orderItem = orderItemRepository.findByProductOrderId(productOrderId);
 
-        ProductOrder productOrder = productOrderRepository.findById(orderItem.getOrderId());
+        for (OrderItem item : orderItem) {
+            item.deliver();
+            orderItemRepository.deliveryOrderItem(item);
+        }
+
+        ProductOrder productOrder = productOrderRepository.findById(productOrderId);
         productOrder.deliver();
         productOrderRepository.deliveryProductOrder(productOrder);
 
