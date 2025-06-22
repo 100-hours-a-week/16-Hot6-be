@@ -54,16 +54,6 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     }
 
     @Override
-    public void existsByProductIdAndStatus(Long productId, OrderItemStatus orderItemStatusCanceled) {
-
-        boolean exists = orderItemJpaRepository.existsByProductVariantEntityIdAndStatus(productId, orderItemStatusCanceled);
-
-        if(exists) {
-            throw new CustomException(ErrorCode.ALREADY_ORDERED);
-        }
-    }
-
-    @Override
     public List<OrderItem> findByProductOrderId(Long productOrderId) {
 
         List<OrderItemEntity> entities = orderItemJpaRepository.findByProductOrderEntity_Id(productOrderId);
@@ -114,7 +104,7 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     }
 
     @Override
-    public void refundOrderItem(List<OrderItem> orderItems) {
+    public void refundRequestOrderItem(List<OrderItem> orderItems) {
 
         List<OrderItemEntity> entities = orderItemJpaRepository.findByProductOrderEntity_Id(orderItems.getFirst().getOrderId());
 
@@ -164,5 +154,37 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
                 .map(OrderItemEntity::toDomain)
                 .collect(Collectors.toList());
 
+    }
+
+    @Override
+    public OrderItem findById(Long orderItemId) {
+
+        return orderItemJpaRepository.findById(orderItemId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND))
+                .toDomain();
+    }
+
+    @Override
+    public void deliveryOrderItem(OrderItem orderItem) {
+
+        OrderItemEntity orderItemEntity = orderItemJpaRepository.findById(orderItem.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND));
+
+        orderItemEntity.delivery(orderItem);
+    }
+
+    @Override
+    public void refundOrderItem(OrderItem orderItem) {
+
+        OrderItemEntity orderItemEntity = orderItemJpaRepository.findById(orderItem.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_ITEM_NOT_FOUND));
+
+        orderItemEntity.refund(orderItem);
+    }
+
+    @Override
+    public int countByProductOrderIdAndStatusNot(Long productOrderId, OrderItemStatus status) {
+
+        return orderItemJpaRepository.countByProductOrderEntity_IdAndStatusNot(productOrderId, status);
     }
 }

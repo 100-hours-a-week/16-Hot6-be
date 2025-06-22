@@ -9,19 +9,25 @@ public interface OrderItemRepository {
 
     OrderItem save(OrderItem orderItem);
 
-    void existsByProductIdAndStatus(Long productId, OrderItemStatus orderItemStatusCanceled);
-
     List<OrderItem> findByProductOrderId(Long productOrderId);
 
     void payOrderItem(List<OrderItem> orderItems);
 
     void cancelOrderItem(List<OrderItem> orderItems);
 
-    void refundOrderItem(List<OrderItem> orderItems);
+    void refundRequestOrderItem(List<OrderItem> orderItems);
 
     void confirmOrderItem(List<OrderItem> orderItems);
 
     void deleteOrderItem(OrderItem orderItems);
 
     List<OrderItem> findByStatus(OrderItemStatus status);
+
+    OrderItem findById(Long orderItemId);
+
+    void deliveryOrderItem(OrderItem orderItem);
+
+    void refundOrderItem(OrderItem orderItem);
+
+    int countByProductOrderIdAndStatusNot(Long productOrderId, OrderItemStatus status);
 }

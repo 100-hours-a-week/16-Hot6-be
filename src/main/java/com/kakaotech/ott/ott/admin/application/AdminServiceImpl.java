@@ -1,19 +1,20 @@
 package com.kakaotech.ott.ott.admin.application;
 
+import com.kakaotech.ott.ott.admin.presentation.dto.response.AdminDeliveryResponseDto;
 import com.kakaotech.ott.ott.admin.presentation.dto.response.AdminProductStatusResponseDto;
-import com.kakaotech.ott.ott.global.exception.CustomException;
-import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.admin.presentation.dto.response.AdminRefundResponseDto;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
 import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
+import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
-import com.kakaotech.ott.ott.user.domain.model.Role;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,12 +28,7 @@ public class AdminServiceImpl implements AdminService{
     private final ProductVariantRepository productVariantRepository;
 
     @Override
-    public AdminProductStatusResponseDto getOrderProductStatus(Long userId) {
-
-        User user = userRepository.findById(userId);
-
-        if (user.getRole().equals(Role.USER))
-            throw new CustomException(ErrorCode.USER_NOT_ADMIN);
+    public AdminProductStatusResponseDto getOrderProductStatus() {
 
         List<OrderItem> refundedProduct = orderItemRepository.findByStatus(OrderItemStatus.REFUND_REQUEST);
         List<OrderItem> paidProduct = orderItemRepository.findByStatus(OrderItemStatus.PAID);
@@ -76,5 +72,43 @@ public class AdminServiceImpl implements AdminService{
                 .toList();
 
         return new AdminProductStatusResponseDto(refundList, paidList);
+    }
+
+    @Transactional
+    @Override
+    public AdminDeliveryResponseDto deliveryProduct(Long orderItemId) {
+
+        OrderItem orderItem = orderItemRepository.findById(orderItemId);
+        orderItem.deliver();
+        orderItemRepository.deliveryOrderItem(orderItem);
+
+        ProductOrder productOrder = productOrderRepository.findById(orderItem.getOrderId());
+        productOrder.deliver();
+        productOrderRepository.deliveryProductOrder(productOrder);
+
+        return new AdminDeliveryResponseDto(true);
+    }
+
+    @Transactional
+    @Override
+    public AdminRefundResponseDto refundProduct(Long orderItemId) {
+        OrderItem orderItem = orderItemRepository.findById(orderItemId);
+        orderItem.refund();
+        orderItemRepository.refundOrderItem(orderItem);
+
+        ProductOrder productOrder = productOrderRepository.findById(orderItem.getOrderId());
+
+        int remainNotRefundedProduct = orderItemRepository.countByProductOrderIdAndStatusNot(productOrder.getId(), OrderItemStatus.REFUND);
+
+        if (remainNotRefundedProduct > 0) {
+            productOrder.partialRefund();
+        } else {
+            productOrder.refund();
+        }
+
+        productOrderRepository.refundProductOrder(productOrder);
+
+
+        return new AdminRefundResponseDto(true);
     }
 }

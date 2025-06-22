@@ -24,7 +24,11 @@ public interface ProductOrderRepository {
 
     void cancelProductOrder(ProductOrder productOrder, User user);
 
-    void refundProductOrder(ProductOrder productOrder, User user);
+    void refundRequestProductOrder(ProductOrder productOrder, User user);
+
+    void refundProductOrder(ProductOrder productOrder);
+
+    void deliveryProductOrder(ProductOrder productOrder);
 
     Slice<ProductOrder> findAllByUserId(Long userId, Long lastOrderId, int size);
 

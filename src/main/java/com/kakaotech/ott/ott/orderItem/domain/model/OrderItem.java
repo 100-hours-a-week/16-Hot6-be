@@ -35,6 +35,8 @@ public class OrderItem {
 
     private LocalDateTime canceledAt;
 
+    private LocalDateTime refundRequestedAt;
+
     private LocalDateTime refundedAt;
 
     public static OrderItem createOrderItem(Long orderId, Long variantsId, Long promotionId, int originalPrice, int quantity, int discountAmount, int finalPrice) {
@@ -82,13 +84,20 @@ public class OrderItem {
         this.canceledAt = canceledAt;
     }
 
-    public void refund(RefundReason refundReason, LocalDateTime refundedAt) {
+    public void refundRequest(RefundReason refundReason, LocalDateTime refundRequestedAt) {
         if (this.status != OrderItemStatus.DELIVERED) throw new CustomException(ErrorCode.NOT_REFUNDABLE_STATE);
+
+        this.status = OrderItemStatus.REFUND_REQUEST;
+        this.refundReason = refundReason;
+        this.refundRequestedAt = refundRequestedAt;
+    }
+
+    public void refund() {
+        if (this.status != OrderItemStatus.REFUND_REQUEST) throw new CustomException(ErrorCode.NOT_REFUNDABLE_STATE);
 
         this.status = OrderItemStatus.REFUND;
         this.refundAmount = this.finalPrice;
-        this.refundReason = refundReason;
-        this.refundedAt = refundedAt;
+        this.refundedAt = LocalDateTime.now();
     }
 
     public void confirm() {

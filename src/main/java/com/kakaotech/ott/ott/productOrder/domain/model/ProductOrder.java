@@ -79,7 +79,7 @@ public class ProductOrder {
         if (!(this.status == ProductOrderStatus.PAID || this.status == ProductOrderStatus.PARTIALLY_CANCELED))
             throw new CustomException(ErrorCode.NOT_PAID_STATE);
 
-        this.deletedAt = LocalDateTime.now();
+        this.deliveredAt = LocalDateTime.now();
         this.status = ProductOrderStatus.DELIVERED;
     }
 
@@ -102,7 +102,7 @@ public class ProductOrder {
         if (!(this.status == ProductOrderStatus.DELIVERED || this.status == ProductOrderStatus.PARTIALLY_REFUNDED))
             throw new CustomException(ErrorCode.NOT_DELIVERED_STATE);
 
-        this.status = ProductOrderStatus.REFUNDED;
+        this.status = ProductOrderStatus.PARTIALLY_REFUNDED;
     }
 
     public void refund() {
