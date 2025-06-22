@@ -96,13 +96,31 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
     }
 
     @Override
-    public void refundProductOrder(ProductOrder productOrder, User user) {
+    public void refundRequestProductOrder(ProductOrder productOrder, User user) {
 
         ProductOrderEntity beforeProductOrderEntity = productOrderJpaRepository.findByIdAndUserEntity_IdAndDeletedAtIsNullAndStatusNot(productOrder.getId(), user.getId(), ProductOrderStatus.PENDING)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
-        beforeProductOrderEntity.setRefundedAt(productOrder.getRefundedAt());
         beforeProductOrderEntity.setStatus(productOrder.getStatus());
+    }
+
+    @Override
+    public void refundProductOrder(ProductOrder productOrder) {
+
+        ProductOrderEntity productOrderEntity = productOrderJpaRepository.findById(productOrder.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        productOrderEntity.setRefundedAt(productOrder.getRefundedAt());
+        productOrderEntity.setStatus(productOrder.getStatus());
+    }
+
+    @Override
+    public void deliveryProductOrder(ProductOrder productOrder) {
+        ProductOrderEntity productOrderEntity = productOrderJpaRepository.findById(productOrder.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        productOrderEntity.setDeletedAt(productOrder.getDeliveredAt());
+        productOrderEntity.setStatus(productOrder.getStatus());
     }
 
     @Override

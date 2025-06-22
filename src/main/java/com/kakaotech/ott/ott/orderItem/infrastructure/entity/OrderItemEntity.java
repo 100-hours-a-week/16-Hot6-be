@@ -63,6 +63,9 @@ public class OrderItemEntity {
     @Column(name = "canceled_at")
     private LocalDateTime canceledAt;
 
+    @Column(name = "refund_requested_at")
+    private LocalDateTime refundRequestedAt;
+
     @Column(name = "refunded_at")
     private LocalDateTime refundedAt;
 
@@ -114,12 +117,23 @@ public class OrderItemEntity {
         this.canceledAt = item.getCanceledAt();
     }
 
+    public void refundRequest(OrderItem item) {
+
+        this.status = item.getStatus();
+        this.refundReason = item.getRefundReason();
+        this.refundRequestedAt = item.getRefundRequestedAt();
+    }
+
     public void refund(OrderItem item) {
 
         this.status = item.getStatus();
-        this.refundAmount = item.getFinalPrice() * item.getQuantity();
-        this.refundReason = item.getRefundReason();
+        this.refundAmount = item.getRefundAmount();
         this.refundedAt = item.getRefundedAt();
+    }
+
+    public void delivery(OrderItem item) {
+
+        this.status = item.getStatus();
     }
 
     public void confirm(OrderItem item) {

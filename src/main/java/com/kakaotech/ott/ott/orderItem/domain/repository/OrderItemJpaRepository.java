@@ -16,4 +16,6 @@ public interface OrderItemJpaRepository extends JpaRepository<OrderItemEntity, L
     List<OrderItemEntity> findByProductOrderEntity_Id(Long productOrderId);
 
     List<OrderItemEntity> findByStatus(OrderItemStatus status);
+
+    int countByProductOrderEntity_IdAndStatusNot(Long productOrderId, OrderItemStatus status);
 }
