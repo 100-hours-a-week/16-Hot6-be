@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.productOrder.presentation.controller;
 
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.productOrder.application.service.ProductOrderService;
+import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderCancelRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialCancelRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialConfirmRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderRequestDto;
@@ -97,11 +98,12 @@ public class ProductOrderController {
     @PatchMapping("/{orderId}/cancel")
     public ResponseEntity<ApiResponse> cancelOrder(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @PathVariable Long orderId) {
+            @PathVariable Long orderId,
+            @RequestBody @Valid ProductOrderCancelRequestDto productOrderCancelRequestDto) {
 
         Long userId = userPrincipal.getId();
 
-        productOrderService.cancelProductOrder(userId, orderId);
+        productOrderService.cancelProductOrder(userId, orderId, productOrderCancelRequestDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("주문 전체 취소 완료", null));
     }
