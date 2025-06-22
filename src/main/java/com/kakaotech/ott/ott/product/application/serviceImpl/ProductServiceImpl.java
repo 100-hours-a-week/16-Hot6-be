@@ -54,11 +54,6 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductCreateResponseDto createProduct(ProductCreateRequestDto requestDto, Long userId) throws IOException {
-        User user = userAuthRepository.findById(userId);
-        if (!user.getRole().equals(Role.ROLE_ADMIN)) {
-            throw new CustomException(ErrorCode.USER_FORBIDDEN);
-        }
-
         // 1. 상품 모델 생성
         Product product = Product.createProduct(
             requestDto.getProduct().getType(),
