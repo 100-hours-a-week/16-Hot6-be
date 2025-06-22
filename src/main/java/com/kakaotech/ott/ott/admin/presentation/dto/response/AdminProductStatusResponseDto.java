@@ -15,16 +15,41 @@ import java.util.List;
 @AllArgsConstructor
 public class AdminProductStatusResponseDto {
 
-    List<RefundedProduct> refundedProducts;
-    List<PaidProduct> paidProducts;
+    private List<PaidProductOrder> paidProductOrders;
+    private List<RefundedOrderItems> refundedOrderItems;
 
     @Getter
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class RefundedProduct {
+    public static class PaidProductOrder {
 
-        private Long variantsId;
+        private Long productOrderId;
+        private List<PaidOrderItem> refundedOrderItems;
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class PaidOrderItem {
+
+            private Long orderItemId;
+            private Long promotionId;
+            private String userName;
+            private String productName;
+            private int purchaseQuantity;
+            private int paidAmount;
+            private LocalDateTime paidAt;
+        }
+
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RefundedOrderItems {
+        private Long orderItemId;
         private Long promotionId;
         private String userName;
         private String productName;
@@ -32,20 +57,5 @@ public class AdminProductStatusResponseDto {
         private int paidAmount;
         private RefundReason refundReason;
         private LocalDateTime refundedAt;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class PaidProduct {
-
-        private Long variantsId;
-        private Long promotionId;
-        private String userName;
-        private String productName;
-        private int purchaseQuantity;
-        private int paidAmount;
-        private LocalDateTime paidAt;
     }
 }

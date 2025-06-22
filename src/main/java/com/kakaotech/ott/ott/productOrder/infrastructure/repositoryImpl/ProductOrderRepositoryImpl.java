@@ -119,7 +119,7 @@ public class ProductOrderRepositoryImpl implements ProductOrderRepository {
         ProductOrderEntity productOrderEntity = productOrderJpaRepository.findById(productOrder.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
-        productOrderEntity.setDeletedAt(productOrder.getDeliveredAt());
+        productOrderEntity.setDeliveredAt(productOrder.getDeliveredAt());
         productOrderEntity.setStatus(productOrder.getStatus());
     }
 

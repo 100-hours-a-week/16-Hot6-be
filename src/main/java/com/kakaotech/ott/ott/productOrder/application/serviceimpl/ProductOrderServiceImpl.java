@@ -147,7 +147,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                                 .status(item.getStatus().name())
                                 .productName(productVariant.getName()) // TODO: 실제 값으로 교체
                                 .quantity(item.getQuantity())
-                                .amount(item.getFinalPrice())
+                                .amount(item.getFinalPrice()/item.getQuantity())
                                 .imagePath(productImage.getImageUuid()) // TODO: 실제 값으로 교체
                                 .build();
                     })
@@ -199,7 +199,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                         productVariant.getName(),
                         item.getStatus(),
                         productImage.getImageUuid(),
-                        item.getFinalPrice(),
+                        item.getFinalPrice()/item.getQuantity(),
                         item.getQuantity()
                 );
                 })
