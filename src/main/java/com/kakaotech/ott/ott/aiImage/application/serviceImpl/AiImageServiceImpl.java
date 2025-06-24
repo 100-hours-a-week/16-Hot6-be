@@ -111,16 +111,19 @@ public class AiImageServiceImpl implements AiImageService {
 
         AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getPostId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
 
-        if(aiImage.getState().equals(AiImageState.FAILED) || aiImage.getState().equals(AiImageState.PENDING)) {
+        if(aiImage.getState().equals(AiImageState.PENDING)) {
             return new AiImageAndProductResponseDto(aiImageResponseDto, null);
-        }
+        } else if(aiImage.getState().equals(AiImageState.FAILED))
+            throw new CustomException(ErrorCode.FAILED_GENERATING_IMAGE);
 
         aiImageResponseDto.updateAfterImagePath(aiImage.getAfterImagePath());
 
         List<AiImageRecommendedProduct> aiImageRecommendedProducts = aiImageRecommendedProductRepository.findByAiImageId(aiImage.getId());
 
-        if(aiImageRecommendedProducts.isEmpty())
+        if(aiImageRecommendedProducts.isEmpty()) {
             throw new CustomException(ErrorCode.DESK_PRODUCT_NOT_FOUND);
+        }
+
 
         List<ProductResponseDto> productResponseDtos = aiImageRecommendedProducts.stream()
                 .map(recommendedProduct -> {

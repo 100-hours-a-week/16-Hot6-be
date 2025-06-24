@@ -35,6 +35,7 @@ public enum ErrorCode {
     AIIMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 AI 이미지가 존재하지 않습니다."),
     AI_IMAGE_ALREADY_USED(HttpStatus.CONFLICT, "해당 AI 이미지는 이미 게시물에 연결되어 있습니다."),
     INVALID_IMAGE(HttpStatus.BAD_REQUEST, "올바른 데스크 이미지가 아닙니다."),
+    FAILED_GENERATING_IMAGE(HttpStatus.INTERNAL_SERVER_ERROR, "AI 서버에서 이미지 생성에 실패했습니다."),
 
     // Product
     DESK_PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 데스크 추천 상품이 존재하지 않습니다."),
