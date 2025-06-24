@@ -2,5 +2,8 @@ package com.kakaotech.ott.ott.aiImage.domain.model;
 
 public enum AiImageConcept {
     BASIC,
-    CARTOON
+    CARTOON,
+    SIMPLE,
+    OIL,
+    MSPAINT
 }
