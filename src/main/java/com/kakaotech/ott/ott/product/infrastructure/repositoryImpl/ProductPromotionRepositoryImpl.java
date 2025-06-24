@@ -10,6 +10,7 @@ import com.kakaotech.ott.ott.product.domain.repository.ProductPromotionRepositor
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantJpaRepository;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductPromotionEntity;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductVariantEntity;
+import com.kakaotech.ott.ott.productOrder.infrastructure.entity.ProductOrderEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -160,5 +161,14 @@ public class ProductPromotionRepositoryImpl implements ProductPromotionRepositor
         if (promotionIds != null && !promotionIds.isEmpty()) {
             productPromotionJpaRepository.expirePromotions(promotionIds);
         }
+    }
+
+    @Override
+    public List<ProductPromotion> findProductsToAutoEnded(LocalDateTime now) {
+
+        return productPromotionJpaRepository.findProductsToAutoEnded(now)
+                .stream()
+                .map(ProductPromotionEntity::toDomain)
+                .toList();
     }
 }
