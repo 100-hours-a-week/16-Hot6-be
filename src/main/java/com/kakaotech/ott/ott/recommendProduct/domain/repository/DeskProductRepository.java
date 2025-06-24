@@ -23,4 +23,8 @@ public interface DeskProductRepository {
     void batchUpdateWeights();
 
     void incrementClickCount(Long deskProductId, Long delta);
+
+    boolean existsByProductCode(String productCode);
+
+    DeskProduct findByProductCode(String productCode);
 }

@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface DeskProductJpaRepository extends JpaRepository<DeskProductEntity, Long> {
 
@@ -49,4 +50,7 @@ public interface DeskProductJpaRepository extends JpaRepository<DeskProductEntit
 """)
     void incrementClickCount(@Param("deskProductId") Long deskProductId, @Param("delta") Long delta);
 
+    boolean existsByProductCode(String productCode);
+
+    Optional<DeskProductEntity> findByProductCode(String productCode);
 }
