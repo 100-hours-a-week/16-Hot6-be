@@ -48,4 +48,9 @@ public interface ProductPromotionJpaRepository extends JpaRepository<ProductProm
     @Transactional
     @Query("UPDATE ProductPromotionEntity p SET p.status = 'ENDED' WHERE p.id IN :promotionIds")
     void expirePromotions(@Param("promotionIds") List<Long> promotionIds);
+
+    @Query("SELECT p FROM ProductPromotionEntity p " +
+            "WHERE p.endAt <= :now " +
+            "AND p.status = 'ACTIVE'")
+    List<ProductPromotionEntity> findProductsToAutoEnded(@Param("now") LocalDateTime now);
 }

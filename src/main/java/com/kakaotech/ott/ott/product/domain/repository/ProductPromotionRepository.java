@@ -38,4 +38,6 @@ public interface ProductPromotionRepository {
     void updateStatus(Long promotionId, PromotionStatus status);
 
     void expirePromotions(List<Long> promotionIds);
+
+    List<ProductPromotion> findProductsToAutoEnded(LocalDateTime now);
 }
