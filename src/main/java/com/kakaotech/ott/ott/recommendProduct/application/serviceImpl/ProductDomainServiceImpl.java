@@ -29,7 +29,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,6 +61,9 @@ public class ProductDomainServiceImpl implements ProductDomainService {
         }
 
         for (ProductDetailRequestDto product : productList) {
+
+            boolean existsProduct = deskProductRepository.existsByProductCode(product.getProductCode());
+
             String mainCategoryName = product.getMainCategory();
             String subCategoryName = product.getSubCategory();
 
@@ -77,15 +79,23 @@ public class ProductDomainServiceImpl implements ProductDomainService {
                         return productSubCategoryRepository.save(newSubCategory, productMainCategoryEntity);
                     });
 
-            DeskProduct deskProduct = DeskProduct.createDeskProduct(
-                    productSubCategoryEntity.getId(), product.getProductCode(),
-                    product.getName(), product.getPrice(), product.getPurchasePlace(),
-                    product.getPurchaseUrl(), product.getImagePath()
-            );
+            AiImageRecommendedProduct aiImageRecommendedProduct;
 
-            DeskProduct generatedDeskProduct = deskProductRepository.save(deskProduct, productSubCategoryEntity, aiImageEntity);
+            if (!existsProduct) {
+                DeskProduct deskProduct = DeskProduct.createDeskProduct(
+                        productSubCategoryEntity.getId(), product.getProductCode(),
+                        product.getName(), product.getPrice(), product.getPurchasePlace(),
+                        product.getPurchaseUrl(), product.getImagePath()
+                );
 
-            AiImageRecommendedProduct aiImageRecommendedProduct = AiImageRecommendedProduct.createAiImageRecommendedProduct(aiImage.getId(), generatedDeskProduct.getId(), product.getCenterX(), product.getCenterY());
+                DeskProduct generatedDeskProduct = deskProductRepository.save(deskProduct, productSubCategoryEntity, aiImageEntity);
+                aiImageRecommendedProduct = AiImageRecommendedProduct.createAiImageRecommendedProduct(aiImage.getId(), generatedDeskProduct.getId(), product.getCenterX(), product.getCenterY());
+            } else {
+                DeskProduct generatedDeskProduct = deskProductRepository.findByProductCode(product.getProductCode());
+                aiImageRecommendedProduct = AiImageRecommendedProduct.createAiImageRecommendedProduct(aiImage.getId(), generatedDeskProduct.getId(), product.getCenterX(), product.getCenterY());
+
+            }
+
             aiImageRecommendedProductRepository.save(aiImageRecommendedProduct);
 
         }

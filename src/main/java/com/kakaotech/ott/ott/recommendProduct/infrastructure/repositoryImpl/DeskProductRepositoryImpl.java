@@ -87,4 +87,18 @@ public class DeskProductRepositoryImpl implements DeskProductRepository {
 
         deskProductJpaRepository.incrementClickCount(deskProductId, delta);
     }
+
+    @Override
+    public boolean existsByProductCode(String productCode) {
+
+        return deskProductJpaRepository.existsByProductCode(productCode);
+    }
+
+    @Override
+    public DeskProduct findByProductCode(String productCode) {
+
+        return deskProductJpaRepository.findByProductCode(productCode)
+                .orElseThrow(() -> new CustomException(ErrorCode.DESK_PRODUCT_NOT_FOUND))
+                .toDomain();
+    }
 }
