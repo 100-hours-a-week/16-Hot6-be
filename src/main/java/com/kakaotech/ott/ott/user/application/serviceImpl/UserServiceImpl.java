@@ -144,9 +144,16 @@ public class UserServiceImpl implements UserService {
         // 게시글 DTO로 변환
         List<PostAllResponseDto.Posts> posts = postSlice.getContent().stream()
                 .map(post -> {
-                    String thumbnailImage = post.getImages().isEmpty()
-                            ? null
-                            : post.getImages().get(0).getImageUuid();
+
+                    String thumbnailImage;
+                    if (post.getType().equals(PostType.FREE)) {
+                        thumbnailImage = post.getImages().isEmpty()
+                                ? null
+                                : post.getImages().get(0).getImageUuid();
+                    }
+                    else {
+                        thumbnailImage = aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
+                    }
                     boolean liked = likedPostIds.contains(post.getId());
                     boolean scrapped = scrappedPostIds.contains(post.getId());
 
