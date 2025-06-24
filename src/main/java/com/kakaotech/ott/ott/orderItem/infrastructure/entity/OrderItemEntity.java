@@ -118,7 +118,7 @@ public class OrderItemEntity {
 
     public void cancel(OrderItem item) {
         this.status = item.getStatus();
-        this.refundAmount = item.getFinalPrice() * item.getQuantity();
+        this.refundAmount = item.getFinalPrice();
         this.cancelReason = item.getCancelReason();
         this.canceledAt = item.getCanceledAt();
     }
