@@ -1,10 +1,9 @@
 package com.kakaotech.ott.ott.product.domain.model;
 
 public enum ProductType {
-    MOUSE,      // 마우스
-    KEYBOARD,   // 키보드
-    MONITOR,    // 모니터
-    HEADSET,    // 헤드셋
-    WEBCAM,     // 웹캠
-    SPEAKER     // 스피커
+    ACCESSORIES, // 액세서리
+    STORAGE_ORGANIZATION, // 수납/정리,
+    HOME_LIVING, // 데코/생활용품
+    MULTI_PURPOSE, // 다용도
+    OTHERS // 기타
 }
