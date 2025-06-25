@@ -20,7 +20,7 @@ public interface PostService {
     PostCreateResponseDto createAiPost(AiPostCreateRequestDto aiPostCreateRequestDto, Long userId);
 
     PostAllResponseDto getAllPost(Long userId, String category, String sort, int size, Long lastPostId,
-                                  Integer lastLikeCount, Long lastViewCount);
+                                  Integer lastLikeCount, Long lastViewCount, Double lastWeightCount);
 
     PostGetResponseDto getPost(Long postId, Long userId);
 

@@ -1,10 +1,13 @@
 package com.kakaotech.ott.ott.orderItem.domain.model;
 
 public enum OrderItemStatus {
+    FAILED,
     PENDING,
-    ORDERED,
     PAID,
     DELIVERED,
-    REFUND,
-    CANCELED
+    REFUND_REQUEST,
+    REFUND_APPROVED,
+    REFUND_REJECTED,
+    CANCELED,
+    CONFIRMED
 }

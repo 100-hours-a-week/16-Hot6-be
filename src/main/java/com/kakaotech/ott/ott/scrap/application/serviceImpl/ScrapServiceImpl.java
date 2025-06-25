@@ -3,7 +3,8 @@ package com.kakaotech.ott.ott.scrap.application.serviceImpl;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
-import com.kakaotech.ott.ott.product.domain.repository.DeskProductRepository;
+import com.kakaotech.ott.ott.product.domain.repository.ProductRepository;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import com.kakaotech.ott.ott.scrap.application.service.ScrapService;
 import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
@@ -23,6 +24,7 @@ public class ScrapServiceImpl implements ScrapService {
     private final UserAuthRepository userAuthRepository;
     private final PostRepository postRepository;
     private final DeskProductRepository deskProductRepository;
+    private final ProductRepository productRepository;
 
     @Transactional
     @Override
@@ -39,15 +41,12 @@ public class ScrapServiceImpl implements ScrapService {
         Scrap scrap = Scrap.createScrap(userId, scrapRequestDto.getType(), scrapRequestDto.getTargetId());
         Scrap savedscrap = scrapRepository.save(scrap);
 
-        if(scrapRequestDto.getType().equals(ScrapType.POST))
+        if (scrapRequestDto.getType().equals(ScrapType.POST))
             postRepository.incrementScrapCount(scrapRequestDto.getTargetId(), 1L);
-        else{
-            System.out.println(scrapRequestDto.getType());
+        else if (scrapRequestDto.getType().equals(ScrapType.PRODUCT))
             deskProductRepository.incrementScrapCount(scrapRequestDto.getTargetId(), 1L);
-
-        }
-
-
+        else // 판매상품
+            productRepository.incrementScrapCount(scrapRequestDto.getTargetId(), 1L);
     }
 
     @Transactional
@@ -66,10 +65,12 @@ public class ScrapServiceImpl implements ScrapService {
 
         scrapRepository.deleteByUserEntityIdAndTypeAndTargetId(userId, scrapRequestDto.getTargetId());
 
-        if(scrapRequestDto.getType().equals(ScrapType.POST))
+        if (scrapRequestDto.getType().equals(ScrapType.POST))
             postRepository.incrementScrapCount(scrapRequestDto.getTargetId(), -1L);
-        else
+        else if (scrapRequestDto.getType().equals(ScrapType.PRODUCT))
             deskProductRepository.incrementScrapCount(scrapRequestDto.getTargetId(), -1L);
+        else // 판매상품
+            productRepository.incrementScrapCount(scrapRequestDto.getTargetId(), -1L);
     }
 
 

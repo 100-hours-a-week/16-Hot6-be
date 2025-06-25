@@ -5,6 +5,7 @@ import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderReposito
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,8 +16,10 @@ public class OrderConfirmBatchJob {
     private final ProductOrderRepository productOrderRepository;
 
     @Scheduled(cron = "0 0 0 * * ?") // 매일 새벽 3시
+    @Transactional
     public void confirmOrders() {
-        List<ProductOrder> ordersToConfirm = productOrderRepository.findOrdersToAutoConfirm(LocalDateTime.now());
+        LocalDateTime threshold = LocalDateTime.now().minusDays(3);
+        List<ProductOrder> ordersToConfirm = productOrderRepository.findOrdersToAutoConfirm(threshold);
         for (ProductOrder order : ordersToConfirm) {
             order.confirm();
             productOrderRepository.confirmProductOrder(order);

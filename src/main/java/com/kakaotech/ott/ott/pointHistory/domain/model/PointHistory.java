@@ -17,11 +17,11 @@ public class PointHistory {
 
     private PointActionType type;
 
-    private String description;
+    private PointActionReason description;
 
     private LocalDateTime createdAt;
 
-    public PointHistory createPointHistory(Long userId, int amount, int balanceAfter, PointActionType type, String description) {
+    public static PointHistory createPointHistory(Long userId, int amount, int balanceAfter, PointActionType type, PointActionReason description) {
 
         return PointHistory.builder()
                 .userId(userId)

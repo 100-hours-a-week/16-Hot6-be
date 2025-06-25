@@ -40,6 +40,9 @@ public class ProductOrderEntity {
     @Column(name = "discount_amount", nullable = false)
     private int discountAmount;
 
+    @Column(name = "order_fingerprint", nullable = false, length = 64)
+    private String orderFingerprint;
+
     @CreatedDate
     @Column(name = "ordered_at", nullable = false, updatable = false)
     private LocalDateTime orderedAt;
@@ -53,6 +56,9 @@ public class ProductOrderEntity {
     @Column(name = "canceled_at")
     private LocalDateTime canceledAt;
 
+    @Column(name = "refunded_at")
+    private LocalDateTime refundedAt;
+
     @Column(name = "deleted_at", nullable = false)
     private LocalDateTime deletedAt;
 
@@ -65,10 +71,12 @@ public class ProductOrderEntity {
                 .status(this.status)
                 .subtotalAmount(this.subtotalAmount)
                 .discountAmount(this.discountAmount)
+                .orderFingerprint(this.orderFingerprint)
                 .orderedAt(this.orderedAt)
                 .deliveredAt(this.deliveredAt)
                 .confirmedAt(this.confirmedAt)
                 .canceledAt(this.canceledAt)
+                .refundedAt(this.refundedAt)
                 .deletedAt(this.deletedAt)
                 .build();
     }
@@ -81,9 +89,11 @@ public class ProductOrderEntity {
                 .status(productOrder.getStatus())
                 .subtotalAmount(productOrder.getSubtotalAmount())
                 .discountAmount(productOrder.getDiscountAmount())
+                .orderFingerprint(productOrder.getOrderFingerprint())
                 .deliveredAt(productOrder.getDeliveredAt())
                 .confirmedAt(productOrder.getConfirmedAt())
                 .canceledAt(productOrder.getCanceledAt())
+                .refundedAt(productOrder.getRefundedAt())
                 .deletedAt(productOrder.getDeletedAt())
                 .build();
     }
@@ -107,5 +117,7 @@ public class ProductOrderEntity {
     public void setCanceledAt(LocalDateTime canceledAt) {
         this.canceledAt = canceledAt;
     }
+
+    public void setRefundedAt(LocalDateTime refundedAt) { this.refundedAt = refundedAt; }
 
 }

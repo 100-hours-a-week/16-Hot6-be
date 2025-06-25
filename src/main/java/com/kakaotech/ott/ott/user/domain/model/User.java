@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.user.domain.model;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,11 +17,9 @@ public class User {
     private Role role;
     private String nicknameKakao;
     private String nicknameCommunity;
-    private int point;
     private String imagePath;
     private boolean isActive;
     private boolean isVerified;
-    private LocalDate aiImageGeneratedDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;
@@ -30,20 +30,10 @@ public class User {
                 .role(Role.USER)
                 .nicknameKakao(null)
                 .nicknameCommunity(nicknameCommunity)
-                .point(500)
                 .imagePath(imagePath)
                 .isActive(true)
                 .isVerified(false)
-                .aiImageGeneratedDate(null)
                 .build();
-    }
-
-    public void renewGeneratedDate() {
-        this.aiImageGeneratedDate = LocalDate.now();
-    }
-
-    public void updatePoint(int point) {
-        this.point += point;
     }
 
     public void updateProfileImagePath(String imagePath) {
@@ -66,8 +56,15 @@ public class User {
         this.deletedAt = currentTime;
     }
 
-    public void updateVerified() {
+    public void updateVerified(String nicknameKakao) {
         this.isVerified = true;
+        this.nicknameKakao = nicknameKakao;
+    }
+
+    public void checkVerifiedUser() {
+
+        if (!this.isVerified())
+            throw new CustomException(ErrorCode.USER_NOT_VERIFIED);
     }
 
 }

@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.orderItem.domain.model;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,31 +15,43 @@ public class OrderItem {
 
     private Long orderId;
 
-    private Long productId;
+    private Long variantsId;
+
+    private Long promotionId;
 
     private OrderItemStatus status;
 
-    private int price;
+    private int originalPrice;
 
     private int quantity;
 
-    private OrderItemStatus pendingProductStatus;
+    private int discountAmount;
+
+    private int finalPrice;
 
     private int refundAmount;
 
     private RefundReason refundReason;
 
+    private CancelReason cancelReason;
+
+    private LocalDateTime canceledAt;
+
+    private LocalDateTime refundRequestedAt;
+
     private LocalDateTime refundedAt;
 
-    public static OrderItem createOrderItem(Long orderId, Long productId, int price, int quantity) {
+    public static OrderItem createOrderItem(Long orderId, Long variantsId, Long promotionId, int originalPrice, int quantity, int discountAmount, int finalPrice) {
 
         return OrderItem.builder()
                 .orderId(orderId)
-                .productId(productId)
-                .status(OrderItemStatus.ORDERED)
-                .price(price)
+                .variantsId(variantsId)
+                .promotionId(promotionId != null ? promotionId : null) // 삼항 연산자 사용
+                .status(OrderItemStatus.PENDING)
+                .originalPrice(originalPrice)
                 .quantity(quantity)
-                .pendingProductStatus(OrderItemStatus.PENDING)
+                .discountAmount(discountAmount)
+                .finalPrice(finalPrice)
                 .build();
     }
 
@@ -45,7 +59,59 @@ public class OrderItem {
         this.orderId = orderId;
     }
 
-    public void setPendingProductPid() {
-        this.pendingProductStatus = null;
+    public void fail() {
+        if (this.status != OrderItemStatus.PENDING) throw new CustomException(ErrorCode.NOT_PENDING_STATE);
+
+        this.status = OrderItemStatus.FAILED;
     }
+
+    public void pay() {
+        if (this.status != OrderItemStatus.PENDING) throw new CustomException(ErrorCode.NOT_PENDING_STATE);
+
+        this.status = OrderItemStatus.PAID;
+    }
+
+    public void deliver() {
+        if (this.status != OrderItemStatus.PAID) throw new CustomException(ErrorCode.NOT_PAID_STATE);
+
+        this.status = OrderItemStatus.DELIVERED;
+    }
+
+    public void cancel(CancelReason cancelReason, LocalDateTime canceledAt) {
+        if (this.status != OrderItemStatus.PAID) throw new CustomException(ErrorCode.NOT_CANCELABLE_STATE);
+
+        this.status = OrderItemStatus.CANCELED;
+        this.refundAmount = this.finalPrice;
+        this.cancelReason = cancelReason;
+        this.canceledAt = canceledAt;
+    }
+
+    public void refundRequest(RefundReason refundReason, LocalDateTime refundRequestedAt) {
+        if (this.status != OrderItemStatus.DELIVERED) throw new CustomException(ErrorCode.NOT_REFUNDABLE_STATE);
+
+        this.status = OrderItemStatus.REFUND_REQUEST;
+        this.refundReason = refundReason;
+        this.refundRequestedAt = refundRequestedAt;
+    }
+
+    public void refundApprove() {
+        if (this.status != OrderItemStatus.REFUND_REQUEST) throw new CustomException(ErrorCode.NOT_REFUNDABLE_STATE);
+
+        this.status = OrderItemStatus.REFUND_APPROVED;
+        this.refundAmount = this.finalPrice;
+        this.refundedAt = LocalDateTime.now();
+    }
+
+    public void refundReject() {
+        if (this.status != OrderItemStatus.REFUND_REQUEST) throw new CustomException(ErrorCode.NOT_REFUNDABLE_STATE);
+
+        this.status = OrderItemStatus.REFUND_REJECTED;
+    }
+
+    public void confirm() {
+        if (this.status != OrderItemStatus.DELIVERED) throw new CustomException(ErrorCode.NOT_CONFIRMABLE_STATE);
+
+        this.status = OrderItemStatus.CONFIRMED;
+    }
+
 }

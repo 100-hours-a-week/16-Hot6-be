@@ -38,9 +38,6 @@ public class UserEntity extends AuditEntity {
     @Column(name = "nickname_community", nullable = false, length = 20)
     private String nicknameCommunity;
 
-    @Column(nullable = false)
-    private int point;
-
     @Column(name = "image_path", nullable = false)
     private String imagePath;
 
@@ -49,9 +46,6 @@ public class UserEntity extends AuditEntity {
 
     @Column(name = "is_verified", nullable = false)
     private boolean isVerified;
-
-    @Column(name = "ai_image_generated_date")
-    private LocalDate aiImageGeneratedDate;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
@@ -67,11 +61,9 @@ public class UserEntity extends AuditEntity {
                 .role(this.role)
                 .nicknameKakao(this.nicknameKakao)
                 .nicknameCommunity(this.nicknameCommunity)
-                .point(this.point)
                 .imagePath(this.imagePath)
                 .isActive(this.isActive)
                 .isVerified(this.isVerified)
-                .aiImageGeneratedDate(this.aiImageGeneratedDate)
                 .createdAt(this.getCreatedAt())
                 .updatedAt(this.getUpdatedAt())
                 .deletedAt(this.deletedAt)
@@ -85,11 +77,9 @@ public class UserEntity extends AuditEntity {
                 .role(user.getRole())
                 .nicknameKakao(user.getNicknameKakao())
                 .nicknameCommunity(user.getNicknameCommunity())
-                .point(user.getPoint())
                 .imagePath(user.getImagePath())
                 .isActive(user.isActive())
                 .isVerified(user.isVerified())
-                .aiImageGeneratedDate(user.getAiImageGeneratedDate())
                 .deletedAt(user.getDeletedAt())
                 .build();
     }
@@ -114,8 +104,9 @@ public class UserEntity extends AuditEntity {
         this.deletedAt = deletedAt;
     }
 
-    public void updateVerified() {
+    public void updateVerified(String nicknameKakao) {
         this.isVerified = true;
+        this.nicknameKakao = nicknameKakao;
     }
 
 }

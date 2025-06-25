@@ -1,15 +1,14 @@
 package com.kakaotech.ott.ott.orderItem.infrastructure.entity;
 
+import com.kakaotech.ott.ott.orderItem.domain.model.CancelReason;
+import com.kakaotech.ott.ott.product.infrastructure.entity.ProductPromotionEntity;
+import com.kakaotech.ott.ott.product.infrastructure.entity.ProductVariantEntity;
 import com.kakaotech.ott.ott.productOrder.infrastructure.entity.ProductOrderEntity;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -17,6 +16,7 @@ import java.time.LocalDateTime;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "order_items")
+@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -30,32 +30,48 @@ public class OrderItemEntity {
     @JoinColumn(name = "order_id")
     private ProductOrderEntity productOrderEntity;
 
-    // 제품 엔티티 들어가야 된다.
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variants_id")
+    private ProductVariantEntity productVariantEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "promotion_id")
+    private ProductPromotionEntity productPromotionEntity;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private OrderItemStatus status;
 
-    @Column(name = "price", nullable = false)
-    private int price;
+    @Column(name = "original_price", nullable = false)
+    private int originalPrice;
 
     @Column(name = "quantity", nullable = false)
     private int quantity;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "pending_product_status")
-    private OrderItemStatus pendingProductStatus;
+    @Column(name = "discount_amount", nullable = false)
+    private int discountAmount;
+
+    @Column(name = "final_price", nullable = false)
+    private int finalPrice;
 
     @Column(name = "refund_amount")
     private int refundAmount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "refund_reason")
     private RefundReason refundReason;
 
-    @CreatedDate
-    @Column(name = "refunded_at", updatable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "cancel_reason")
+    private CancelReason cancelReason;
+
+    @Column(name = "canceled_at")
+    private LocalDateTime canceledAt;
+
+    @Column(name = "refund_requested_at")
+    private LocalDateTime refundRequestedAt;
+
+    @Column(name = "refunded_at")
     private LocalDateTime refundedAt;
 
     public OrderItem toDomain() {
@@ -63,28 +79,70 @@ public class OrderItemEntity {
         return OrderItem.builder()
                 .id(this.id)
                 .orderId(this.productOrderEntity.getId())
-                // feat: productId 변경해야됨
-                .productId(1L)
+                .variantsId(this.productVariantEntity.getId())
+                .promotionId(this.productPromotionEntity != null ? this.productPromotionEntity.getId() : null)
                 .status(this.status)
-                .price(this.price)
+                .originalPrice(this.originalPrice)
                 .quantity(this.quantity)
-                .pendingProductStatus(this.pendingProductStatus)
+                .discountAmount(this.discountAmount)
+                .finalPrice(this.finalPrice)
                 .refundAmount(this.refundAmount)
                 .refundReason(this.refundReason)
+                .cancelReason(this.cancelReason)
+                .canceledAt(this.canceledAt)
                 .refundedAt(this.refundedAt)
                 .build();
     }
 
-    public static OrderItemEntity from(OrderItem orderItem, ProductOrderEntity productOrderEntity) {
+    public static OrderItemEntity from(OrderItem orderItem, ProductOrderEntity productOrderEntity, ProductVariantEntity productVariantEntity, ProductPromotionEntity productPromotionEntity) {
 
         return OrderItemEntity.builder()
                 .productOrderEntity(productOrderEntity)
-                .productId(orderItem.getProductId())
+                .productVariantEntity(productVariantEntity)
+                .productPromotionEntity(productPromotionEntity)
                 .status(orderItem.getStatus())
-                .price(orderItem.getPrice())
+                .originalPrice(orderItem.getOriginalPrice())
                 .quantity(orderItem.getQuantity())
-                .pendingProductStatus(orderItem.getPendingProductStatus())
+                .discountAmount(orderItem.getDiscountAmount())
+                .finalPrice(orderItem.getFinalPrice())
                 .build();
     }
 
+    public void fail(OrderItem item) {
+        this.status = item.getStatus();
+    }
+
+    public void pay(OrderItem item) {
+        this.status = item.getStatus();
+    }
+
+    public void cancel(OrderItem item) {
+        this.status = item.getStatus();
+        this.refundAmount = item.getFinalPrice();
+        this.cancelReason = item.getCancelReason();
+        this.canceledAt = item.getCanceledAt();
+    }
+
+    public void refundRequest(OrderItem item) {
+
+        this.status = item.getStatus();
+        this.refundReason = item.getRefundReason();
+        this.refundRequestedAt = item.getRefundRequestedAt();
+    }
+
+    public void refund(OrderItem item) {
+
+        this.status = item.getStatus();
+        this.refundAmount = item.getRefundAmount();
+        this.refundedAt = item.getRefundedAt();
+    }
+
+    public void delivery(OrderItem item) {
+
+        this.status = item.getStatus();
+    }
+
+    public void confirm(OrderItem item) {
+        this.status = item.getStatus();
+    }
 }

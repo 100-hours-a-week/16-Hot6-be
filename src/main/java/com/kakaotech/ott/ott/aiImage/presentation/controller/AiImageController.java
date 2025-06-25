@@ -1,8 +1,9 @@
 package com.kakaotech.ott.ott.aiImage.presentation.controller;
 
-import com.kakaotech.ott.ott.product.application.service.ProductDomainService;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
+import com.kakaotech.ott.ott.recommendProduct.application.service.ProductDomainService;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
-import com.kakaotech.ott.ott.product.domain.model.DeskProduct;
+import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageUploadRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.*;
@@ -69,7 +70,7 @@ public class AiImageController {
                     .body(ApiResponse.error(400, "이미지 파일이 비어있습니다."));
         }
 
-        AiImageSaveResponseDto aiImageSaveResponseDto = aiImageService.handleImageValidation(image, userId);
+        AiImageSaveResponseDto aiImageSaveResponseDto = aiImageService.handleImageValidation(image, requestDto.getConcept(), userId);
 
         return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성 요청이 접수되었습니다.", aiImageSaveResponseDto));
     }
@@ -80,15 +81,7 @@ public class AiImageController {
 
         AiImage aiImage = aiImageService.insertAiImage(requestDto);
 
-        List<DeskProduct> deskProduct = productDomainService.createdProduct(
-                requestDto, aiImage, aiImage.getUserId());
-
-        // 예외 방지: 빈 리스트 처리
-        if (deskProduct == null || deskProduct.isEmpty()) {
-            return ResponseEntity.ok(ApiResponse.success("AI 이미지 저장에 실패했습니다.", null));
-        }
-
-        AiImageSaveResponseDto aiImageSaveResponseDto = new AiImageSaveResponseDto(deskProduct.get(0).getAiImageId());
+        AiImageSaveResponseDto aiImageSaveResponseDto =  productDomainService.createdProduct(requestDto, aiImage, aiImage.getUserId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("AI 이미지 저장이 완료됐습니다.", aiImageSaveResponseDto));
     }

@@ -1,0 +1,123 @@
+package com.kakaotech.ott.ott.recommendProduct.application.serviceImpl;
+
+import com.kakaotech.ott.ott.aiImage.presentation.dto.response.AiImageSaveResponseDto;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.recommendProduct.application.service.ProductDomainService;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.recommendProduct.domain.model.AiImageRecommendedProduct;
+import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
+import com.kakaotech.ott.ott.recommendProduct.domain.model.ProductMainCategory;
+import com.kakaotech.ott.ott.recommendProduct.domain.model.ProductSubCategory;
+import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.AiImageRecommendedProductRepository;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.ProductMainCategoryRepository;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.ProductSubCategoryRepository;
+import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
+import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.ProductMainCategoryEntity;
+import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.ProductSubCategoryEntity;
+import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
+import com.kakaotech.ott.ott.recommendProduct.presentation.dto.request.ProductDetailRequestDto;
+import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.RecommendedItemsDto;
+import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
+import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
+import com.kakaotech.ott.ott.user.domain.model.User;
+import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class ProductDomainServiceImpl implements ProductDomainService {
+
+    private final ProductMainCategoryRepository productMainCategoryRepository;
+    private final ProductSubCategoryRepository productSubCategoryRepository;
+    private final DeskProductRepository deskProductRepository;
+    private final AiImageRepository aiImageRepository;
+    private final UserAuthRepository userAuthRepository;
+    private final ScrapRepository scrapRepository;
+    private final AiImageRecommendedProductRepository aiImageRecommendedProductRepository;
+
+    @Override
+    @Transactional
+    public AiImageSaveResponseDto createdProduct(AiImageAndProductRequestDto aiImageAndProductRequestDto, AiImage aiImage, Long userId) {
+
+        User user = userAuthRepository.findById(userId);
+
+        AiImageEntity aiImageEntity = aiImageRepository.findById(aiImage.getId())
+                .orElseThrow(() -> new EntityNotFoundException("AI 이미지가 없습니다."));
+
+        List<ProductDetailRequestDto> productList = aiImageAndProductRequestDto.getProducts();
+
+        // 제품 리스트가 비어있으면 바로 빈 리스트 반환
+        if (productList == null || productList.isEmpty()) {
+            throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        for (ProductDetailRequestDto product : productList) {
+
+            boolean existsProduct = deskProductRepository.existsByProductCode(product.getProductCode());
+
+            String mainCategoryName = product.getMainCategory();
+            String subCategoryName = product.getSubCategory();
+
+            ProductMainCategoryEntity productMainCategoryEntity = productMainCategoryRepository.findByName(mainCategoryName)
+                    .orElseGet(() -> {
+                        ProductMainCategory newMainCategory = ProductMainCategory.createProductMainCategory(mainCategoryName);
+                        return productMainCategoryRepository.save(newMainCategory);
+                    });
+
+            ProductSubCategoryEntity productSubCategoryEntity = productSubCategoryRepository.findByName(subCategoryName)
+                    .orElseGet(() -> {
+                        ProductSubCategory newSubCategory = ProductSubCategory.createProductSubCategory(productMainCategoryEntity.getId(), subCategoryName);
+                        return productSubCategoryRepository.save(newSubCategory, productMainCategoryEntity);
+                    });
+
+            AiImageRecommendedProduct aiImageRecommendedProduct;
+
+            if (!existsProduct) {
+                DeskProduct deskProduct = DeskProduct.createDeskProduct(
+                        productSubCategoryEntity.getId(), product.getProductCode(),
+                        product.getName(), product.getPrice(), product.getPurchasePlace(),
+                        product.getPurchaseUrl(), product.getImagePath()
+                );
+
+                DeskProduct generatedDeskProduct = deskProductRepository.save(deskProduct, productSubCategoryEntity, aiImageEntity);
+                aiImageRecommendedProduct = AiImageRecommendedProduct.createAiImageRecommendedProduct(aiImage.getId(), generatedDeskProduct.getId(), product.getCenterX(), product.getCenterY());
+            } else {
+                DeskProduct generatedDeskProduct = deskProductRepository.findByProductCode(product.getProductCode());
+                aiImageRecommendedProduct = AiImageRecommendedProduct.createAiImageRecommendedProduct(aiImage.getId(), generatedDeskProduct.getId(), product.getCenterX(), product.getCenterY());
+
+            }
+
+            aiImageRecommendedProductRepository.save(aiImageRecommendedProduct);
+
+        }
+
+        return new AiImageSaveResponseDto(aiImage.getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RecommendedItemsDto> getRecommendItems(Long userId) {
+        return deskProductRepository.findTop7ByWeight().stream()
+                .map(deskProduct -> new RecommendedItemsDto(
+                        deskProduct.getId(),
+                        deskProduct.getName(),
+                        deskProduct.getImagePath(),
+                        deskProduct.getPurchaseUrl(),
+                        deskProduct.getPurchasePlace(),
+                        productSubCategoryRepository.findById(deskProduct.getSubCategoryId()).getName(),
+                        (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.PRODUCT, deskProduct.getId())
+                ))
+                .collect(Collectors.toList());
+    }
+
+
+}

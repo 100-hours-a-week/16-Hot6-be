@@ -1,6 +1,6 @@
 package com.kakaotech.ott.ott.aiImage.presentation.dto.response;
 
-import com.kakaotech.ott.ott.product.presentation.dto.response.ProductResponseDto;
+import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.ProductResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

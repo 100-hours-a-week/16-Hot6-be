@@ -7,6 +7,10 @@ import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
+import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionReason;
+import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
+import com.kakaotech.ott.ott.pointHistory.domain.model.PointHistory;
+import com.kakaotech.ott.ott.pointHistory.domain.repository.PointHistoryRepository;
 import com.kakaotech.ott.ott.post.application.component.ImageLoaderManager;
 import com.kakaotech.ott.ott.post.application.component.ViewCountAggregator;
 import com.kakaotech.ott.ott.post.application.service.PostService;
@@ -47,6 +51,7 @@ public class PostServiceImpl implements PostService {
     private final ScrapRepository scrapRepository;
     private final ImageLoaderManager imageLoaderManager;
     private final CommentRepository commentRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     @Value("${cloud.aws.s3.base-url}")
     private String baseUrl;
@@ -87,7 +92,11 @@ public class PostServiceImpl implements PostService {
 
         User user = userAuthRepository.findById(userId);
 
-        user.updatePoint(200);
+        PointHistory beforePointHistory = pointHistoryRepository.findLatestPointHistoryByUserId(user.getId());
+
+        PointHistory afterPointHistory = PointHistory.createPointHistory(user.getId(), 200, beforePointHistory.getBalanceAfter() + 200, PointActionType.EARN, PointActionReason.POST_CREATE);
+        pointHistoryRepository.save(afterPointHistory, user);
+        // user.updatePoint(200); TODO: PointHistory로 변경
         userAuthRepository.save(user);
 
         Post savedPost = postRepository.save(post);
@@ -109,8 +118,8 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size, Long lastPostId,
-                                         Integer lastLikeCount, Long lastViewCount) {
-        List<Post> posts = postRepository.findAllByCursor(size, lastPostId, lastLikeCount, lastViewCount, category, sort);
+                                         Integer lastLikeCount, Long lastViewCount, Double lastWeightCount) {
+        List<Post> posts = postRepository.findAllByCursor(size, lastPostId, lastLikeCount, lastViewCount, lastWeightCount, category, sort);
 
         List<PostAllResponseDto.Posts> dtoList = posts.stream()
                 .map(post -> {
@@ -119,7 +128,7 @@ public class PostServiceImpl implements PostService {
                     boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
                     boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
                     int commentCount = commentRepository.findByPostId(post.getId());
-                    int likeCount = likeRepository.findByPostId(post.getId());
+                    Long likeCount = likeRepository.findByPostId(post.getId());
 
                     String thumbnailImage = switch (post.getType()) {
                         case AI -> aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
@@ -141,6 +150,7 @@ public class PostServiceImpl implements PostService {
                             likeCount,
                             commentCount,
                             post.getViewCount(),
+                            post.getWeight(),
                             post.getCreatedAt(),
                             liked,
                             scrapped
@@ -148,16 +158,18 @@ public class PostServiceImpl implements PostService {
                 })
                 .toList();
 
+
         boolean hasNext = dtoList.size() == size;
         Long nextLastId = hasNext ? dtoList.get(dtoList.size() - 1).getPostId() : null;
-        Integer nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
+        Long nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
         Long nextLastViewCount = hasNext ? dtoList.get(dtoList.size() - 1).getViewCount() : null;
+        Double nextLastWeightCount = hasNext ? dtoList.get(dtoList.size() - 1).getWeightCount() : null;
 
-        return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, nextLastLikeCount, nextLastViewCount, hasNext));
+        return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, nextLastLikeCount, nextLastViewCount, nextLastWeightCount, hasNext));
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public PostGetResponseDto getPost(Long postId, Long userId) {
 
         viewCountAggregator.increment(postId);
@@ -173,7 +185,7 @@ public class PostServiceImpl implements PostService {
         List<?> imageUrls = imageLoaderManager.loadImages(post.getType(), postId);
 
         int commentCount = commentRepository.findByPostId(post.getId());
-        int likeCount = likeRepository.findByPostId(post.getId());
+        Long likeCount = likeRepository.findByPostId(post.getId());
 
         boolean isActive = userAuthRepository.findById(post.getUserId()).isActive();
 

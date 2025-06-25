@@ -15,5 +15,18 @@ import java.util.List;
 public class ProductOrderRequestDto {
 
     @NotNull
-    private List<ServiceProductDto> product;
+    private List<ServiceProductDto> products;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ServiceProductDto {
+
+        @NotNull
+        private Long variantId;
+
+        @NotNull
+        private int quantity;
+    }
 }

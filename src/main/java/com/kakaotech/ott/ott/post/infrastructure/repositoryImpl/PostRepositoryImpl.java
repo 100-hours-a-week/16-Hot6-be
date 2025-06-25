@@ -75,7 +75,7 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Post> findAllByCursor(int size, Long lastPostId, Integer lastLikeCount, Long lastViewCount,
+    public List<Post> findAllByCursor(int size, Long lastPostId, Integer lastLikeCount, Long lastViewCount, Double lastWeightCount,
                                       String category, String sort) {
         Pageable pageable = PageRequest.of(0, size);
 
@@ -96,6 +96,8 @@ public class PostRepositoryImpl implements PostRepository {
             case "LIKE" -> postJpaRepository.findByCategoryByLike(postType, lastLikeCount, lastPostId, pageable)
                     .stream().map(PostEntity::toDomain).toList();
             case "VIEW" -> postJpaRepository.findByCategoryByView(postType, lastViewCount, lastPostId, pageable)
+                    .stream().map(PostEntity::toDomain).toList();
+            case "POPULAR" -> postJpaRepository.findByCategoryByWeight(postType, lastWeightCount, lastPostId, pageable)
                     .stream().map(PostEntity::toDomain).toList();
             default -> postJpaRepository.findByCategory(postType, lastPostId, pageable)
                     .stream().map(PostEntity::toDomain).toList();

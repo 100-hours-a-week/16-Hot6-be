@@ -1,5 +1,8 @@
 package com.kakaotech.ott.ott.productOrder.application.service;
 
+import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderCancelRequestDto;
+import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialCancelRequestDto;
+import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialConfirmRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderHistoryListResponseDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.response.MyProductOrderResponseDto;
@@ -18,5 +21,7 @@ public interface ProductOrderService {
 
     ProductOrderConfirmResponseDto confirmProductOrder(Long userId, Long orderId);
 
-    void cancelProductOrder(Long userId, Long orderId);
+    void partialCancelProductOrder(Long userId, Long orderId, ProductOrderPartialCancelRequestDto productOrderPartialCancelRequestDto);
+
+    void cancelProductOrder(Long userId, Long orderId, ProductOrderCancelRequestDto productOrderCancelRequestDto);
 }
