@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.product.domain.repository;
 
+import com.kakaotech.ott.ott.product.domain.model.ProductType;
 import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
+import com.kakaotech.ott.ott.product.domain.model.PromotionType;
 import com.kakaotech.ott.ott.product.domain.model.VariantStatus;
 
 import java.util.List;
@@ -35,4 +37,10 @@ public interface ProductVariantRepository {
 
     // 예약재고 해제
     void cancelReservation(Long variantId, int quantity);
+
+    // 특가 variant 목록 조회
+    List<ProductVariant> findPromotionVariantsByCursor(PromotionType promotionType, Long lastVariantId, int size);
+
+    // 일반 variant 목록 조회
+    List<ProductVariant> findNormalVariantsByCursor(ProductType productType, Long lastVariantId, int size);
 }

@@ -30,6 +30,9 @@ public class ProductListResponseDto {
         @JsonProperty("product_type")
         private final String productType;
 
+        @JsonProperty("variant_id")
+        private final Long variantId;
+
         @JsonProperty("variant_name")
         private final String variantName;
 
@@ -69,8 +72,8 @@ public class ProductListResponseDto {
     public static class Pagination {
         private final int size;
 
-        @JsonProperty("last_product_id")
-        private final Long lastProductId;
+        @JsonProperty("last_variant_id")
+        private final Long lastVariantId;
         @JsonProperty("has_next")
         private final boolean hasNext;
     }

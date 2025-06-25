@@ -35,6 +35,16 @@ public class ProductVariant {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private Product product;
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
     // 실제 판매 가능 수량 계산 (총 수량 - 예약 수량 - 판매 수량)
     public int getAvailableQuantity() {
         return totalQuantity - reservedQuantity - soldQuantity;

@@ -108,19 +108,43 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductListResponseDto getProductList(Long userId, ProductType productType, PromotionType promotionType,
-                                                 Long lastProductId, int size) {
+                                                 Long lastVariantId, int size) {
         // 상품 목록 조회
-        List<Product> products = fetchProducts(productType, promotionType, lastProductId, size);
+        List<ProductListResponseDto.Products> productDtos;
+        List<ProductVariant> variants;
+        if (promotionType != null) {
+            // 특가 상품 조회
+            variants = variantRepository.findPromotionVariantsByCursor(promotionType, lastVariantId, size);
+        } else {
+            // 일반 상품 조회
+            variants = variantRepository.findNormalVariantsByCursor(productType, lastVariantId, size);
+        }
 
-        List<ProductListResponseDto.Products> productDtos = products.stream()
-                .map(product -> convertToProductListDto(product, userId, promotionType != null))
+        // Variant를 DTO로 변환
+        productDtos = variants.stream()
+                .map(variant -> convertVariantToProductListDto(variant, userId, promotionType != null))
                 .collect(Collectors.toList());
 
+        // 페이지네이션 정보
         boolean hasNext = productDtos.size() == size;
-        Long nextLastProductId = hasNext ? productDtos.get(productDtos.size() - 1).getProductId() : null;
+        Long nextLastVariantId = hasNext && !productDtos.isEmpty()
+                ? variants.get(variants.size() - 1).getId()
+                : null;
 
         ProductListResponseDto.Pagination pagination = new ProductListResponseDto.Pagination(
-                size, nextLastProductId, hasNext);
+                size, nextLastVariantId, hasNext);
+
+//        List<Product> products = fetchProducts(productType, promotionType, lastVariantId, size);
+//
+//        List<ProductListResponseDto.Products> productDtos = products.stream()
+//                .map(product -> convertToProductListDto(product, userId, promotionType != null))
+//                .collect(Collectors.toList());
+//
+//        boolean hasNext = productDtos.size() == size;
+//        Long nextLastProductId = hasNext ? productDtos.get(productDtos.size() - 1).getProductId() : null;
+//
+//        ProductListResponseDto.Pagination pagination = new ProductListResponseDto.Pagination(
+//                size, nextLastProductId, hasNext);
 
         return ProductListResponseDto.builder()
                 .products(productDtos)
@@ -129,6 +153,46 @@ public class ProductServiceImpl implements ProductService {
     }
 
     // === Private Methods ===
+    private ProductListResponseDto.Products convertVariantToProductListDto(
+            ProductVariant variant,
+            Long userId,
+            boolean isPromotionProduct) {
+
+        Product product = variant.getProduct(); // variant에서 product 정보 가져오기
+        String imageUrl = getFirstImageUrl(variant);
+        boolean scraped = isProductScrapped(userId, product.getId());
+
+        ProductListResponseDto.Products.ProductsBuilder builder = ProductListResponseDto.Products.builder()
+                .productId(product.getId())
+                .variantId(variant.getId())
+                .productName(product.getName())
+                .productType(product.getType().toString())
+                .variantName(variant.getName())
+                .imageUrl(imageUrl)
+                .availableQuantity(variant.getAvailableQuantity())
+                .scraped(scraped)
+                .createdAt(product.getCreatedAt());
+
+        if (isPromotionProduct && variant.isOnPromotion()) {
+            // 특가 정보 설정
+            ProductPromotion activePromotion = getActivePromotion(variant);
+            builder.originalPrice(activePromotion.getOriginalPrice())
+                    .discountPrice(activePromotion.getDiscountPrice())
+                    .discountRate(activePromotion.getRate())
+                    .promotionEndAt(activePromotion.getEndAt())
+                    .promotion(true);
+        } else {
+            // 일반 상품 정보
+            builder.originalPrice(variant.getPrice())
+                    .discountPrice(null)
+                    .discountRate(null)
+                    .promotionEndAt(null)
+                    .promotion(false);
+        }
+
+        return builder.build();
+    }
+
 
     // Variant 이미지 추가 메서드
     private void addVariantImages(ProductVariant variant, List<MultipartFile> variantImages) throws IOException {
