@@ -23,7 +23,7 @@ public interface ProductService {
             Long userId,
             ProductType productType,
             PromotionType promotionType,
-            Long lastProductId,
+            Long lastVariantId,
             int size);
 
     //    ProductCreateResponseDto updateProduct(Long productId, ProductCreateRequestDto request, List<MultipartFile> images);

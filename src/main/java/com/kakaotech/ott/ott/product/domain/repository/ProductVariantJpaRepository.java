@@ -1,7 +1,10 @@
 package com.kakaotech.ott.ott.product.domain.repository;
 
+import com.kakaotech.ott.ott.product.domain.model.ProductType;
+import com.kakaotech.ott.ott.product.domain.model.PromotionType;
 import com.kakaotech.ott.ott.product.domain.model.VariantStatus;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductVariantEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -173,4 +176,68 @@ public interface ProductVariantJpaRepository extends JpaRepository<ProductVarian
     @Transactional
     @Query("UPDATE ProductVariantEntity v SET v.status = :status WHERE v.id = :variantId")
     void updateStatus(@Param("variantId") Long variantId, @Param("status") String status);
+
+    // 일반 variant 목록 조회 (특가 제외, 최신순)
+    @Query("""
+        SELECT v FROM ProductVariantEntity v
+        JOIN FETCH v.productEntity p
+        LEFT JOIN FETCH v.images img
+        WHERE p.status = 'ACTIVE'
+        AND v.status = 'ACTIVE'
+        AND v.isOnPromotion = false
+        AND (:productType IS NULL OR p.type = :productType)
+        AND (:lastVariantId IS NULL OR v.id < :lastVariantId)
+        ORDER BY v.createdAt DESC, v.id DESC
+        """)
+    List<ProductVariantEntity> findNormalVariantsByCursor(
+            @Param("productType") ProductType productType,
+            @Param("lastVariantId") Long lastVariantId,
+            Pageable pageable);
+
+    // 특가 variant 목록 조회 (프로모션 종료시간 기준 정렬) - images 제외
+    @Query("""
+        SELECT DISTINCT v FROM ProductVariantEntity v 
+        JOIN FETCH v.productEntity p 
+        WHERE p.status = 'ACTIVE' 
+        AND v.status = 'ACTIVE' 
+        AND v.isOnPromotion = true 
+        AND EXISTS (
+            SELECT 1 FROM ProductPromotionEntity promotion 
+            WHERE promotion.variantEntity = v 
+            AND promotion.status = 'ACTIVE' 
+            AND promotion.type = :promotionType 
+            AND promotion.endAt > CURRENT_TIMESTAMP
+        )
+        AND (:lastVariantId IS NULL OR v.id > :lastVariantId) 
+        ORDER BY (
+            SELECT MIN(promo.endAt) 
+            FROM ProductPromotionEntity promo 
+            WHERE promo.variantEntity = v 
+            AND promo.status = 'ACTIVE' 
+            AND promo.type = :promotionType 
+            AND promo.endAt > CURRENT_TIMESTAMP
+        ) ASC, v.id ASC
+        """)
+    List<ProductVariantEntity> findPromotionVariantsByCursor(
+            @Param("promotionType") PromotionType promotionType,
+            @Param("lastVariantId") Long lastVariantId,
+            Pageable pageable);
+
+    // Variant ID 리스트로 이미지들 한번에 조회
+    @Query("""
+        SELECT DISTINCT v FROM ProductVariantEntity v 
+        LEFT JOIN FETCH v.images 
+        WHERE v.id IN :variantIds
+        """)
+    List<ProductVariantEntity> findVariantsWithImages(@Param("variantIds") List<Long> variantIds);
+
+    // Variant ID 리스트로 프로모션들 한번에 조회
+    @Query("""
+        SELECT DISTINCT v FROM ProductVariantEntity v 
+        LEFT JOIN FETCH v.promotions 
+        WHERE v.id IN :variantIds
+        """)
+    List<ProductVariantEntity> findVariantsWithPromotions(@Param("variantIds") List<Long> variantIds);
+
+
 }

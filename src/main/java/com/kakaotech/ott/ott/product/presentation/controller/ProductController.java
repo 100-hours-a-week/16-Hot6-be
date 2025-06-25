@@ -85,7 +85,7 @@ public class ProductController {
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam(required = false) ProductType productType,
             @RequestParam(required = false) PromotionType promotionType,
-            @RequestParam(required = false) Long lastProductId,
+            @RequestParam(required = false) Long lastVariantId,
             @RequestParam(defaultValue = "10") int size) {
 
         Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
@@ -101,7 +101,7 @@ public class ProductController {
         }
 
         ProductListResponseDto productList = productService.getProductList(
-                userId, productType, promotionType, lastProductId, size);
+                userId, productType, promotionType, lastVariantId, size);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("상품 목록 조회 성공", productList));
     }

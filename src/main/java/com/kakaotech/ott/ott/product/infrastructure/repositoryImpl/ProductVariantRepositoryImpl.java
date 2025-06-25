@@ -2,19 +2,27 @@ package com.kakaotech.ott.ott.product.infrastructure.repositoryImpl;
 
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.product.domain.model.ProductType;
 import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
+import com.kakaotech.ott.ott.product.domain.model.PromotionType;
 import com.kakaotech.ott.ott.product.domain.model.VariantStatus;
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantJpaRepository;
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductEntity;
+import com.kakaotech.ott.ott.product.infrastructure.entity.ProductImageEntity;
+import com.kakaotech.ott.ott.product.infrastructure.entity.ProductPromotionEntity;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductVariantEntity;
 import com.kakaotech.ott.ott.product.domain.repository.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Repository
@@ -213,4 +221,74 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductVariant> findNormalVariantsByCursor(ProductType productType, Long lastVariantId, int size) {
+        List<ProductVariantEntity> entities = productVariantJpaRepository.findNormalVariantsByCursor(
+                productType, lastVariantId, PageRequest.of(0, size));
+
+        return entities.stream()
+                .map(entity -> {
+                    ProductVariant variant = entity.toDomain();
+                    variant.setProduct(entity.getProductEntity().toDomain());
+                    return variant;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductVariant> findPromotionVariantsByCursor(PromotionType promotionType, Long lastVariantId, int size) {
+        // 1단계: Variant와 Product만 조회
+        List<ProductVariantEntity> entities = productVariantJpaRepository.findPromotionVariantsByCursor(
+                promotionType, lastVariantId, PageRequest.of(0, size));
+
+        if (entities.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 2단계: Variant ID 수집
+        List<Long> variantIds = entities.stream()
+                .map(ProductVariantEntity::getId)
+                .collect(Collectors.toList());
+
+        // 3단계: 이미지와 프로모션을 별도 쿼리로 조회
+        Map<Long, ProductVariantEntity> variantWithImagesMap = productVariantJpaRepository
+                .findVariantsWithImages(variantIds).stream()
+                .collect(Collectors.toMap(ProductVariantEntity::getId, Function.identity()));
+
+        Map<Long, ProductVariantEntity> variantWithPromotionsMap = productVariantJpaRepository
+                .findVariantsWithPromotions(variantIds).stream()
+                .collect(Collectors.toMap(ProductVariantEntity::getId, Function.identity()));
+
+        // 4단계: 결과 조합
+        return entities.stream()
+                .map(entity -> {
+                    ProductVariant variant = entity.toDomain();
+                    variant.setProduct(entity.getProductEntity().toDomain());
+
+                    // 이미지 정보 설정
+                    ProductVariantEntity entityWithImages = variantWithImagesMap.get(entity.getId());
+                    if (entityWithImages != null && entityWithImages.getImages() != null) {
+                        // clearImages() 후 addImage() 사용
+                        variant.clearImages();
+                        entityWithImages.getImages().forEach(imageEntity ->
+                                variant.addImage(imageEntity.toDomain())
+                        );
+                    }
+
+                    // 프로모션 정보 설정
+                    ProductVariantEntity entityWithPromotions = variantWithPromotionsMap.get(entity.getId());
+                    if (entityWithPromotions != null && entityWithPromotions.getPromotions() != null) {
+                        // 기존 promotions 리스트를 clear하고 새로 추가
+                        variant.getPromotions().clear();
+                        entityWithPromotions.getPromotions().forEach(promotionEntity ->
+                                variant.addPromotion(promotionEntity.toDomain())
+                        );
+                    }
+
+                    return variant;
+                })
+                .collect(Collectors.toList());
+    }
 }
