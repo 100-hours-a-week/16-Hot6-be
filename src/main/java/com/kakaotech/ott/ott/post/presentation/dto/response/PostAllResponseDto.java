@@ -23,6 +23,7 @@ public class PostAllResponseDto {
         private final Long likeCount;
         private final int commentCount;
         private final Long viewCount;
+        private final Double weightCount;
 
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         private final LocalDateTime createdAt;
@@ -39,6 +40,7 @@ public class PostAllResponseDto {
         private final Long lastPostId;
         private final Long lastLikeCount;
         private final Long lastViewCount;
+        private final Double lastWeightCount;
         private final boolean hasNext;
     }
 }

@@ -13,7 +13,7 @@ public interface PostRepository {
 
     void deletePost(Long userId);
 
-    List<Post> findAllByCursor(int size, Long lastPostId, Integer lastLikeCount, Long lastViewCount,
+    List<Post> findAllByCursor(int size, Long lastPostId, Integer lastLikeCount, Long lastViewCount, Double lastWeightCount,
                                String category, String sort);
 
     Slice<Post> findUserPost(Long userId, Long cursorId, int size);

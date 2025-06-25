@@ -79,6 +79,17 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
                                           @Param("lastPostId") Long lastPostId,
                                           Pageable pageable);
 
+    // 카테고리별 조회수 순 조회 (커서 기반)
+    @Query("SELECT DISTINCT p FROM PostEntity p " +
+            "WHERE p.type = :category " +
+            "AND (:lastWeightCount IS NULL OR p.weight < :lastWeightCount " +
+            "OR (p.weight = :lastWeightCount AND p.id < :lastPostId)) " +
+            "ORDER BY p.weight DESC, p.id DESC")
+    Page<PostEntity> findByCategoryByWeight(@Param("category") PostType category,
+                                          @Param("lastWeightCount") Double lastWeightCount,
+                                          @Param("lastPostId") Long lastPostId,
+                                          Pageable pageable);
+
     @Modifying(clearAutomatically = true)
     @Query("""
     UPDATE PostEntity p 
