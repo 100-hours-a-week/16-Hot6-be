@@ -5,5 +5,6 @@ public enum PointActionReason {
     POST_CREATE,
     PRODUCT_PURCHASE,
     PRODUCT_REFUND,
-    POPULAR_POST_SELECTED;
+    POPULAR_POST_SELECTED,
+    CHANGE_DATA;
 }
