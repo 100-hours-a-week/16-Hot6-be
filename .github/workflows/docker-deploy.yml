@@ -153,6 +153,10 @@ jobs:
               -v /home/ubuntu/backend/secrets.properties:/app/secrets.properties \
               -v /var/log/onthetop/backend:/logs \
               -e SPRING_PROFILES_ACTIVE=${{ env.DEPLOY_ENV }} \
+              -e OTEL_EXPORTER_OTLP_ENDPOINT=http://${{ secrets.AWS_JUMP_SSH_HOST }}:4317 \
+              -e OTEL_EXPORTER_OTLP_PROTOCOL=grpc \
+              -e OTEL_RESOURCE_ATTRIBUTES=service.name=onthetop-backend-${{ env.DEPLOY_ENV }} \
+              -e OTEL_METRICS_EXPORTER=none \
               $IMAGE_NAME:${{ github.sha }} \
               --logging.file.name=/logs/backend.log \
               --spring.config.additional-location=file:/app/secrets.properties
