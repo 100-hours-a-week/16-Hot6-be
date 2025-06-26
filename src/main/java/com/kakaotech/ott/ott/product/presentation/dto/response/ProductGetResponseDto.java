@@ -36,8 +36,8 @@ public class ProductGetResponseDto {
     @JsonProperty("variants")
     private List<VariantResponse> variants;
 
-    @JsonProperty("scraped")
-    private Boolean scraped;
+//    @JsonProperty("scraped")
+//    private Boolean scraped;
 
     @Getter
     @Builder
@@ -64,6 +64,9 @@ public class ProductGetResponseDto {
 
         @JsonProperty("promotions")
         private List<PromotionResponse> promotions;
+
+        @JsonProperty("scraped")
+        private Boolean scraped;
     }
 
     @Getter

@@ -38,6 +38,9 @@ public interface ProductVariantRepository {
     // 예약재고 해제
     void cancelReservation(Long variantId, int quantity);
 
+    // 스크랩 증가
+    void incrementScrapCount(Long variantId, Long delta);
+
     // 특가 variant 목록 조회
     List<ProductVariant> findPromotionVariantsByCursor(PromotionType promotionType, Long lastVariantId, int size);
 

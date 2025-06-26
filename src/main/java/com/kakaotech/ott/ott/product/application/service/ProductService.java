@@ -17,7 +17,7 @@ public interface ProductService {
 
     ProductCreateResponseDto createProduct(ProductCreateRequestDto productCreateRequestDto, Long userId) throws IOException;
 
-    ProductGetResponseDto getProduct(Long productId, Long userId);
+    ProductGetResponseDto getProduct(Long variantId, Long userId);
 
     ProductListResponseDto getProductList(
             Long userId,
