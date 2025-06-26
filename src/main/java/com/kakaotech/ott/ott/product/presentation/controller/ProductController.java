@@ -69,13 +69,13 @@ public class ProductController {
                 .body(ApiResponse.success("상품 등록 완료", productCreateResponseDto));
     }
 
-    @GetMapping("/{productId}")
+    @GetMapping("/{variantId}")
     public ResponseEntity<ApiResponse<ProductGetResponseDto>> getProductDetail(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @PathVariable Long productId) {
+            @PathVariable Long variantId) {
         Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
 
-        ProductGetResponseDto productDetail = productService.getProduct(productId, userId);
+        ProductGetResponseDto productDetail = productService.getProduct(variantId, userId);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("상품 상세 정보 조회 성공", productDetail));
     }

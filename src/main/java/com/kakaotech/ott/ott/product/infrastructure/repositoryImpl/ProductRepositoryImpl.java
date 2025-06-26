@@ -220,7 +220,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Transactional
     public void incrementSalesCount(Long productId) {
         ProductEntity entity = productJpaRepository.findById(productId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         productJpaRepository.incrementSalesCount(productId, 1L);
     }
@@ -229,21 +229,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     @Transactional
     public void decrementSalesCount(Long productId) {
         ProductEntity entity = productJpaRepository.findById(productId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         productJpaRepository.incrementSalesCount(productId, -1L);
-    }
-
-    @Override
-    @Transactional
-    public void incrementScrapCount(Long productId, Long delta) {
-        ProductEntity productEntity = productJpaRepository.findById(productId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND)); // 적절한 에러코드로 변경 필요
-
-        if(productEntity.getScrapCount() + delta < 0)
-            return;
-
-        productJpaRepository.incrementScrapCount(productId, 1L);
     }
 
 }
