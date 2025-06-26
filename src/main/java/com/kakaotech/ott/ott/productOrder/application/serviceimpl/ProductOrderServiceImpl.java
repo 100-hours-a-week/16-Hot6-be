@@ -29,6 +29,7 @@ import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import com.kakaotech.ott.ott.util.validator.OrderFingerprintUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Slice;
@@ -126,7 +127,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                 serviceProductDtos,
                 totalAmount,
                 savedProductOrder.getStatus(),
-                savedProductOrder.getOrderedAt());
+                new KstDateTime(savedProductOrder.getOrderedAt()));
     }
 
     @Override
@@ -160,7 +161,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
             return MyProductOrderHistoryResponseDto.builder()
                     .orderId(order.getId())
                     .orderStatus(order.getStatus())
-                    .orderedAt(order.getOrderedAt())
+                    .orderedAt(new KstDateTime(order.getOrderedAt()))
                     .products(products)
                     .build();
         }).toList();
@@ -186,7 +187,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
         List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(orderId);
 
-        MyProductOrderResponseDto.OrderInfo orderInfo = new MyProductOrderResponseDto.OrderInfo(productOrder.getId(), productOrder.getStatus(), productOrder.getOrderNumber(), productOrder.getOrderedAt());
+        MyProductOrderResponseDto.OrderInfo orderInfo = new MyProductOrderResponseDto.OrderInfo(productOrder.getId(), productOrder.getStatus(), productOrder.getOrderNumber(), new KstDateTime(productOrder.getOrderedAt()));
 
         int refundAmount = orderItems.stream()
                 .mapToInt(OrderItem::getRefundAmount)

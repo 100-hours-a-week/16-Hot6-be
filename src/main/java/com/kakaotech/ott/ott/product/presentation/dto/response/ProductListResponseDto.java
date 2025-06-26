@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.product.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -51,7 +52,7 @@ public class ProductListResponseDto {
         @JsonProperty("available_quantity")
         private final Integer availableQuantity;
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING)
+        @JsonFormat(timezone = "Asia/Seoul")
         @JsonProperty("promotion_end_at")
         private final LocalDateTime promotionEndAt;
 
@@ -61,9 +62,8 @@ public class ProductListResponseDto {
         @JsonProperty("scraped")
         private final boolean scraped;
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING)
         @JsonProperty("created_at")
-        private final LocalDateTime createdAt;
+        private KstDateTime createdAt;
     }
 
     @Getter

@@ -1,5 +1,8 @@
 package com.kakaotech.ott.ott.comment.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -19,7 +22,9 @@ public class CommentListResponseDto {
         private final Long commentId;
         private final String content;
         private final AuthorDto author;
-        private final LocalDateTime createdAt;
+
+        @JsonProperty("createdAt")
+        private KstDateTime createdAt;
         private final boolean isOwner;
     }
 

@@ -33,4 +33,7 @@ public interface ProductImageJpaRepository extends JpaRepository<ProductImageEnt
     @Transactional
     @Query("UPDATE ProductImageEntity i SET i.sequence = :sequence WHERE i.id = :id")
     void updateSequence(@Param("id") Long imageId, @Param("sequence") int sequence);
+
+    List<ProductImageEntity> findByVariantEntity_IdIn(List<Long> variantIds);
+
 }

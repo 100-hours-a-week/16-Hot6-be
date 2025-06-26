@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.post.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -25,8 +27,8 @@ public class PostAllResponseDto {
         private final Long viewCount;
         private final Double weightCount;
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING)
-        private final LocalDateTime createdAt;
+        @JsonProperty("createdAt")
+        private KstDateTime createdAt;
 
         private final boolean liked;
         private final boolean scrapped;

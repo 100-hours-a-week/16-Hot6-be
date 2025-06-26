@@ -7,6 +7,7 @@ import com.kakaotech.ott.ott.product.domain.model.ProductType;
 import com.kakaotech.ott.ott.product.domain.model.PromotionType;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductGetResponseDto;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductListResponseDto;
+import com.kakaotech.ott.ott.product.presentation.dto.response.PromotionProductsDto;
 import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.ProductResponseDto;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,7 +18,7 @@ public interface ProductService {
 
     ProductCreateResponseDto createProduct(ProductCreateRequestDto productCreateRequestDto, Long userId) throws IOException;
 
-    ProductGetResponseDto getProduct(Long productId, Long userId);
+    ProductGetResponseDto getProduct(Long variantId, Long userId);
 
     ProductListResponseDto getProductList(
             Long userId,
@@ -28,5 +29,7 @@ public interface ProductService {
 
     //    ProductCreateResponseDto updateProduct(Long productId, ProductCreateRequestDto request, List<MultipartFile> images);
     //    void deleteProduct(Long productId);
+
+    List<PromotionProductsDto> getTodayPromotionProducts(Long userId);
 
 }

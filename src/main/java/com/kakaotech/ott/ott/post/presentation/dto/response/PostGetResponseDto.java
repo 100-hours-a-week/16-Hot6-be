@@ -1,12 +1,18 @@
 package com.kakaotech.ott.ott.post.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.post.domain.model.PostType;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Getter
@@ -39,5 +45,7 @@ public class PostGetResponseDto {
 
     private List<?> imageUrls;
 
-    private LocalDateTime createdAt;
+    @JsonProperty("createdAt")
+    private KstDateTime myCustomTime;
+
 }

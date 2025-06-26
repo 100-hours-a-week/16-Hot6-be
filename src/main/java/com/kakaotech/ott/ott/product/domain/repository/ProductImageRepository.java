@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.product.domain.repository;
 import com.kakaotech.ott.ott.product.domain.model.ProductImage;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface ProductImageRepository {
@@ -30,4 +31,7 @@ public interface ProductImageRepository {
     void updateSequence(Long imageId, int sequence);
 
     void reorderSequences(Long variantId, List<Long> imageIds);
+
+    Map<Long, ProductImage> findByVariantIdIn(List<Long> variantsIds);
+
 }

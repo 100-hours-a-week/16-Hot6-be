@@ -1,13 +1,19 @@
 package com.kakaotech.ott.ott.user.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionReason;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Getter
@@ -28,7 +34,10 @@ public class MyPointHistoryResponseDto {
         private PointActionType type;
         private int amount;
         private int balance_after;
-        private LocalDateTime createdAt;
+
+        @JsonProperty("createdAt")
+        private KstDateTime createdAt;
+
     }
 
     @Getter

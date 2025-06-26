@@ -29,6 +29,7 @@ import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserInfoUpdateRequestDto;
 import com.kakaotech.ott.ott.user.presentation.dto.request.UserVerifiedRequestDto;
 import com.kakaotech.ott.ott.user.presentation.dto.response.*;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Slice;
@@ -100,7 +101,7 @@ public class UserServiceImpl implements UserService {
                         image.getId(),
                         image.getBeforeImagePath(),
                         image.getAfterImagePath(),
-                        image.getCreatedAt()
+                        new KstDateTime(image.getCreatedAt())
                 ))
                 .collect(Collectors.toList());
 
@@ -169,7 +170,7 @@ public class UserServiceImpl implements UserService {
                             post.getCommentCount(),
                             post.getViewCount(),
                             post.getWeight(),
-                            post.getCreatedAt(),
+                            new KstDateTime(post.getCreatedAt()),
                             liked,
                             scrapped
                     );
@@ -255,7 +256,7 @@ public class UserServiceImpl implements UserService {
                             pointHistory.getType(),
                             pointHistory.getAmount(),
                             pointHistory.getBalanceAfter(),
-                            pointHistory.getCreatedAt()
+                            new KstDateTime(pointHistory.getCreatedAt())
                     );
 
                 })

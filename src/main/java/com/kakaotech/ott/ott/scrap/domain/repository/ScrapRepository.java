@@ -5,6 +5,7 @@ import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import org.springframework.data.domain.Slice;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -17,6 +18,8 @@ public interface ScrapRepository {
     boolean existsByUserIdAndTypeAndPostId(Long userId, ScrapType scrapType, Long postId);
 
     Set<Long> findScrappedPostIds(Long userId, List<Long> postIds);
+
+    Set<Long> findScrappedServiceProductIds(Long userId, List<Long> productIds);
 
     int findByPostId(Long postId, ScrapType type);
 

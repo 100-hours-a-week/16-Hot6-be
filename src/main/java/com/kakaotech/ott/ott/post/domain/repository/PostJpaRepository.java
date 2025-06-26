@@ -79,7 +79,7 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
                                           @Param("lastPostId") Long lastPostId,
                                           Pageable pageable);
 
-    // 카테고리별 조회수 순 조회 (커서 기반)
+    // 카테고리별 인기 순 조회 (커서 기반)
     @Query("SELECT DISTINCT p FROM PostEntity p " +
             "WHERE p.type = :category " +
             "AND (:lastWeightCount IS NULL OR p.weight < :lastWeightCount " +
