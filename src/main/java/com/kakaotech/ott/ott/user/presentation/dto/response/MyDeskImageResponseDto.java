@@ -1,6 +1,9 @@
 package com.kakaotech.ott.ott.user.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.post.domain.model.MyDeskState;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +29,9 @@ public class MyDeskImageResponseDto {
             private Long aiImageId;
         private String beforeImagePath;
         private String afterImagePath;
-        private LocalDateTime createdAt;
+
+        @JsonProperty("createdAt")
+        private KstDateTime createdAt;
     }
 
     @Getter

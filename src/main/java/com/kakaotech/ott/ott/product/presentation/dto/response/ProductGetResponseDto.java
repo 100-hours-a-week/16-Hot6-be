@@ -1,10 +1,12 @@
 package com.kakaotech.ott.ott.product.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.product.domain.model.ProductType;
 import com.kakaotech.ott.ott.product.domain.model.PromotionStatus;
 import com.kakaotech.ott.ott.product.domain.model.PromotionType;
 import com.kakaotech.ott.ott.product.domain.model.VariantStatus;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -96,10 +98,10 @@ public class ProductGetResponseDto {
         private int availableQuantity;
 
         @JsonProperty("start_at")
-        private LocalDateTime startAt;
+        private KstDateTime startAt;
 
         @JsonProperty("end_at")
-        private LocalDateTime endAt;
+        private KstDateTime endAt;
 
         @JsonProperty("max_per_customer")
         private int maxPerCustomer;

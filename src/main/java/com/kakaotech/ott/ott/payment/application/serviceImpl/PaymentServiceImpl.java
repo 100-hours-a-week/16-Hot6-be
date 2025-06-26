@@ -28,6 +28,7 @@ import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,7 +107,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         orderItemRepository.payOrderItem(orderItemList);
 
-        return new PaymentResponseDto(savedPointHistory.getId(), productOrder.getId(), savedPayment.getPaymentAmount(), savedPayment.getPaidAt());
+        return new PaymentResponseDto(savedPointHistory.getId(), productOrder.getId(), savedPayment.getPaymentAmount(), new KstDateTime(savedPayment.getPaidAt()));
     }
 
     @Override

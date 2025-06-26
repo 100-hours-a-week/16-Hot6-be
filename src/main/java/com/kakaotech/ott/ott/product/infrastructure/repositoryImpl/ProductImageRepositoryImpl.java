@@ -12,6 +12,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Repository
@@ -132,5 +134,16 @@ public class ProductImageRepositoryImpl implements ProductImageRepository {
         for (int i = 0; i < imageIds.size(); i++) {
             productImageJpaRepository.updateSequence(imageIds.get(i), i + 1);
         }
+    }
+
+    @Override
+    public Map<Long, ProductImage> findByVariantIdIn(List<Long> variantIds) {
+
+        return productImageJpaRepository.findByVariantEntity_IdIn(variantIds).stream()
+                .collect(Collectors.toMap(
+                        entity -> entity.getVariantEntity().getId(),     // key: variantId
+                        entity -> entity.toDomain(),                     // value: 도메인 객체로 변환
+                        (a, b) -> a                                       // 중복 시 첫 번째 것 유지
+                ));
     }
 }

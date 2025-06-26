@@ -15,6 +15,7 @@ import com.kakaotech.ott.ott.product.presentation.dto.response.ProductListRespon
 import com.kakaotech.ott.ott.product.presentation.dto.response.PromotionProductsDto;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -201,7 +202,7 @@ public class ProductServiceImpl implements ProductService {
                 .imageUrl(imageUrl)
                 .availableQuantity(variant.getAvailableQuantity())
                 .scraped(scraped)
-                .createdAt(product.getCreatedAt());
+                .createdAt(new KstDateTime(product.getCreatedAt()));
 
         if (isPromotionProduct && variant.isOnPromotion()) {
             // 특가 정보 설정
@@ -320,8 +321,8 @@ public class ProductServiceImpl implements ProductService {
                 .discountPrice(promotion.getDiscountPrice())
                 .rate(promotion.getRate())
                 .availableQuantity(promotion.getAvailableQuantity())
-                .startAt(promotion.getStartAt())
-                .endAt(promotion.getEndAt())
+                .startAt(new KstDateTime(promotion.getStartAt()))
+                .endAt(new KstDateTime(promotion.getEndAt()))
                 .maxPerCustomer(promotion.getMaxPerCustomer())
                 .build();
     }
@@ -345,7 +346,7 @@ public class ProductServiceImpl implements ProductService {
                 .promotionEndAt(null)
                 .promotion(false)
                 .scraped(scraped)
-                .createdAt(product.getCreatedAt())
+                .createdAt(new KstDateTime(product.getCreatedAt()))
                 .build();
     }
 
@@ -383,7 +384,7 @@ public class ProductServiceImpl implements ProductService {
                 .promotionEndAt(promotion.getEndAt())
                 .promotion(true)
                 .scraped(scraped)
-                .createdAt(product.getCreatedAt())
+                .createdAt(new KstDateTime(product.getCreatedAt()))
                 .build();
     }
 

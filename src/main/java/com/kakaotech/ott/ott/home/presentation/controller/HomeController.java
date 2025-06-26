@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.home.presentation.controller;
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.home.presentation.dto.response.MainResponseDto;
 import com.kakaotech.ott.ott.post.application.service.PostService;
+import com.kakaotech.ott.ott.product.application.service.ProductService;
 import com.kakaotech.ott.ott.recommendProduct.application.service.ProductDomainService;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class HomeController {
 
     private final PostService postService;
     private final ProductDomainService productDomainService;
+    private final ProductService productService;
 
     @GetMapping("/main")
     public ResponseEntity<ApiResponse<MainResponseDto>> home(
@@ -28,7 +30,8 @@ public class HomeController {
 
         MainResponseDto mainResponseDto = new MainResponseDto(
                 postService.getPopularSetups(userId),
-                productDomainService.getRecommendItems(userId)
+                productDomainService.getRecommendItems(userId),
+                productService.getTodayPromotionProducts(userId)
         );
 
         return ResponseEntity.ok(ApiResponse.success("랜딩페이지 조회 성공", mainResponseDto));

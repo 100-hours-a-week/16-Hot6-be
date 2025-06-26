@@ -18,6 +18,7 @@ import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +60,7 @@ public class AdminServiceImpl implements AdminService{
                             item.getQuantity(),
                             item.getFinalPrice(),
                             item.getRefundReason(),
-                            item.getRefundedAt()
+                            new KstDateTime(item.getRefundedAt())
                     );
                 })
                 .toList();
@@ -84,7 +85,7 @@ public class AdminServiceImpl implements AdminService{
                                         productVariant.getName(),
                                         item.getQuantity(),
                                         item.getFinalPrice(),
-                                        productVariant.getCreatedAt()
+                                        new KstDateTime(productVariant.getCreatedAt())
                                 );
                             })
                             .toList();

@@ -56,6 +56,11 @@ public class ScrapRepositoryImpl implements ScrapRepository {
     }
 
     @Override
+    public Set<Long> findScrappedServiceProductIds(Long userId, List<Long> productIds) {
+        return new HashSet<>(scrapJpaRepository.findScrappedServiceProductIds(userId, productIds));
+    }
+
+    @Override
     public int findByPostId(Long postId, ScrapType type) {
         return scrapJpaRepository.countByPostId(postId);
     }

@@ -1,6 +1,9 @@
 package com.kakaotech.ott.ott.admin.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,7 +42,9 @@ public class AdminProductStatusResponseDto {
             private String productName;
             private int purchaseQuantity;
             private int paidAmount;
-            private LocalDateTime paidAt;
+
+            @JsonProperty("paidAt")
+            private KstDateTime paidAt;
         }
 
     }
@@ -56,6 +61,8 @@ public class AdminProductStatusResponseDto {
         private int purchaseQuantity;
         private int paidAmount;
         private RefundReason refundReason;
-        private LocalDateTime refundedAt;
+
+        @JsonProperty("refundedAt")
+        private KstDateTime refundedAt;
     }
 }

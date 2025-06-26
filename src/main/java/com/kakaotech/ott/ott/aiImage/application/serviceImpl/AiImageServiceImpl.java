@@ -24,6 +24,7 @@ import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -109,7 +110,7 @@ public class AiImageServiceImpl implements AiImageService {
             throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
 
-        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getPostId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), aiImage.getCreatedAt());
+        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getPostId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), new KstDateTime(aiImage.getCreatedAt()));
 
         if(aiImage.getState().equals(AiImageState.PENDING)) {
             return new AiImageAndProductResponseDto(aiImageResponseDto, null);

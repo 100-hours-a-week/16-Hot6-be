@@ -1,5 +1,8 @@
 package com.kakaotech.ott.ott.payment.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,5 +19,6 @@ public class PaymentResponseDto {
     private Long pointHistoryId;
     private Long orderId;
     private int usedPoint;
-    private LocalDateTime purchasedAt;
+    @JsonProperty("purchasedAt")
+    private KstDateTime purchasedAt;
 }
