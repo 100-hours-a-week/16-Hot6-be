@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.user.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionReason;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointActionType;
 import lombok.AllArgsConstructor;
@@ -28,6 +29,8 @@ public class MyPointHistoryResponseDto {
         private PointActionType type;
         private int amount;
         private int balance_after;
+
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")//
         private LocalDateTime createdAt;
     }
 
