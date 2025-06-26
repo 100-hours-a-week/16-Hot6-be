@@ -183,7 +183,7 @@ public interface ProductVariantJpaRepository extends JpaRepository<ProductVarian
         JOIN FETCH v.productEntity p
         LEFT JOIN FETCH v.images img
         WHERE p.status = 'ACTIVE'
-        AND v.status = 'ACTIVE'
+        AND v.status IN ('ACTIVE', 'OUT_OF_STOCK')
         AND v.isOnPromotion = false
         AND (:productType IS NULL OR p.type = :productType)
         AND (:lastVariantId IS NULL OR v.id < :lastVariantId)
@@ -199,12 +199,12 @@ public interface ProductVariantJpaRepository extends JpaRepository<ProductVarian
         SELECT DISTINCT v FROM ProductVariantEntity v 
         JOIN FETCH v.productEntity p 
         WHERE p.status = 'ACTIVE' 
-        AND v.status = 'ACTIVE' 
+        AND v.status IN ('ACTIVE', 'OUT_OF_STOCK')
         AND v.isOnPromotion = true 
         AND EXISTS (
             SELECT 1 FROM ProductPromotionEntity promotion 
             WHERE promotion.variantEntity = v 
-            AND promotion.status = 'ACTIVE' 
+            AND promotion.status IN ('ACTIVE', 'SOLD_OUT')
             AND promotion.type = :promotionType 
             AND promotion.endAt > CURRENT_TIMESTAMP
         )
@@ -213,7 +213,7 @@ public interface ProductVariantJpaRepository extends JpaRepository<ProductVarian
             SELECT MIN(promo.endAt) 
             FROM ProductPromotionEntity promo 
             WHERE promo.variantEntity = v 
-            AND promo.status = 'ACTIVE' 
+            AND promo.status IN ('ACTIVE', 'SOLD_OUT')
             AND promo.type = :promotionType 
             AND promo.endAt > CURRENT_TIMESTAMP
         ) ASC, v.id ASC
@@ -238,6 +238,12 @@ public interface ProductVariantJpaRepository extends JpaRepository<ProductVarian
         WHERE v.id IN :variantIds
         """)
     List<ProductVariantEntity> findVariantsWithPromotions(@Param("variantIds") List<Long> variantIds);
+
+    // Variant와 Product를 함께 조회하는 메서드
+    @Query("SELECT v FROM ProductVariantEntity v " +
+            "JOIN FETCH v.productEntity " +
+            "WHERE v.id = :variantId")
+    Optional<ProductVariantEntity> findByIdWithProduct(@Param("variantId") Long variantId);
 
 
 }

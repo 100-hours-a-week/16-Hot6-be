@@ -52,8 +52,13 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     @Override
     @Transactional(readOnly = true)
     public ProductVariant findById(Long variantId) {
-        return productVariantJpaRepository.findById(variantId)
-                .map(ProductVariantEntity::toDomain)
+        return productVariantJpaRepository.findByIdWithProduct(variantId)
+                .map(entity -> {
+                    ProductVariant variant = entity.toDomain();
+                    // Product 객체를 설정
+                    variant.setProduct(entity.getProductEntity().toDomain());
+                    return variant;
+                })
                 .orElseThrow(() -> new CustomException(ErrorCode.VARIANT_NOT_FOUND));
     }
 
@@ -290,5 +295,21 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
                     return variant;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void incrementScrapCount(Long variantId, Long delta) {
+        ProductVariantEntity productVariantEntity = productVariantJpaRepository.findById(variantId)
+                .orElseThrow(() -> new CustomException(ErrorCode.VARIANT_NOT_FOUND));
+        Long productId =productVariantEntity.getProductEntity().getId();
+
+        ProductEntity productEntity = productJpaRepository.findById(productId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
+
+        if(productEntity.getScrapCount() + delta < 0)
+            return;
+
+        productJpaRepository.incrementScrapCount(productId, delta);
     }
 }

@@ -99,13 +99,20 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
-    public ProductGetResponseDto getProduct(Long productId, Long userId) {
+    public ProductGetResponseDto getProduct(Long variantId, Long userId) {
+        // 품목 조회
+        ProductVariant variant = variantRepository.findById(variantId);
+        if (variant.getStatus() == VariantStatus.INACTIVE) {
+            throw new CustomException(ErrorCode.VARIANT_NOT_FOUND);
+        }
+
         // 상품 조회
-        Product product = productRepository.findById(productId);
+        Product product = variant.getProduct();
+        if (product.getStatus() == ProductStatus.INACTIVE) {
+            throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
 
-        boolean scraped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.SERVICE_PRODUCT, productId);
-
-        ProductGetResponseDto productGetResponseDto = convertToProductGetResponse(product, scraped);
+        ProductGetResponseDto productGetResponseDto = convertToProductGetResponse(product, userId);
 
         return productGetResponseDto;
     }
@@ -138,18 +145,6 @@ public class ProductServiceImpl implements ProductService {
 
         ProductListResponseDto.Pagination pagination = new ProductListResponseDto.Pagination(
                 size, nextLastVariantId, hasNext);
-
-//        List<Product> products = fetchProducts(productType, promotionType, lastVariantId, size);
-//
-//        List<ProductListResponseDto.Products> productDtos = products.stream()
-//                .map(product -> convertToProductListDto(product, userId, promotionType != null))
-//                .collect(Collectors.toList());
-//
-//        boolean hasNext = productDtos.size() == size;
-//        Long nextLastProductId = hasNext ? productDtos.get(productDtos.size() - 1).getProductId() : null;
-//
-//        ProductListResponseDto.Pagination pagination = new ProductListResponseDto.Pagination(
-//                size, nextLastProductId, hasNext);
 
         return ProductListResponseDto.builder()
                 .products(productDtos)
@@ -195,7 +190,7 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = variant.getProduct(); // variant에서 product 정보 가져오기
         String imageUrl = getFirstImageUrl(variant);
-        boolean scraped = isProductScrapped(userId, product.getId());
+        boolean scraped = isProductScrapped(userId, variant.getId());
 
         ProductListResponseDto.Products.ProductsBuilder builder = ProductListResponseDto.Products.builder()
                 .productId(product.getId())
@@ -262,15 +257,15 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    private ProductGetResponseDto convertToProductGetResponse(Product product, boolean scraped) {
+    private ProductGetResponseDto convertToProductGetResponse(Product product, Long userId) {
         return ProductGetResponseDto.builder()
                 .productId(product.getId())
                 .productType(product.getType())
                 .productName(product.getName())
                 .description(product.getDescription())
                 .specification(product.getSpecification())
-                .variants(convertVariants(product.getVariants()))
-                .scraped(scraped)  // 스크랩 여부 설정
+                .variants(convertVariants(product.getVariants(), userId))
+//                .scraped(scraped)  // 스크랩 여부 설정
                 .build();
     }
 
@@ -285,14 +280,18 @@ public class ProductServiceImpl implements ProductService {
                 .collect(Collectors.toList());
     }
 
-    private List<ProductGetResponseDto.VariantResponse> convertVariants(List<ProductVariant> variants) {
+    private List<ProductGetResponseDto.VariantResponse> convertVariants(List<ProductVariant> variants, Long userId) {
         return variants.stream()
                 .filter(ProductVariant::isActive)
-                .map(this::convertVariant)
+                .map(variant -> convertVariant(variant, userId))  // userId 전달
                 .collect(Collectors.toList());
     }
 
-    private ProductGetResponseDto.VariantResponse convertVariant(ProductVariant variant) {
+    private ProductGetResponseDto.VariantResponse convertVariant(ProductVariant variant, Long userId) {
+        // 각 variant의 스크랩 여부 조회
+        boolean isScraped = (userId != null) &&
+                scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.SERVICE_PRODUCT, variant.getId());
+
         return ProductGetResponseDto.VariantResponse.builder()
                 .variantId(variant.getId())
                 .status(variant.getStatus())
@@ -301,6 +300,7 @@ public class ProductServiceImpl implements ProductService {
                 .imageUrls(convertImageUrls(variant.getImages()))
                 .availableQuantity(variant.getAvailableQuantity())
                 .promotions(convertPromotions(variant.getPromotions()))
+                .scraped(isScraped)  // 각 variant의 스크랩 여부 추가
                 .build();
     }
 
@@ -417,9 +417,9 @@ public class ProductServiceImpl implements ProductService {
                 .orElse("");
     }
 
-    private boolean isProductScrapped(Long userId, Long productId) {
+    private boolean isProductScrapped(Long userId, Long variantId) {
         return (userId != null) &&
-                scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.SERVICE_PRODUCT, productId);
+                scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.SERVICE_PRODUCT, variantId);
     }
 
     private ProductPromotion getActivePromotion(ProductVariant variant) {

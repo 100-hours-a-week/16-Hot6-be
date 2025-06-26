@@ -245,7 +245,7 @@ public class ProductPromotion {
     // 특가 활성 여부 확인
     public boolean isActive() {
         LocalDateTime now = LocalDateTime.now();
-        return this.status == PromotionStatus.ACTIVE
+        return (this.status == PromotionStatus.ACTIVE || this.status == PromotionStatus.SOLD_OUT)
                 && now.isAfter(startAt)
                 && now.isBefore(endAt)
                 && getAvailableQuantity() > 0;
