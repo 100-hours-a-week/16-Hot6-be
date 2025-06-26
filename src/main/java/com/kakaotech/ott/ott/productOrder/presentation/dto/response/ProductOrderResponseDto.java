@@ -1,6 +1,9 @@
 package com.kakaotech.ott.ott.productOrder.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,7 +32,8 @@ public class ProductOrderResponseDto {
     private ProductOrderStatus status;
 
     @NotNull
-    private LocalDateTime createdAt;
+    @JsonProperty("createdAt")
+    private KstDateTime createdAt;
 
     @Getter
     @Setter

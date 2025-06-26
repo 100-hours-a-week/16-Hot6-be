@@ -11,6 +11,7 @@ import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -119,7 +120,7 @@ public class CommentServiceImpl implements CommentService {
                                     c.getId(),
                                     c.getContent(),
                                     authorDto,
-                                    c.getCreatedAt(),
+                                    new KstDateTime(c.getCreatedAt()),
                                     isOwner
                             );
                         })

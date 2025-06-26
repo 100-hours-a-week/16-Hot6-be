@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.productOrder.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -15,7 +17,8 @@ public class MyProductOrderHistoryResponseDto {
 
     private Long orderId;
     private ProductOrderStatus orderStatus;
-    private LocalDateTime orderedAt;
+    @JsonProperty("orderedAt")
+    private KstDateTime orderedAt;
     private List<ProductDto> products;
 
     @Getter

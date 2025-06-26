@@ -27,6 +27,7 @@ import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -151,7 +152,7 @@ public class PostServiceImpl implements PostService {
                             commentCount,
                             post.getViewCount(),
                             post.getWeight(),
-                            post.getCreatedAt(),
+                            new KstDateTime(post.getCreatedAt()),
                             liked,
                             scrapped
                     );
@@ -207,7 +208,7 @@ public class PostServiceImpl implements PostService {
                 liked,
                 isOwner,
                 imageUrls,
-                post.getCreatedAt()
+                new KstDateTime(post.getCreatedAt())
         );
     }
 

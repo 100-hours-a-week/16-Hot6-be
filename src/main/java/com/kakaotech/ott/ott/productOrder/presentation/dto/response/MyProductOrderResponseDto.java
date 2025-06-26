@@ -1,9 +1,12 @@
 package com.kakaotech.ott.ott.productOrder.presentation.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import com.kakaotech.ott.ott.payment.domain.model.PaymentMethod;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,7 +34,9 @@ public class MyProductOrderResponseDto {
         private Long id;
         private ProductOrderStatus status;
         private String orderNumber;
-        private LocalDateTime orderedAt;
+
+        @JsonProperty("orderedAt")
+        private KstDateTime orderedAt;
     }
 
     @Getter

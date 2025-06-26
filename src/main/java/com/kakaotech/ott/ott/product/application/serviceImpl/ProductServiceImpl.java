@@ -1,15 +1,21 @@
 package com.kakaotech.ott.ott.product.application.serviceImpl;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.post.domain.model.Post;
+import com.kakaotech.ott.ott.post.presentation.dto.response.PopularSetupDto;
+import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import com.kakaotech.ott.ott.product.domain.model.*;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductGetResponseDto;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductListResponseDto;
+import com.kakaotech.ott.ott.product.presentation.dto.response.PromotionProductsDto;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
+import com.kakaotech.ott.ott.util.KstDateTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -147,6 +153,36 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<PromotionProductsDto> getTodayPromotionProducts(Long userId) {
+        // 상위 7개 게시글 조회 (단일 조회)
+        List<ProductPromotion> popularProducts = promotionRepository.findActivePromotions(LocalDateTime.now());
+        List<Long> variantIds = popularProducts.stream().map(ProductPromotion::getVariantId).collect(Collectors.toList());
+
+        // AI 이미지 Batch 조회 (Domain Repository)
+        Map<Long, ProductImage> productImageMap = imageRepository.findByVariantIdIn(variantIds);
+
+        // Scrap 여부 Batch 조회 (Domain Repository)
+        Set<Long> scrappedProductIds = (userId != null)
+                ? new HashSet<>(scrapRepository.findScrappedServiceProductIds(userId, variantIds))
+                : Collections.emptySet();
+
+        // PopularSetupDto 생성
+        return popularProducts.stream()
+                .map(product -> new PromotionProductsDto(
+                        product.getVariantId(),
+                        product.getName(),
+                        Optional.ofNullable(productImageMap.get(product.getId()))
+                                .map(ProductImage::getImageUuid)
+                                .orElse(""),
+                        product.getDiscountPrice(),
+                        product.getType(),
+                        (userId != null) && scrappedProductIds.contains(product.getId())
+                ))
+                .collect(Collectors.toList());
+    }
+
     // === Private Methods ===
     private ProductListResponseDto.Products convertVariantToProductListDto(
             ProductVariant variant,
@@ -166,7 +202,7 @@ public class ProductServiceImpl implements ProductService {
                 .imageUrl(imageUrl)
                 .availableQuantity(variant.getAvailableQuantity())
                 .scraped(scraped)
-                .createdAt(product.getCreatedAt());
+                .createdAt(new KstDateTime(product.getCreatedAt()));
 
         if (isPromotionProduct && variant.isOnPromotion()) {
             // 특가 정보 설정
@@ -285,8 +321,8 @@ public class ProductServiceImpl implements ProductService {
                 .discountPrice(promotion.getDiscountPrice())
                 .rate(promotion.getRate())
                 .availableQuantity(promotion.getAvailableQuantity())
-                .startAt(promotion.getStartAt())
-                .endAt(promotion.getEndAt())
+                .startAt(new KstDateTime(promotion.getStartAt()))
+                .endAt(new KstDateTime(promotion.getEndAt()))
                 .maxPerCustomer(promotion.getMaxPerCustomer())
                 .build();
     }
@@ -310,7 +346,7 @@ public class ProductServiceImpl implements ProductService {
                 .promotionEndAt(null)
                 .promotion(false)
                 .scraped(scraped)
-                .createdAt(product.getCreatedAt())
+                .createdAt(new KstDateTime(product.getCreatedAt()))
                 .build();
     }
 
@@ -348,7 +384,7 @@ public class ProductServiceImpl implements ProductService {
                 .promotionEndAt(promotion.getEndAt())
                 .promotion(true)
                 .scraped(scraped)
-                .createdAt(product.getCreatedAt())
+                .createdAt(new KstDateTime(product.getCreatedAt()))
                 .build();
     }
 
