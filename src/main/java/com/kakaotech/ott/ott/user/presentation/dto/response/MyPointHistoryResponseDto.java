@@ -30,7 +30,7 @@ public class MyPointHistoryResponseDto {
         private int amount;
         private int balance_after;
 
-        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")//
         private LocalDateTime createdAt;
     }
 
