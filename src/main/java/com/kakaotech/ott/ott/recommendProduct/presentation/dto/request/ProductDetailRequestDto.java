@@ -2,11 +2,15 @@ package com.kakaotech.ott.ott.recommendProduct.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductDetailRequestDto {
 
     @NotNull(message = "name은 필수입니다.")
