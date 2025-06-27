@@ -29,10 +29,10 @@ public interface DeskProductJpaRepository extends JpaRepository<DeskProductEntit
 
     @Query("SELECT DISTINCT d FROM DeskProductEntity d " +
             "WHERE (:lastWeight IS NULL OR d.weight < :lastWeight " +
-            "OR (d.weight = :lastWeight AND d.id < :lastDeskPostId)) " +
+            "OR (d.weight = :lastWeight AND d.id < :lastDeskProductId)) " +
             "ORDER BY d.weight DESC, d.id DESC")
     Page<DeskProductEntity> findAllDeskProductsByWeight(@Param("lastWeight") Double lastWeight,
-                                        @Param("lastDeskPostId") Long lastDeskPostId,
+                                        @Param("lastDeskProductId") Long lastDeskProductId,
                                         Pageable pageable);
 
     @Modifying
