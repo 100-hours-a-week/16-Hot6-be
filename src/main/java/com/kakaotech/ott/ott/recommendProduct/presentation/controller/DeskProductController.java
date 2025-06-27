@@ -21,13 +21,13 @@ public class DeskProductController {
     @GetMapping
     public ResponseEntity<ApiResponse<DeskProductListResponseDto>> getRecommendedProducts(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
-            @RequestParam(required = false) Double lastDeskProductId,
-            @RequestParam(required = false) Long lastWeight,
+            @RequestParam(required = false) Long lastDeskProductId,
+            @RequestParam(required = false) Double lastWeight,
             @RequestParam(defaultValue = "10") int size) {
 
         Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
 
-        DeskProductListResponseDto deskProductListResponseDto = deskProductService.getDeskProducts(userId, lastDeskProductId, lastWeight, size);
+        DeskProductListResponseDto deskProductListResponseDto = deskProductService.getDeskProducts(userId, lastWeight, lastDeskProductId, size);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("추천 제품 리스트 조회 성공", deskProductListResponseDto));
     }
