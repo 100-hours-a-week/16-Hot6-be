@@ -3,7 +3,6 @@ package com.kakaotech.ott.ott.like.application.serviceImpl;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.application.service.LikeService;
-import com.kakaotech.ott.ott.like.domain.model.LikeType;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
 import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
 import com.kakaotech.ott.ott.post.domain.model.Post;
@@ -50,7 +49,7 @@ class LikeServiceIntegrationTest {
     void 게시글에_좋아요_누르면_좋아요_카운트_1증가하고_조회_성공() {
 
         // given
-        LikeRequestDto likeRequestDto = new LikeRequestDto(LikeType.POST, post.getId());
+        LikeRequestDto likeRequestDto = new LikeRequestDto(post.getId());
 
         // when
         likeService.likePost(user.getId(), likeRequestDto);
@@ -67,7 +66,7 @@ class LikeServiceIntegrationTest {
     void 이미_좋아요한_게시글에_중복_좋아요_요청시_예외발생() {
 
         // given
-        LikeRequestDto likeRequestDto = new LikeRequestDto(LikeType.POST, post.getId());
+        LikeRequestDto likeRequestDto = new LikeRequestDto(post.getId());
         likeService.likePost(user.getId(), likeRequestDto);
 
         // when & then
@@ -85,7 +84,7 @@ class LikeServiceIntegrationTest {
     void 좋아요_취소하면_좋아요_카운트_0으로_감소() {
 
         // given
-        LikeRequestDto likeRequestDto = new LikeRequestDto(LikeType.POST, post.getId());
+        LikeRequestDto likeRequestDto = new LikeRequestDto(post.getId());
         likeService.likePost(user.getId(), likeRequestDto);
 
         // when
@@ -102,7 +101,7 @@ class LikeServiceIntegrationTest {
     void 좋아요하지_않은_게시글_취소시_LIKE_NOT_FOUND_예외발생() {
 
         // given
-        LikeRequestDto likeRequestDto = new LikeRequestDto(LikeType.POST, post.getId());
+        LikeRequestDto likeRequestDto = new LikeRequestDto(post.getId());
 
         // when & then
         CustomException exception = assertThrows(

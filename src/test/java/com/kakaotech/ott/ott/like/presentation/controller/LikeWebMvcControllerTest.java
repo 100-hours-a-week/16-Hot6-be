@@ -5,7 +5,6 @@ import com.kakaotech.ott.ott.global.config.JpaConfig;
 import com.kakaotech.ott.ott.global.security.SecurityConfig;
 import com.kakaotech.ott.ott.like.config.WithMockCustomUser;
 import com.kakaotech.ott.ott.like.application.service.LikeService;
-import com.kakaotech.ott.ott.like.domain.model.LikeType;
 import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomOAuth2UserService;
 import com.kakaotech.ott.ott.user.application.serviceImpl.CustomUserDetailsService;
@@ -62,7 +61,7 @@ public class LikeWebMvcControllerTest {
     void 로그인_사용자가_게시글_좋아요_요청하면_201_반환() throws Exception {
 
         // given
-        LikeRequestDto likeRequestDto = new LikeRequestDto(LikeType.POST, 1L);
+        LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
 
         // when & then
         mockMvc.perform(post("/api/v1/likes")
@@ -78,7 +77,7 @@ public class LikeWebMvcControllerTest {
     void 비로그인_사용자가_게시글_좋아요_요청하면_401_반환() throws Exception {
 
         // given
-        LikeRequestDto likeRequestDto = new LikeRequestDto(LikeType.POST, 1L);
+        LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
 
         // when $ then
         mockMvc.perform(post("/api/v1/likes")
@@ -94,7 +93,7 @@ public class LikeWebMvcControllerTest {
     void 로그인_사용자가_게시글_좋아요_취소_요청하면_204_반환() throws Exception {
 
         // given
-        LikeRequestDto likeRequestDto = new LikeRequestDto(LikeType.POST, 1L);
+        LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
 
         // when & then
         mockMvc.perform(delete("/api/v1/likes")
@@ -111,7 +110,7 @@ public class LikeWebMvcControllerTest {
     void 비로그인_사용자가_게시글_좋아요_취소_요청하면_401_반환() throws Exception {
 
         // given
-        LikeRequestDto likeRequestDto = new LikeRequestDto(LikeType.POST, 1L);
+        LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
 
         // when & then
         mockMvc.perform(delete("/api/v1/likes")
