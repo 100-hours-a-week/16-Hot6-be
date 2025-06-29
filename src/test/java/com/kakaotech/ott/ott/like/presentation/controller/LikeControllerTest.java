@@ -2,7 +2,6 @@ package com.kakaotech.ott.ott.like.presentation.controller;
 
 import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.like.application.service.LikeService;
-import com.kakaotech.ott.ott.like.domain.model.LikeType;
 import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
 import org.junit.jupiter.api.Test;
@@ -33,7 +32,7 @@ class LikeControllerTest {
         when(userPrincipal.getId()).thenReturn(1L);
 
         Long userId = userPrincipal.getId();
-        LikeRequestDto likeRequestDto = new LikeRequestDto(LikeType.POST, 1L);
+        LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
 
         // when
         ResponseEntity<ApiResponse> result = likeController.activeLike(userPrincipal, likeRequestDto);
@@ -54,7 +53,7 @@ class LikeControllerTest {
         when(userPrincipal.getId()).thenReturn(1L);
 
         Long userId = userPrincipal.getId();
-        LikeRequestDto likeRequestDto = new LikeRequestDto(LikeType.POST, 1L);
+        LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
 
         // when
         ResponseEntity<Void> result = likeController.deactiveLike(userPrincipal, likeRequestDto);
