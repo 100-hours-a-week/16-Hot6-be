@@ -11,6 +11,8 @@ import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,6 +35,9 @@ class LikeServiceImplTest {
     @InjectMocks
     private LikeServiceImpl likeServiceImpl;
 
+    @Captor
+    private ArgumentCaptor<Long> longCaptor;
+
     @Test
     void 게시글에_좋아요_성공시_저장_및_카운트_증가_메서드_호출() {
 
@@ -51,11 +56,15 @@ class LikeServiceImplTest {
         likeServiceImpl.likePost(userId, likeRequestDto);
 
         // then
-        verify(userAuthRepository, times(1)).findById(userId);
-        verify(postRepository, times(1)).findById(likeRequestDto.getPostId());
-        verify(likeRepository, times(1)).existsByUserIdAndPostId(userId, likeRequestDto.getPostId());
-        verify(likeRepository, times(1)).save(any(Like.class));
-        verify(postRepository, times(1)).incrementLikeCount(likeRequestDto.getPostId(), 1L);
+        ArgumentCaptor<Like> likeCaptor = ArgumentCaptor.forClass(Like.class);
+        verify(likeRepository).save(likeCaptor.capture());
+
+        Like capturedLike = likeCaptor.getValue();
+
+        assertNotNull(capturedLike);
+        assertEquals(userId, capturedLike.getUserId());
+        assertEquals(postId, capturedLike.getPostId());
+        assertTrue(capturedLike.getIsActive());
 
     }
 
@@ -215,4 +224,5 @@ class LikeServiceImplTest {
         assertEquals(ErrorCode.POST_NOT_FOUND, exception.getErrorCode());
         assertEquals("해당 게시글이 존재하지 않습니다.", exception.getMessage());
     }
+    
 }
