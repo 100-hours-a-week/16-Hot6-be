@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +27,7 @@ public class FastApiClientImpl implements FastApiClient {
     @Value("${fastapi.URL}")
     private String aiBaseUrl;
 
+    @Transactional
     @Override
     public FastApiResponseDto sendBeforeImageToFastApi(FastApiRequestDto fastApiRequestDto) {
         String url = aiBaseUrl + "classify";
