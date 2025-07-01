@@ -20,7 +20,7 @@ public class UserAuthRepositoryImpl implements UserAuthRepository {
     @Override
     public Optional<User> findByEmail(String email) {
 
-        return userJpaRepository.findByEmail(email);
+        return userJpaRepository.findByEmail(email).map(UserEntity::toDomain);
     }
 
     @Override
