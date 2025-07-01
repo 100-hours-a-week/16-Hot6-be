@@ -144,7 +144,7 @@ public class PostServiceImpl implements PostService {
 //                    return new PostAllResponseDto.Posts(
 //                            post.getId(),
 //                            post.getTitle(),
-//                            new PostAuthorResponseDto(isActive
+//                            new PostAllResponseDto.PostAuthorResponseDto(isActive
 //                                    ? author.getNicknameCommunity()
 //                                    : "알 수 없음",
 //                                    isActive
