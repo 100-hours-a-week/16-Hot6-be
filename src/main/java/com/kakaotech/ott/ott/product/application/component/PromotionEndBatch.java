@@ -32,7 +32,6 @@ public class PromotionEndBatch {
             ProductVariant productVariant = productVariantRepository.findById(promotion.getVariantId());
             productVariant.setPromotionStatus(false);
             productVariantRepository.update(productVariant);
-            System.out.println("배치 완료");
         }
 
 
