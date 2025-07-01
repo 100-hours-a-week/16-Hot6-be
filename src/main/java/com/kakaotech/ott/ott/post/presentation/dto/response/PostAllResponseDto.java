@@ -1,12 +1,10 @@
 package com.kakaotech.ott.ott.post.presentation.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -28,12 +26,18 @@ public class PostAllResponseDto {
         private final Double weightCount;
 
         @JsonProperty("createdAt")
-        private KstDateTime createdAt;
+        private final KstDateTime createdAt;
 
         private final boolean liked;
         private final boolean scrapped;
     }
 
+    @Getter
+    @AllArgsConstructor
+    public static class PostAuthorResponseDto {
+        private final String nickname;
+        private final String profileImage;
+    }
 
     @Getter
     @AllArgsConstructor
