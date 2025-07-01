@@ -1,23 +1,19 @@
 package com.kakaotech.ott.ott.post.application.component;
 
-import com.kakaotech.ott.ott.aiImage.infrastructure.entity.QAiImageEntity;
-import com.kakaotech.ott.ott.like.infrastructure.entity.QLikeEntity;
-import com.kakaotech.ott.ott.post.domain.model.PostType;
 import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
-import com.kakaotech.ott.ott.postImage.entity.QPostImageEntity;
-import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
-import com.kakaotech.ott.ott.scrap.infrastructure.entity.QScrapEntity;
 import com.kakaotech.ott.ott.util.KstDateTime;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
 public class PostDtoMapper {
     private final JPAQueryFactory queryFactory;
 
+    @Transactional(readOnly = true)
     public PostAllResponseDto.Posts toDto(PostEntity post, String thumbnail, boolean liked, boolean scrapped) {
         return new PostAllResponseDto.Posts(
                 post.getId(),
@@ -37,4 +33,3 @@ public class PostDtoMapper {
         );
     }
 }
-
