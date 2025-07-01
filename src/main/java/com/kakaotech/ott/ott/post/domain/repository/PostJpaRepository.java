@@ -31,48 +31,78 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
 """)
     Page<PostEntity> findUserAllPosts(@Param("userId") Long userId, @Param("lastPostId") Long lastPostId, Pageable pageable);
 
-    // 최신순 조회 (커서 기반)
-    @Query("SELECT DISTINCT p FROM PostEntity p WHERE (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.id DESC")
+    // 최신순 조회 (lastPost null 일 때)
+    @Query("SELECT p FROM PostEntity p ORDER BY p.id DESC")
+    Page<PostEntity> findAllPosts(Pageable pageable);
+    // 최신순 조회 (lastPost null 아닐 때)
+    @Query("SELECT p FROM PostEntity p WHERE p.id < :lastPostId ORDER BY p.id DESC")
     Page<PostEntity> findAllPosts(@Param("lastPostId") Long lastPostId, Pageable pageable);
 
-    // 좋아요 순 조회 (커서 기반)
-    @Query("SELECT DISTINCT p FROM PostEntity p " +
-            "WHERE (:lastLikeCount IS NULL OR p.likeCount < :lastLikeCount " +
-            "OR (p.likeCount = :lastLikeCount AND p.id < :lastPostId)) " +
+    // 좋아요 순 조회 (lastLikeCount 또는 lastPostId null 일 때)
+    @Query("SELECT p FROM PostEntity p " +
+            "ORDER BY p.likeCount DESC, p.id DESC")
+    Page<PostEntity> findAllPostsByLike(Pageable pageable);
+
+
+    // 좋아요 순 조회 (lastLikeCount 또는 lastPostId null 아닐 때)
+    @Query("SELECT p FROM PostEntity p " +
+            "WHERE p.likeCount < :lastLikeCount " +
+            "OR (p.likeCount = :lastLikeCount AND p.id < :lastPostId) " +
             "ORDER BY p.likeCount DESC, p.id DESC")
     Page<PostEntity> findAllPostsByLike(@Param("lastLikeCount") Integer lastLikeCount,
                                         @Param("lastPostId") Long lastPostId,
                                         Pageable pageable);
 
-    // 조회수 순 조회 (커서 기반)
+    // 조회수 순 조회 (lastViewCount 또는 lastPostId null 일 때)
+    @Query("SELECT p FROM PostEntity p " +
+            "ORDER BY p.viewCount DESC, p.id DESC")
+    Page<PostEntity> findAllPostsByView(Pageable pageable);
+
+    // 조회수 순 조회 (lastViewCount 또는 lastPostId null 아닐 때)
     @Query("SELECT DISTINCT p FROM PostEntity p " +
-            "WHERE (:lastViewCount IS NULL OR p.viewCount < :lastViewCount " +
-            "OR (p.viewCount = :lastViewCount AND p.id < :lastPostId)) " +
+            "WHERE p.viewCount < :lastViewCount " +
+            "OR (p.viewCount = :lastViewCount AND p.id < :lastPostId) " +
             "ORDER BY p.viewCount DESC, p.id DESC")
     Page<PostEntity> findAllPostsByView(@Param("lastViewCount") Long lastViewCount,
                                         @Param("lastPostId") Long lastPostId,
                                         Pageable pageable);
 
-    // 카테고리별 최신순 조회 (커서 기반)
-    @Query("SELECT DISTINCT p FROM PostEntity p WHERE p.type = :category AND (:lastPostId IS NULL OR p.id < :lastPostId) ORDER BY p.id DESC")
+    // 카테고리별 최신순 조회 (lastPostId null 일 때 -> 첫 페이지 조회 시)
+    @Query("SELECT p FROM PostEntity p WHERE p.type = :category ORDER BY p.id DESC")
+    Page<PostEntity> findByCategory(@Param("category") PostType category, Pageable pageable);
+
+    // 카테고리별 최신순 조회 (lastPostId null 아닐 때 -> 두번째부터 페이지 조회 시)
+    @Query("SELECT p FROM PostEntity p WHERE p.type = :category AND p.id < :lastPostId ORDER BY p.id DESC")
     Page<PostEntity> findByCategory(@Param("category") PostType category, @Param("lastPostId") Long lastPostId, Pageable pageable);
 
-    // 카테고리별 좋아요 순 조회 (커서 기반)
-    @Query("SELECT DISTINCT p FROM PostEntity p " +
+    // 카테고리별 좋아요 순 조회 (lastPostId와 lastLikeCount null 일 때 -> 첫 페이지 조회 시)
+    @Query("SELECT p FROM PostEntity p " +
             "WHERE p.type = :category " +
-            "AND (:lastLikeCount IS NULL OR p.likeCount < :lastLikeCount " +
-            "OR (p.likeCount = :lastLikeCount AND p.id < :lastPostId)) " +
+            "ORDER BY p.likeCount DESC, p.id DESC")
+    Page<PostEntity> findByCategoryByLike(@Param("category") PostType category, Pageable pageable);
+
+    // 카테고리별 좋아요 순 조회 (lastPostId와 lastLikeCount null 아닐 때 -> 두번째부터 페이지 조회 시)
+    @Query("SELECT p FROM PostEntity p " +
+            "WHERE p.type = :category " +
+            "AND p.likeCount < :lastLikeCount " +
+            "OR (p.likeCount = :lastLikeCount AND p.id < :lastPostId) " +
             "ORDER BY p.likeCount DESC, p.id DESC")
     Page<PostEntity> findByCategoryByLike(@Param("category") PostType category,
                                           @Param("lastLikeCount") Integer lastLikeCount,
                                           @Param("lastPostId") Long lastPostId,
                                           Pageable pageable);
 
-    // 카테고리별 조회수 순 조회 (커서 기반)
+    // 카테고리별 조회수 순 조회 (lastPostId와 lastViewCount null 일 때 -> 첫 페이지 조회 시)
     @Query("SELECT DISTINCT p FROM PostEntity p " +
             "WHERE p.type = :category " +
-            "AND (:lastViewCount IS NULL OR p.viewCount < :lastViewCount " +
-            "OR (p.viewCount = :lastViewCount AND p.id < :lastPostId)) " +
+            "ORDER BY p.viewCount DESC, p.id DESC")
+    Page<PostEntity> findByCategoryByView(@Param("category") PostType category, Pageable pageable);
+
+    // 카테고리별 조회수 순 조회 (lastPostId와 lastViewCount null 아닐 때 -> 두번째부터 페이지 조회 시)
+    @Query("SELECT DISTINCT p FROM PostEntity p " +
+            "WHERE p.type = :category " +
+            "AND p.viewCount < :lastViewCount " +
+            "OR (p.viewCount = :lastViewCount AND p.id < :lastPostId) " +
             "ORDER BY p.viewCount DESC, p.id DESC")
     Page<PostEntity> findByCategoryByView(@Param("category") PostType category,
                                           @Param("lastViewCount") Long lastViewCount,
@@ -82,8 +112,14 @@ public interface PostJpaRepository extends JpaRepository<PostEntity, Long> {
     // 카테고리별 인기 순 조회 (커서 기반)
     @Query("SELECT DISTINCT p FROM PostEntity p " +
             "WHERE p.type = :category " +
-            "AND (:lastWeightCount IS NULL OR p.weight < :lastWeightCount " +
-            "OR (p.weight = :lastWeightCount AND p.id < :lastPostId)) " +
+            "ORDER BY p.weight DESC, p.id DESC")
+    Page<PostEntity> findByCategoryByWeight(@Param("category") PostType category, Pageable pageable);
+
+    // 카테고리별 인기 순 조회 (커서 기반)
+    @Query("SELECT DISTINCT p FROM PostEntity p " +
+            "WHERE p.type = :category " +
+            "AND p.weight < :lastWeightCount " +
+            "OR (p.weight = :lastWeightCount AND p.id < :lastPostId) " +
             "ORDER BY p.weight DESC, p.id DESC")
     Page<PostEntity> findByCategoryByWeight(@Param("category") PostType category,
                                           @Param("lastWeightCount") Double lastWeightCount,
