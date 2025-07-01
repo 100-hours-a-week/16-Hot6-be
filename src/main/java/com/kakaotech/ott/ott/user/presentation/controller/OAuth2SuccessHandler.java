@@ -26,6 +26,15 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     @Value("${spring.security.oauth2.redirectURL.front}")
     String baseURl;
 
+    @Value("${DOMAIN}")
+    private String featDomain;
+
+    @Value("${SAMESITE}")
+    private String featSameSite;
+
+    @Value("${SECURE}")
+    private boolean featSecure;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
@@ -39,9 +48,9 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // ✅ Refresh Token을 HttpOnly, Secure 쿠키로 저장
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(true)
-                .sameSite("None") // ✅ SameSite 설정
-                .domain(".onthe-top.com")
+                .secure(featSecure)
+                .sameSite(featSameSite)
+                .domain(featDomain)
                 .path("/")
                 .maxAge(Duration.ofDays(7))
                 .build();
