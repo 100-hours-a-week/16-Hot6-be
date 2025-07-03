@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.product.domain.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -37,9 +38,8 @@ public class ProductPromotion {
     public int getAvailableQuantity() {
         return totalQuantity - reservedQuantity - soldQuantity;
     }
-
-
     // 특가 재고 충분여부 확인
+
     public boolean hasAvailableStock(int requestedQuantity) {
         return getAvailableQuantity() >= requestedQuantity;
     }
@@ -242,12 +242,10 @@ public class ProductPromotion {
         this.status = status;
     }
 
-    // 특가 활성 여부 확인
+    // 특가 활성 여부 확인 (active 거나 sold_out, 아직 기한이 끝나지 않음)
     public boolean isActive() {
         LocalDateTime now = LocalDateTime.now();
         return (this.status == PromotionStatus.ACTIVE || this.status == PromotionStatus.SOLD_OUT)
-                && now.isAfter(startAt)
-                && now.isBefore(endAt)
-                && getAvailableQuantity() > 0;
+                && now.isBefore(endAt);
     }
 }
