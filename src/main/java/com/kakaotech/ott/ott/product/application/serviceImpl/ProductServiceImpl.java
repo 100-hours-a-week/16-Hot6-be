@@ -235,8 +235,8 @@ public class ProductServiceImpl implements ProductService {
                 builder.originalPrice(activePromotion.getOriginalPrice())
                         .discountPrice(activePromotion.getDiscountPrice())
                         .discountRate(activePromotion.getRate())
-                        .promotionStartAt(activePromotion.getStartAt())
-                        .promotionEndAt(activePromotion.getEndAt())
+                        .promotionStartAt(new KstDateTime(activePromotion.getStartAt()))
+                        .promotionEndAt(new KstDateTime(activePromotion.getEndAt()))
                         .promotion(true);
             } else {
                 builder.originalPrice(variant.getPrice())
