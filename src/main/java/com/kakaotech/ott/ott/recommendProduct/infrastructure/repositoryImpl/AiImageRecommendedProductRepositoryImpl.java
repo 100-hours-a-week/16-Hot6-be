@@ -12,6 +12,7 @@ import com.kakaotech.ott.ott.recommendProduct.domain.repository.AiImageRecommend
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductJpaRepository;
 import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.AiImageRecommendedProductEntity;
 import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.DeskProductEntity;
+import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.RecommendedProductProjection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -57,6 +58,12 @@ public class AiImageRecommendedProductRepositoryImpl implements AiImageRecommend
                 .stream()
                 .map(AiImageRecommendedProductEntity::toDomain)
                 .toList();
+    }
+
+    @Override
+    public List<RecommendedProductProjection> findWithProductAndScrap(Long aiImageId, Long userId) {
+
+        return aiImageRecommendedProductJpaRepsitory.findWithProductAndScrap(aiImageId, userId);
     }
 
 
