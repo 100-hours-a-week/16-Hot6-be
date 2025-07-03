@@ -76,6 +76,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         int orderDiscountAmount = 0;
 
         for(ProductOrderRequestDto.ServiceProductDto serviceProduct : productOrderRequestDto.getProducts()) {
+
             Long variantId = serviceProduct.getVariantId();
             int quantity = serviceProduct.getQuantity();
             int productDiscountAmount = 0;
@@ -87,6 +88,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
             if (productVariant.isOnPromotion()) {
                 ProductPromotion productPromotion = productPromotionRepository.findByVariantIdAndStatus(productVariant.getId(), PromotionStatus.ACTIVE);
+                productPromotion.isAvailableForPurchase(LocalDateTime.now());
                 productPromotion.reservePromotionStock(serviceProduct.getQuantity());
                 productPromotionRepository.update(productPromotion);
 
