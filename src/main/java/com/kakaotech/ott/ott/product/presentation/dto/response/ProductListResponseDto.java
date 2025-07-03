@@ -6,9 +6,12 @@ import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Getter
@@ -19,6 +22,7 @@ public class ProductListResponseDto {
     private final Pagination pagination;
 
     @Getter
+    @Setter
     @Builder
     @AllArgsConstructor
     public static class Products {
@@ -52,18 +56,42 @@ public class ProductListResponseDto {
         @JsonProperty("available_quantity")
         private final Integer availableQuantity;
 
-        @JsonFormat(timezone = "Asia/Seoul")
+        @JsonProperty("promotion_start_at")
+        private final KstDateTime promotionStartAt;
+
         @JsonProperty("promotion_end_at")
-        private final LocalDateTime promotionEndAt;
+        private final KstDateTime promotionEndAt;
 
         @JsonProperty("is_promotion")
         private final boolean promotion;
 
         @JsonProperty("scraped")
-        private final boolean scraped;
+        private boolean scraped;
 
         @JsonProperty("created_at")
         private KstDateTime createdAt;
+
+        public Products(Long productId, String productName, String productType,
+                        Long variantId, String variantName, String imageUrl,
+                        Integer originalPrice, Integer discountPrice, BigDecimal discountRate,
+                        LocalDateTime promotionStartAt, LocalDateTime promotionEndAt, Integer availableQuantity,
+                        boolean promotion, boolean scraped, LocalDateTime createdAt) {
+            this.productId = productId;
+            this.productName = productName;
+            this.productType = productType;
+            this.variantId = variantId;
+            this.variantName = variantName;
+            this.imageUrl = imageUrl;
+            this.originalPrice = originalPrice;
+            this.discountPrice = discountPrice;
+            this.discountRate = discountRate;
+            this.promotionStartAt = promotionStartAt != null ? new KstDateTime(promotionStartAt) : null;
+            this.promotionEndAt = promotionEndAt != null ? new KstDateTime(promotionEndAt) : null;
+            this.availableQuantity = availableQuantity;
+            this.promotion = promotion;
+            this.scraped = scraped;
+            this.createdAt = new KstDateTime(createdAt);
+        }
     }
 
     @Getter
@@ -72,7 +100,7 @@ public class ProductListResponseDto {
     public static class Pagination {
         private final int size;
 
-        @JsonProperty("last_variant_id")
+        @JsonProperty("last_product_id")
         private final Long lastVariantId;
         @JsonProperty("has_next")
         private final boolean hasNext;

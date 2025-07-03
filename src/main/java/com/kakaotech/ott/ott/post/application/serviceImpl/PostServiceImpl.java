@@ -16,6 +16,7 @@ import com.kakaotech.ott.ott.post.application.component.ViewCountAggregator;
 import com.kakaotech.ott.ott.post.application.service.PostService;
 import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.post.domain.model.PostType;
+import com.kakaotech.ott.ott.post.domain.repository.PostQueryRepository;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.post.presentation.dto.request.AiPostCreateRequestDto;
 import com.kakaotech.ott.ott.post.presentation.dto.request.AiPostUpdateRequestDto;
@@ -53,6 +54,8 @@ public class PostServiceImpl implements PostService {
     private final ImageLoaderManager imageLoaderManager;
     private final CommentRepository commentRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final PostQueryRepository postQueryRepository;
+
 
     @Value("${cloud.aws.s3.base-url}")
     private String baseUrl;
@@ -116,57 +119,64 @@ public class PostServiceImpl implements PostService {
         return new PostCreateResponseDto(savedPost.getId());
     }
 
+//    @Override
+//    @Transactional(readOnly = true)
+//    public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size, Long lastPostId,
+//                                         Integer lastLikeCount, Long lastViewCount, Double lastWeightCount) {
+//        List<Post> posts = postRepository.findAllByCursor(size, lastPostId, lastLikeCount, lastViewCount, lastWeightCount, category, sort);
+//
+//        List<PostAllResponseDto.Posts> dtoList = posts.stream()
+//                .map(post -> {
+//                    User author = userAuthRepository.findById(post.getUserId());
+//
+//                    boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
+//                    boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+//                    int commentCount = commentRepository.findByPostId(post.getId());
+//                    Long likeCount = likeRepository.findByPostId(post.getId());
+//
+//                    String thumbnailImage = switch (post.getType()) {
+//                        case AI -> aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
+//                        case FREE -> post.getImages().isEmpty() ? "" : post.getImages().get(0).getImageUuid();
+//                    };
+//
+//                    boolean isActive = userAuthRepository.findById(post.getUserId()).isActive();
+//
+//                    return new PostAllResponseDto.Posts(
+//                            post.getId(),
+//                            post.getTitle(),
+//                            new PostAllResponseDto.PostAuthorResponseDto(isActive
+//                                    ? author.getNicknameCommunity()
+//                                    : "알 수 없음",
+//                                    isActive
+//                                    ? author.getImagePath()
+//                                    : basicProfile),
+//                            thumbnailImage,
+//                            likeCount,
+//                            commentCount,
+//                            post.getViewCount(),
+//                            post.getWeight(),
+//                            new KstDateTime(post.getCreatedAt()),
+//                            liked,
+//                            scrapped
+//                    );
+//                })
+//                .toList();
+//
+//
+//        boolean hasNext = dtoList.size() == size;
+//        Long nextLastId = hasNext ? dtoList.get(dtoList.size() - 1).getPostId() : null;
+//        Long nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
+//        Long nextLastViewCount = hasNext ? dtoList.get(dtoList.size() - 1).getViewCount() : null;
+//        Double nextLastWeightCount = hasNext ? dtoList.get(dtoList.size() - 1).getWeightCount() : null;
+//
+//        return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, nextLastLikeCount, nextLastViewCount, nextLastWeightCount, hasNext));
+//    }
+
     @Override
     @Transactional(readOnly = true)
-    public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size, Long lastPostId,
-                                         Integer lastLikeCount, Long lastViewCount, Double lastWeightCount) {
-        List<Post> posts = postRepository.findAllByCursor(size, lastPostId, lastLikeCount, lastViewCount, lastWeightCount, category, sort);
-
-        List<PostAllResponseDto.Posts> dtoList = posts.stream()
-                .map(post -> {
-                    User author = userAuthRepository.findById(post.getUserId());
-
-                    boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
-                    boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
-                    int commentCount = commentRepository.findByPostId(post.getId());
-                    Long likeCount = likeRepository.findByPostId(post.getId());
-
-                    String thumbnailImage = switch (post.getType()) {
-                        case AI -> aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
-                        case FREE -> post.getImages().isEmpty() ? "" : post.getImages().get(0).getImageUuid();
-                    };
-
-                    boolean isActive = userAuthRepository.findById(post.getUserId()).isActive();
-
-                    return new PostAllResponseDto.Posts(
-                            post.getId(),
-                            post.getTitle(),
-                            new PostAuthorResponseDto(isActive
-                                    ? author.getNicknameCommunity()
-                                    : "알 수 없음",
-                                    isActive
-                                    ? author.getImagePath()
-                                    : basicProfile),
-                            thumbnailImage,
-                            likeCount,
-                            commentCount,
-                            post.getViewCount(),
-                            post.getWeight(),
-                            new KstDateTime(post.getCreatedAt()),
-                            liked,
-                            scrapped
-                    );
-                })
-                .toList();
-
-
-        boolean hasNext = dtoList.size() == size;
-        Long nextLastId = hasNext ? dtoList.get(dtoList.size() - 1).getPostId() : null;
-        Long nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
-        Long nextLastViewCount = hasNext ? dtoList.get(dtoList.size() - 1).getViewCount() : null;
-        Double nextLastWeightCount = hasNext ? dtoList.get(dtoList.size() - 1).getWeightCount() : null;
-
-        return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, nextLastLikeCount, nextLastViewCount, nextLastWeightCount, hasNext));
+    public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size,
+                                         Long lastPostId, Integer lastLikeCount, Long lastViewCount, Double lastWeightCount) {
+        return postQueryRepository.getAllPost(userId, category, sort, size, lastPostId, lastLikeCount, lastViewCount, lastWeightCount);
     }
 
     @Override
@@ -307,6 +317,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional
     public PostCreateResponseDto updateAiPost(Long postId, Long userId, AiPostUpdateRequestDto aiPostUpdateRequestDto) throws IOException {
         User user = userAuthRepository.findById(userId);
         Post post = postRepository.findById(postId);

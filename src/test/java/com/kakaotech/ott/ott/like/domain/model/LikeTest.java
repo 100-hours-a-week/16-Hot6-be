@@ -11,16 +11,14 @@ class LikeTest {
 
         // given
         Long userId = 1L;
-        LikeType type = LikeType.POST;
-        Long targetId = 1L;
+        Long postId = 1L;
 
         // when
-        Like like = Like.createLike(userId, type, targetId);
+        Like like = Like.createLike(userId, postId);
 
         // then
         assertEquals(userId, like.getUserId());
-        assertEquals(type, like.getType());
-        assertEquals(targetId, like.getTargetId());
+        assertEquals(postId, like.getPostId());
         assertTrue(like.getIsActive());
         assertNull(like.getCreatedAt());
     }
@@ -30,16 +28,14 @@ class LikeTest {
 
         // given
         Long userId = 1L;
-        LikeType type = LikeType.PRODUCT;
-        Long targetId = 1L;
+        Long postId = 1L;
 
         // when
-        Like like = Like.createLike(userId, type, targetId);
+        Like like = Like.createLike(userId, postId);
 
         // then
         assertEquals(userId, like.getUserId());
-        assertEquals(type, like.getType());
-        assertEquals(targetId, like.getTargetId());
+        assertEquals(postId, like.getPostId());
         assertTrue(like.getIsActive());
         assertNull(like.getCreatedAt());
     }

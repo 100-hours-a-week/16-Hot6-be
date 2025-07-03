@@ -161,7 +161,7 @@ public class UserServiceImpl implements UserService {
                     return new PostAllResponseDto.Posts(
                             post.getId(),
                             post.getTitle(),
-                            new PostAuthorResponseDto(
+                            new PostAllResponseDto.PostAuthorResponseDto(
                                     user.getNicknameCommunity(),
                                     user.getImagePath()
                             ),

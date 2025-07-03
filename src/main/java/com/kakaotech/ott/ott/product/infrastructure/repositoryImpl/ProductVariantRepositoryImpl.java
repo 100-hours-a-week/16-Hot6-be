@@ -9,14 +9,11 @@ import com.kakaotech.ott.ott.product.domain.model.VariantStatus;
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantJpaRepository;
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductEntity;
-import com.kakaotech.ott.ott.product.infrastructure.entity.ProductImageEntity;
-import com.kakaotech.ott.ott.product.infrastructure.entity.ProductPromotionEntity;
 import com.kakaotech.ott.ott.product.infrastructure.entity.ProductVariantEntity;
 import com.kakaotech.ott.ott.product.domain.repository.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +30,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     private final ProductJpaRepository productJpaRepository;
 
     @Override
-    @Transactional
     public ProductVariant save(ProductVariant variant) {
         // 상품 존재 여부 확인
         ProductEntity productEntity = productJpaRepository.findById(variant.getProductId())
@@ -50,7 +46,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ProductVariant findById(Long variantId) {
         return productVariantJpaRepository.findByIdWithProduct(variantId)
                 .map(entity -> {
@@ -63,7 +58,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional
     public ProductVariant update(ProductVariant variant) {
         ProductVariantEntity entity = productVariantJpaRepository.findById(variant.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
@@ -82,7 +76,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional
     public void delete(Long variantId) {
         ProductVariantEntity entity = productVariantJpaRepository.findById(variantId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
@@ -91,7 +84,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ProductVariant> findByProductId(Long productId) {
         return productVariantJpaRepository.findByProductEntityId(productId)
                 .stream()
@@ -100,7 +92,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ProductVariant> findByProductIdAndStatus(Long productId, VariantStatus status) {
         return productVariantJpaRepository.findByProductIdAndStatus(productId, status.name())
                 .stream()
@@ -109,13 +100,11 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean existsByProductEntityIdAndName(Long productId, String name) {
         return productVariantJpaRepository.existsByProductEntityIdAndName(productId, name);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ProductVariant> findAvailableVariants(Long productId) {
         return productVariantJpaRepository.findAvailableVariants(productId)
                 .stream()
@@ -124,7 +113,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional
     public void updateTotalQuantity(Long variantId, int totalQuantity) {
         // 1. 입력 검증
         if (totalQuantity < 0) {
@@ -137,7 +125,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional
     public void reserveStock(Long variantId, int quantity) {
         // 1. 입력 검증
         validateQuantity(quantity);
@@ -162,7 +149,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional
     public void cancelReservation(Long variantId, int quantity) {
         // 1. 입력 검증
         validateQuantity(quantity);
@@ -227,7 +213,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ProductVariant> findNormalVariantsByCursor(ProductType productType, Long lastVariantId, int size) {
         List<ProductVariantEntity> entities = productVariantJpaRepository.findNormalVariantsByCursor(
                 productType, lastVariantId, PageRequest.of(0, size));
@@ -242,7 +227,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ProductVariant> findPromotionVariantsByCursor(PromotionType promotionType, Long lastVariantId, int size) {
         // 1단계: Variant와 Product만 조회
         List<ProductVariantEntity> entities = productVariantJpaRepository.findPromotionVariantsByCursor(
@@ -298,7 +282,6 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     }
 
     @Override
-    @Transactional
     public void incrementScrapCount(Long variantId, Long delta) {
         ProductVariantEntity productVariantEntity = productVariantJpaRepository.findById(variantId)
                 .orElseThrow(() -> new CustomException(ErrorCode.VARIANT_NOT_FOUND));

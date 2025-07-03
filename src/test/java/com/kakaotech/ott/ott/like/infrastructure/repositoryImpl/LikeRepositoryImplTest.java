@@ -5,6 +5,8 @@ import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.model.Like;
 import com.kakaotech.ott.ott.like.domain.repository.LikeJpaRepository;
 import com.kakaotech.ott.ott.like.infrastructure.entity.LikeEntity;
+import com.kakaotech.ott.ott.post.domain.repository.PostJpaRepository;
+import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,9 @@ class LikeRepositoryImplTest {
 
     @Mock
     private UserJpaRepository userJpaRepository;
+
+    @Mock
+    private PostJpaRepository postJpaRepository;
 
     @InjectMocks
     private LikeRepositoryImpl likeRepositoryImpl;
@@ -50,15 +55,18 @@ class LikeRepositoryImplTest {
         // given
         Like like = mock(Like.class);
         UserEntity userEntity = mock(UserEntity.class);
+        PostEntity postEntity = mock(PostEntity.class);
         LikeEntity likeEntity = mock(LikeEntity.class);
         LikeEntity savedEntity = mock(LikeEntity.class);
         Like expectedLike = mock(Like.class);
 
         when(like.getUserId()).thenReturn(1L);
+        when(like.getPostId()).thenReturn(1L);
         when(userJpaRepository.findById(1L)).thenReturn(Optional.of(userEntity));
+        when(postJpaRepository.findById(1L)).thenReturn(Optional.of(postEntity));
 
         try (var mockedStatic = org.mockito.Mockito.mockStatic(LikeEntity.class)) {
-            mockedStatic.when(() -> LikeEntity.from(like, userEntity)).thenReturn(likeEntity);
+            mockedStatic.when(() -> LikeEntity.from(like, userEntity, postEntity)).thenReturn(likeEntity);
 
             when(likeJpaRepository.save(likeEntity)).thenReturn(savedEntity);
 
@@ -104,13 +112,13 @@ class LikeRepositoryImplTest {
         Long userId = 1L;
         Long postId = 1L;
 
-        when(likeJpaRepository.existsByUserEntityIdAndTargetId(userId, postId)).thenReturn(true);
+        when(likeJpaRepository.existsByUserEntityIdAndPostEntityId(userId, postId)).thenReturn(true);
 
         // when
         boolean result = likeRepositoryImpl.existsByUserIdAndPostId(userId, postId);
 
         // then
-        verify(likeJpaRepository, times(1)).existsByUserEntityIdAndTargetId(userId, postId);
+        verify(likeJpaRepository, times(1)).existsByUserEntityIdAndPostEntityId(userId, postId);
         assertTrue(result);
     }
 
@@ -121,13 +129,13 @@ class LikeRepositoryImplTest {
         Long userId = 1L;
         Long postId = 1L;
 
-        when(likeJpaRepository.existsByUserEntityIdAndTargetId(userId, postId)).thenReturn(false);
+        when(likeJpaRepository.existsByUserEntityIdAndPostEntityId(userId, postId)).thenReturn(false);
 
         // when
         boolean result = likeRepositoryImpl.existsByUserIdAndPostId(userId, postId);
 
         // then
-        verify(likeJpaRepository, times(1)).existsByUserEntityIdAndTargetId(userId, postId);
+        verify(likeJpaRepository, times(1)).existsByUserEntityIdAndPostEntityId(userId, postId);
         assertFalse(result);
     }
 
@@ -137,10 +145,10 @@ class LikeRepositoryImplTest {
         // given
         Long postId = 1L;
 
-        when(likeJpaRepository.countByPostId(postId)).thenReturn(5);
+        when(likeJpaRepository.countByPostId(postId)).thenReturn(5L);
 
         // when
-        int result = likeRepositoryImpl.findByPostId(postId);
+        Long result = likeRepositoryImpl.findByPostId(postId);
 
         // then
         verify(likeJpaRepository, times(1)).countByPostId(postId);

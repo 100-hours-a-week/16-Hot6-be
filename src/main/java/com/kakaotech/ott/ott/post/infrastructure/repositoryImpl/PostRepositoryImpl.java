@@ -1,6 +1,5 @@
 package com.kakaotech.ott.ott.post.infrastructure.repositoryImpl;
 
-import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.post.domain.model.Post;
@@ -17,7 +16,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -74,33 +72,77 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<Post> findAllByCursor(int size, Long lastPostId, Integer lastLikeCount, Long lastViewCount, Double lastWeightCount,
                                       String category, String sort) {
         Pageable pageable = PageRequest.of(0, size);
 
         if (category == null || "ALL".equalsIgnoreCase(category)) {
             return switch (sort == null ? "LATEST" : sort.toUpperCase()) {
-                case "LIKE" -> postJpaRepository.findAllPostsByLike(lastLikeCount, lastPostId, pageable)
-                        .stream().map(PostEntity::toDomain).toList();
-                case "VIEW" -> postJpaRepository.findAllPostsByView(lastViewCount, lastPostId, pageable)
-                        .stream().map(PostEntity::toDomain).toList();
-                default -> postJpaRepository.findAllPosts(lastPostId, pageable)
-                        .stream().map(PostEntity::toDomain).toList();
+                case "LIKE" -> {
+                    if (lastPostId == null || lastLikeCount == null) {
+                        yield postJpaRepository.findAllPostsByLike(pageable)
+                                .stream().map(PostEntity::toDomain).toList();
+                    } else {
+                        yield postJpaRepository.findAllPostsByLike(lastLikeCount, lastPostId, pageable)
+                                .stream().map(PostEntity::toDomain).toList();
+                    }
+                }
+                case "VIEW" -> {
+                    if (lastPostId == null || lastViewCount == null) {
+                        yield postJpaRepository.findAllPostsByView(pageable)
+                                .stream().map(PostEntity::toDomain).toList();
+                    } else {
+                        yield postJpaRepository.findAllPostsByView(lastViewCount, lastPostId, pageable)
+                                .stream().map(PostEntity::toDomain).toList();
+                    }
+                }
+                default -> {
+                    if (lastPostId == null) {
+                        yield postJpaRepository.findAllPosts(pageable).stream().map(PostEntity::toDomain).toList();
+                    } else {
+                        yield postJpaRepository.findAllPosts(lastPostId, pageable)
+                                .stream().map(PostEntity::toDomain).toList();
+                    }
+                }
+
             };
         }
 
         PostType postType = PostType.valueOf(category.toUpperCase());
 
         return switch (sort == null ? "LATEST" : sort.toUpperCase()) {
-            case "LIKE" -> postJpaRepository.findByCategoryByLike(postType, lastLikeCount, lastPostId, pageable)
-                    .stream().map(PostEntity::toDomain).toList();
-            case "VIEW" -> postJpaRepository.findByCategoryByView(postType, lastViewCount, lastPostId, pageable)
-                    .stream().map(PostEntity::toDomain).toList();
-            case "POPULAR" -> postJpaRepository.findByCategoryByWeight(postType, lastWeightCount, lastPostId, pageable)
-                    .stream().map(PostEntity::toDomain).toList();
-            default -> postJpaRepository.findByCategory(postType, lastPostId, pageable)
-                    .stream().map(PostEntity::toDomain).toList();
+            case "LIKE" -> {
+                if (lastPostId == null || lastLikeCount == null) {
+                    yield postJpaRepository.findByCategoryByLike(postType, pageable).stream().map(PostEntity::toDomain).toList();
+                } else {
+                    yield postJpaRepository.findByCategoryByLike(postType, lastLikeCount, lastPostId, pageable)
+                            .stream().map(PostEntity::toDomain).toList();
+                }
+            }
+            case "VIEW" -> {
+                if (lastPostId == null || lastViewCount == null) {
+                    yield postJpaRepository.findByCategoryByView(postType, pageable).stream().map(PostEntity::toDomain).toList();
+                } else {
+                    yield postJpaRepository.findByCategoryByView(postType, lastViewCount, lastPostId, pageable)
+                            .stream().map(PostEntity::toDomain).toList();
+                }
+            }
+            case "POPULAR" -> {
+                if (lastPostId == null || lastWeightCount == null) {
+                    yield postJpaRepository.findByCategoryByWeight(postType, pageable).stream().map(PostEntity::toDomain).toList();
+                } else {
+                    yield postJpaRepository.findByCategoryByWeight(postType, lastWeightCount, lastPostId, pageable)
+                            .stream().map(PostEntity::toDomain).toList();
+                }
+            }
+            default -> {
+                if (lastPostId == null) {
+                    yield postJpaRepository.findByCategory(postType, pageable).stream().map(PostEntity::toDomain).toList();
+                } else {
+                    yield postJpaRepository.findByCategory(postType, lastPostId, pageable)
+                            .stream().map(PostEntity::toDomain).toList();
+                }
+            }
         };
     }
 
@@ -115,7 +157,6 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    @Transactional
     public void incrementViewCount(Long postId, Long delta) {
 
         PostEntity postEntity = postJpaRepository.findById(postId)
@@ -128,7 +169,6 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    @Transactional
     public void incrementLikeCount(Long postId, Long delta) {
 
         PostEntity postEntity = postJpaRepository.findById(postId)
@@ -141,7 +181,6 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    @Transactional
     public void incrementScrapCount(Long postId, Long delta) {
 
         PostEntity postEntity = postJpaRepository.findById(postId)
@@ -154,7 +193,6 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    @Transactional
     public void incrementCommentCount(Long postId, Long delta) {
 
         PostEntity postEntity = postJpaRepository.findById(postId)

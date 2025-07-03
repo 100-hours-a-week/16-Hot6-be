@@ -1,5 +1,8 @@
 package com.kakaotech.ott.ott.product.domain.model;
 
+import lombok.AllArgsConstructor;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -33,13 +36,17 @@ public class ProductPromotion {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    public void isAvailableForPurchase(LocalDateTime now) {
+        if (now.isBefore(this.startAt))
+            throw new CustomException(ErrorCode.SALE_NOT_STARTED);
+    }
+
     // 판매 가능 수량 (총 수량 - 예약수량 - 판매수량)
     public int getAvailableQuantity() {
         return totalQuantity - reservedQuantity - soldQuantity;
     }
-
-
     // 특가 재고 충분여부 확인
+
     public boolean hasAvailableStock(int requestedQuantity) {
         return getAvailableQuantity() >= requestedQuantity;
     }
@@ -242,12 +249,10 @@ public class ProductPromotion {
         this.status = status;
     }
 
-    // 특가 활성 여부 확인
+    // 특가 활성 여부 확인 (active 거나 sold_out, 아직 기한이 끝나지 않음)
     public boolean isActive() {
         LocalDateTime now = LocalDateTime.now();
         return (this.status == PromotionStatus.ACTIVE || this.status == PromotionStatus.SOLD_OUT)
-                && now.isAfter(startAt)
-                && now.isBefore(endAt)
-                && getAvailableQuantity() > 0;
+                && now.isBefore(endAt);
     }
 }

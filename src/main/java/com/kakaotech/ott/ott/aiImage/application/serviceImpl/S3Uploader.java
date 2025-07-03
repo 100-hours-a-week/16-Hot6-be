@@ -8,6 +8,7 @@ import de.huxhorn.sulky.ulid.ULID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -22,6 +23,7 @@ public class S3Uploader implements ImageUploader {
     @Value("${cloud.aws.s3.bucketName}")
     private String bucket;
 
+    @Transactional
     @Override
     public String upload(MultipartFile image) throws IOException {
         String extension = getExtension(image.getOriginalFilename());
@@ -46,6 +48,7 @@ public class S3Uploader implements ImageUploader {
         return originalName.substring(originalName.lastIndexOf("."));
     }
 
+    @Transactional
     @Override
     public void delete(String imageUrl) {
         String key = "assets/images/" + imageUrl;

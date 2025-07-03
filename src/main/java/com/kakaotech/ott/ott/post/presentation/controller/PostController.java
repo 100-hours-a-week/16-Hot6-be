@@ -31,7 +31,7 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostAllResponseDto>> getAllPostS(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String sort,
+            @RequestParam(required = false, defaultValue = "LATEST") String sort,
             @RequestParam(required = false) Long lastPostId,
             @RequestParam(required = false) Integer lastLikeCount,
             @RequestParam(required = false) Long lastViewCount,
