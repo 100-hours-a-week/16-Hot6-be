@@ -52,9 +52,11 @@ public class ProductListResponseDto {
         @JsonProperty("available_quantity")
         private final Integer availableQuantity;
 
-        @JsonFormat(timezone = "Asia/Seoul")
+        @JsonProperty("promotion_start_at")
+        private final KstDateTime promotionStartAt;
+
         @JsonProperty("promotion_end_at")
-        private final LocalDateTime promotionEndAt;
+        private final KstDateTime promotionEndAt;
 
         @JsonProperty("is_promotion")
         private final boolean promotion;
