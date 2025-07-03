@@ -72,7 +72,7 @@ public class ProductListResponseDto {
         public Products(Long productId, String productName, String productType,
                         Long variantId, String variantName, String imageUrl,
                         Integer originalPrice, Integer discountPrice, BigDecimal discountRate,
-                        LocalDateTime promotionStartAt, LocalDateTime promotionEndAt, Integer availableQuantity,
+                        KstDateTime promotionStartAt, KstDateTime promotionEndAt, Integer availableQuantity,
                         boolean promotion, boolean scraped, LocalDateTime createdAt) {
             this.productId = productId;
             this.productName = productName;
@@ -83,7 +83,7 @@ public class ProductListResponseDto {
             this.originalPrice = originalPrice;
             this.discountPrice = discountPrice;
             this.discountRate = discountRate;
-            this.promotionStartAt =
+            this.promotionStartAt = promotionStartAt;
             this.promotionEndAt = promotionEndAt;
             this.availableQuantity = availableQuantity;
             this.promotion = promotion;
