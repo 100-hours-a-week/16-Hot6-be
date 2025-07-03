@@ -10,6 +10,8 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Getter
@@ -55,10 +57,10 @@ public class ProductListResponseDto {
         private final Integer availableQuantity;
 
         @JsonProperty("promotion_start_at")
-        private final KstDateTime promotionStartAt;
+        private final LocalDateTime promotionStartAt;
 
         @JsonProperty("promotion_end_at")
-        private final KstDateTime promotionEndAt;
+        private final LocalDateTime promotionEndAt;
 
         @JsonProperty("is_promotion")
         private final boolean promotion;
@@ -72,7 +74,7 @@ public class ProductListResponseDto {
         public Products(Long productId, String productName, String productType,
                         Long variantId, String variantName, String imageUrl,
                         Integer originalPrice, Integer discountPrice, BigDecimal discountRate,
-                        KstDateTime promotionStartAt, KstDateTime promotionEndAt, Integer availableQuantity,
+                        LocalDateTime promotionStartAt, LocalDateTime promotionEndAt, Integer availableQuantity,
                         boolean promotion, boolean scraped, LocalDateTime createdAt) {
             this.productId = productId;
             this.productName = productName;

@@ -235,8 +235,8 @@ public class ProductServiceImpl implements ProductService {
                 builder.originalPrice(activePromotion.getOriginalPrice())
                         .discountPrice(activePromotion.getDiscountPrice())
                         .discountRate(activePromotion.getRate())
-                        .promotionStartAt(new KstDateTime(activePromotion.getStartAt()))
-                        .promotionEndAt(new KstDateTime(activePromotion.getEndAt()))
+                        .promotionStartAt(activePromotion.getStartAt())
+                        .promotionEndAt(activePromotion.getEndAt())
                         .promotion(true);
             } else {
                 builder.originalPrice(variant.getPrice())
@@ -356,8 +356,8 @@ public class ProductServiceImpl implements ProductService {
                 .discountPrice(promotion.getDiscountPrice())
                 .rate(promotion.getRate())
                 .availableQuantity(promotion.getAvailableQuantity())
-                .startAt(new KstDateTime(promotion.getStartAt()))
-                .endAt(new KstDateTime(promotion.getEndAt()))
+                .startAt(promotion.getStartAt())
+                .endAt(promotion.getEndAt())
                 .maxPerCustomer(promotion.getMaxPerCustomer())
                 .build();
     }
