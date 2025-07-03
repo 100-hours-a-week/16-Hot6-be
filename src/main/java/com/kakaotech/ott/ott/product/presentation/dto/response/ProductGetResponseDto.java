@@ -98,10 +98,10 @@ public class ProductGetResponseDto {
         private int availableQuantity;
 
         @JsonProperty("start_at")
-        private LocalDateTime startAt;
+        private KstDateTime startAt;
 
         @JsonProperty("end_at")
-        private LocalDateTime endAt;
+        private KstDateTime endAt;
 
         @JsonProperty("max_per_customer")
         private int maxPerCustomer;

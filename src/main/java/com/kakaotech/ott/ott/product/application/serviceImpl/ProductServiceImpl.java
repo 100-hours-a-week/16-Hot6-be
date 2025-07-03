@@ -356,8 +356,8 @@ public class ProductServiceImpl implements ProductService {
                 .discountPrice(promotion.getDiscountPrice())
                 .rate(promotion.getRate())
                 .availableQuantity(promotion.getAvailableQuantity())
-                .startAt(promotion.getStartAt())
-                .endAt(promotion.getEndAt())
+                .startAt(new KstDateTime(promotion.getStartAt()))
+                .endAt(new KstDateTime(promotion.getEndAt()))
                 .maxPerCustomer(promotion.getMaxPerCustomer())
                 .build();
     }
