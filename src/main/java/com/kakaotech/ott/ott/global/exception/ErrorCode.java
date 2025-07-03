@@ -82,6 +82,7 @@ public enum ErrorCode {
     INVALID_DISCOUNT(HttpStatus.BAD_REQUEST, "할인가는 정가보다 클 수 없습니다."),
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
     INVALID_VARIANT_STATUS(HttpStatus.BAD_REQUEST, "품목 상태가 올바르지 않습니다."),
+    SALE_NOT_STARTED(HttpStatus.NOT_FOUND, "판매 중인 상품이 아닙니다."),
 
     // ORDERITEM
     NOT_ORDERED_ITEM_STATE(HttpStatus.BAD_REQUEST, "주문 대기 상태가 아닙니다."),
