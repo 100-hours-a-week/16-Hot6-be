@@ -226,17 +226,32 @@ public class ProductServiceImpl implements ProductService {
 
         if (isPromotionProduct && variant.isOnPromotion()) {
             // 특가 정보 설정
-            ProductPromotion activePromotion = getActivePromotion(variant);
-            builder.originalPrice(activePromotion.getOriginalPrice())
-                    .discountPrice(activePromotion.getDiscountPrice())
-                    .discountRate(activePromotion.getRate())
-                    .promotionEndAt(activePromotion.getEndAt())
-                    .promotion(true);
+            Optional<ProductPromotion> activePromotionOpt = variant.getPromotions().stream()
+                    .filter(ProductPromotion::isActive)
+                    .findFirst();
+
+            if (activePromotionOpt.isPresent()) {
+                ProductPromotion activePromotion = activePromotionOpt.get();
+                builder.originalPrice(activePromotion.getOriginalPrice())
+                        .discountPrice(activePromotion.getDiscountPrice())
+                        .discountRate(activePromotion.getRate())
+                        .promotionStartAt(new KstDateTime(activePromotion.getStartAt()))
+                        .promotionEndAt(new KstDateTime(activePromotion.getEndAt()))
+                        .promotion(true);
+            } else {
+                builder.originalPrice(variant.getPrice())
+                        .discountPrice(null)
+                        .discountRate(null)
+                        .promotionStartAt(null)
+                        .promotionEndAt(null)
+                        .promotion(false);
+            }
         } else {
             // 일반 상품 정보
             builder.originalPrice(variant.getPrice())
                     .discountPrice(null)
                     .discountRate(null)
+                    .promotionStartAt(null)
                     .promotionEndAt(null)
                     .promotion(false);
         }
@@ -347,89 +362,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
-    private ProductListResponseDto.Products createRegularProductDto(
-            Product product,
-            ProductVariant variant,
-            String imageUrl,
-            boolean scraped) {
-
-        return ProductListResponseDto.Products.builder()
-                .productId(product.getId())
-                .productName(product.getName())
-                .productType(product.getType().toString())
-                .variantName(variant.getName())
-                .imageUrl(imageUrl)
-                .originalPrice(variant.getPrice())
-                .discountPrice(null)
-                .discountRate(null)
-                .availableQuantity(variant.getAvailableQuantity())
-                .promotionEndAt(null)
-                .promotion(false)
-                .scraped(scraped)
-                .createdAt(new KstDateTime(product.getCreatedAt()))
-                .build();
-    }
-
-    // 상품 목록 조회
-    private List<Product> fetchProducts(ProductType productType, PromotionType promotionType, Long lastProductId, int size) {
-        if (promotionType != null) {
-            // 특가 상품 조회 (종료 임박순)
-            return productRepository.findPromotionProductsByCursor(promotionType, lastProductId, size);
-        } else {
-            // 일반 상품 조회 (특가 상품 제외, 최신순)
-            return productRepository.findProductsByCursor(productType, lastProductId, size);
-        }
-    }
-
-    /**
-     * 특가 상품용 DTO 생성 팩토리 메서드
-     */
-    private ProductListResponseDto.Products createPromotionProductDto(
-            Product product,
-            ProductVariant variant,
-            ProductPromotion promotion,
-            String imageUrl,
-            boolean scraped) {
-
-        return ProductListResponseDto.Products.builder()
-                .productId(product.getId())
-                .productName(product.getName())
-                .productType(product.getType().toString())
-                .variantName(variant.getName())
-                .imageUrl(imageUrl)
-                .originalPrice(promotion.getOriginalPrice())
-                .discountPrice(promotion.getDiscountPrice())
-                .discountRate(promotion.getRate())
-                .availableQuantity(promotion.getAvailableQuantity())
-                .promotionEndAt(promotion.getEndAt())
-                .promotion(true)
-                .scraped(scraped)
-                .createdAt(new KstDateTime(product.getCreatedAt()))
-                .build();
-    }
-
-    private ProductListResponseDto.Products convertToProductListDto(Product product, Long userId, boolean isPromotionProduct) {
-        // 공통 데이터 추출
-        ProductVariant firstVariant = getFirstActiveVariant(product);
-        String imageUrl = getFirstImageUrl(firstVariant);
-        boolean scrapped = isProductScrapped(userId, product.getId());
-
-        if (isPromotionProduct) {
-            ProductPromotion activePromotion = getActivePromotion(firstVariant);
-            return createPromotionProductDto(product, firstVariant, activePromotion, imageUrl, scrapped);
-        } else {
-            return createRegularProductDto(product, firstVariant, imageUrl, scrapped);
-        }
-    }
-
     // == 헬퍼 메서드 ==
-    private ProductVariant getFirstActiveVariant(Product product) {
-        return product.getVariants().stream()
-                .filter(ProductVariant::isActive)
-                .min((v1, v2) -> Long.compare(v1.getId(), v2.getId()))
-                .orElseThrow(() -> new CustomException(ErrorCode.VARIANT_NOT_FOUND));
-    }
-
     private String getFirstImageUrl(ProductVariant variant) {
         return variant.getImages().stream()
                 .filter(img -> img.getSequence() == 1)
@@ -441,12 +374,5 @@ public class ProductServiceImpl implements ProductService {
     private boolean isProductScrapped(Long userId, Long variantId) {
         return (userId != null) &&
                 scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.SERVICE_PRODUCT, variantId);
-    }
-
-    private ProductPromotion getActivePromotion(ProductVariant variant) {
-        return variant.getPromotions().stream()
-                .filter(ProductPromotion::isActive)
-                .findFirst()
-                .orElseThrow(() -> new CustomException(ErrorCode.PROMOTION_NOT_FOUND));
     }
 }

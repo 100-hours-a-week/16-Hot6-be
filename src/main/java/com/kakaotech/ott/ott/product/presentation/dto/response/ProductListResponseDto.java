@@ -54,13 +54,11 @@ public class ProductListResponseDto {
         @JsonProperty("available_quantity")
         private final Integer availableQuantity;
 
-        @JsonFormat(timezone = "Asia/Seoul")
         @JsonProperty("promotion_start_at")
-        private final LocalDateTime promotionStartAt;
+        private final KstDateTime promotionStartAt;
 
-        @JsonFormat(timezone = "Asia/Seoul")
         @JsonProperty("promotion_end_at")
-        private final LocalDateTime promotionEndAt;
+        private final KstDateTime promotionEndAt;
 
         @JsonProperty("is_promotion")
         private final boolean promotion;
@@ -74,7 +72,7 @@ public class ProductListResponseDto {
         public Products(Long productId, String productName, String productType,
                         Long variantId, String variantName, String imageUrl,
                         Integer originalPrice, Integer discountPrice, BigDecimal discountRate,
-                        LocalDateTime promotionStartAt, LocalDateTime promotionEndAt, Integer availableQuantity,
+                        KstDateTime promotionStartAt, KstDateTime promotionEndAt, Integer availableQuantity,
                         boolean promotion, boolean scraped, LocalDateTime createdAt) {
             this.productId = productId;
             this.productName = productName;
@@ -85,7 +83,7 @@ public class ProductListResponseDto {
             this.originalPrice = originalPrice;
             this.discountPrice = discountPrice;
             this.discountRate = discountRate;
-            this.promotionStartAt =
+            this.promotionStartAt = promotionStartAt;
             this.promotionEndAt = promotionEndAt;
             this.availableQuantity = availableQuantity;
             this.promotion = promotion;
