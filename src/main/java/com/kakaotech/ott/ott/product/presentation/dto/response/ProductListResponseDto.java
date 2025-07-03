@@ -57,10 +57,10 @@ public class ProductListResponseDto {
         private final Integer availableQuantity;
 
         @JsonProperty("promotion_start_at")
-        private final LocalDateTime promotionStartAt;
+        private final KstDateTime promotionStartAt;
 
         @JsonProperty("promotion_end_at")
-        private final LocalDateTime promotionEndAt;
+        private final KstDateTime promotionEndAt;
 
         @JsonProperty("is_promotion")
         private final boolean promotion;
@@ -85,8 +85,8 @@ public class ProductListResponseDto {
             this.originalPrice = originalPrice;
             this.discountPrice = discountPrice;
             this.discountRate = discountRate;
-            this.promotionStartAt = promotionStartAt;
-            this.promotionEndAt = promotionEndAt;
+            this.promotionStartAt = promotionStartAt != null ? new KstDateTime(promotionStartAt) : null;
+            this.promotionEndAt = promotionEndAt != null ? new KstDateTime(promotionEndAt) : null;
             this.availableQuantity = availableQuantity;
             this.promotion = promotion;
             this.scraped = scraped;
