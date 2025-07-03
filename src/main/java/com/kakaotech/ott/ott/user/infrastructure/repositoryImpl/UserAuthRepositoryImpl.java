@@ -9,7 +9,10 @@ import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -35,5 +38,13 @@ public class UserAuthRepositoryImpl implements UserAuthRepository {
     public User save(User user) {
         UserEntity entity = UserEntity.from(user); // Domain → Entity 변환
         return userJpaRepository.save(entity).toDomain(); // 저장 후 Domain 반환
+    }
+
+    @Override
+    public List<User> findAllById(Collection<Long> userIds) {
+
+        return userJpaRepository.findAllById(userIds).stream()
+                .map(UserEntity::toDomain)
+                .collect(Collectors.toList());
     }
 }

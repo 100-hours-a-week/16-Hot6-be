@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -83,6 +85,57 @@ public class CommentServiceImpl implements CommentService {
 
     }
 
+//    @Override
+//    @Transactional(readOnly = true)
+//    public CommentListResponseDto findByPostIdCursor(Long userId, Long postId, Long lastCommentId, int size) {
+//        // 1) DB에서 댓글을 조회
+//        List<Comment> commentList = commentRepository.findByPostIdCursor(postId, lastCommentId, size + 1);
+//
+//        // 2) hasNext, 실제 반환할 개수, 새로운 lastCommentId 계산
+//        boolean hasNext = commentList.size() > size;
+//        if (hasNext) {
+//            commentList = commentList.subList(0, size);
+//        }
+//        Long newLastCommentId = commentList.isEmpty() ? null
+//                : commentList.get(commentList.size() - 1).getId();
+//
+//        // 3) 도메인 Comment → DTO 로 변환
+//        List<CommentListResponseDto.CommentResponseDto> commentDtos =
+//                commentList.stream()
+//                        .map(c -> {
+//                            // 작성자 정보 조회
+//                            User author = userAuthRepository.findById(c.getUserId());
+//
+//                            CommentListResponseDto.AuthorDto authorDto =
+//                                    new CommentListResponseDto.AuthorDto(
+//                                            author.isActive()
+//                                                    ? author.getNicknameCommunity()
+//                                                    : "알 수 없음",
+//                                            author.isActive()
+//                                                    ? author.getImagePath()
+//                                                    : basicProfile
+//                                    );
+//
+//                            boolean isOwner = c.getUserId().equals(userId);
+//
+//                            return new CommentListResponseDto.CommentResponseDto(
+//                                    c.getId(),
+//                                    c.getContent(),
+//                                    authorDto,
+//                                    new KstDateTime(c.getCreatedAt()),
+//                                    isOwner
+//                            );
+//                        })
+//                        .collect(Collectors.toList());
+//
+//        // 4) 페이지 정보 DTO 생성
+//        CommentListResponseDto.PageInfo pageInfo =
+//                new CommentListResponseDto.PageInfo(size, hasNext, newLastCommentId);
+//
+//        // 5) 최종 래핑하여 반환
+//        return new CommentListResponseDto(commentDtos, pageInfo);
+//    }
+
     @Override
     @Transactional(readOnly = true)
     public CommentListResponseDto findByPostIdCursor(Long userId, Long postId, Long lastCommentId, int size) {
@@ -97,12 +150,19 @@ public class CommentServiceImpl implements CommentService {
         Long newLastCommentId = commentList.isEmpty() ? null
                 : commentList.get(commentList.size() - 1).getId();
 
+        Set<Long> userIds = commentList.stream()
+                .map(Comment::getUserId)
+                .collect(Collectors.toSet());
+
+        Map<Long, User> userMap = userAuthRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, user -> user));
+
         // 3) 도메인 Comment → DTO 로 변환
         List<CommentListResponseDto.CommentResponseDto> commentDtos =
                 commentList.stream()
                         .map(c -> {
                             // 작성자 정보 조회
-                            User author = userAuthRepository.findById(c.getUserId());
+                            User author = userMap.get(c.getUserId());
 
                             CommentListResponseDto.AuthorDto authorDto =
                                     new CommentListResponseDto.AuthorDto(
