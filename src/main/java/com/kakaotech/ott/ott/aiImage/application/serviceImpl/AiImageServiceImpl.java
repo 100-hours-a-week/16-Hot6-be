@@ -20,6 +20,7 @@ import com.kakaotech.ott.ott.aiImage.application.service.AiImageService;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.*;
 import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.ProductResponseDto;
+import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.RecommendedProductProjection;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
@@ -99,6 +100,57 @@ public class AiImageServiceImpl implements AiImageService {
         return savedAiImage;
     }
 
+//    @Override
+//    @Transactional(readOnly = true)
+//    public AiImageAndProductResponseDto getAiImage(Long imageId, Long userId) {
+//        AiImage aiImage = aiImageRepository.findById(imageId)
+//                .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
+//                .toDomain();
+//
+//        if (!aiImage.getUserId().equals(userId)) {
+//            throw new CustomException(ErrorCode.USER_FORBIDDEN);
+//        }
+//
+//        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getPostId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), new KstDateTime(aiImage.getCreatedAt()));
+//
+//        if(aiImage.getState().equals(AiImageState.PENDING)) {
+//            return new AiImageAndProductResponseDto(aiImageResponseDto, null);
+//        } else if(aiImage.getState().equals(AiImageState.FAILED))
+//            throw new CustomException(ErrorCode.FAILED_GENERATING_IMAGE);
+//
+//        aiImageResponseDto.updateAfterImagePath(aiImage.getAfterImagePath());
+//
+//        List<AiImageRecommendedProduct> aiImageRecommendedProducts = aiImageRecommendedProductRepository.findByAiImageId(aiImage.getId());
+//
+//        if(aiImageRecommendedProducts.isEmpty()) {
+//            throw new CustomException(ErrorCode.DESK_PRODUCT_NOT_FOUND);
+//        }
+//
+//
+//        List<ProductResponseDto> productResponseDtos = aiImageRecommendedProducts.stream()
+//                .map(recommendedProduct -> {
+//
+//                    DeskProduct deskProduct = deskProductRepository.findById(recommendedProduct.getDeskProductId());
+//                    boolean isScrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.PRODUCT, deskProduct.getId());
+//
+//
+//                    return new ProductResponseDto(
+//                            deskProduct.getId(),
+//                            deskProduct.getName(),
+//                            deskProduct.getImagePath(),
+//                            deskProduct.getPrice(),
+//                            deskProduct.getPurchaseUrl(),
+//                            isScrapped,
+//                            recommendedProduct.getCenterX(),
+//                            recommendedProduct.getCenterY(),
+//                            deskProduct.getWeight()
+//                    );
+//                })
+//                .toList();
+//
+//        return new AiImageAndProductResponseDto(aiImageResponseDto, productResponseDtos);
+//    }
+
     @Override
     @Transactional(readOnly = true)
     public AiImageAndProductResponseDto getAiImage(Long imageId, Long userId) {
@@ -110,42 +162,40 @@ public class AiImageServiceImpl implements AiImageService {
             throw new CustomException(ErrorCode.USER_FORBIDDEN);
         }
 
-        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getPostId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), new KstDateTime(aiImage.getCreatedAt()));
+        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(
+                aiImage.getId(),
+                aiImage.getPostId(),
+                aiImage.getState(),
+                aiImage.getBeforeImagePath(),
+                aiImage.getAfterImagePath(),
+                new KstDateTime(aiImage.getCreatedAt())
+        );
 
-        if(aiImage.getState().equals(AiImageState.PENDING)) {
+        if (aiImage.getState() == AiImageState.PENDING) {
             return new AiImageAndProductResponseDto(aiImageResponseDto, null);
-        } else if(aiImage.getState().equals(AiImageState.FAILED))
+        } else if (aiImage.getState() == AiImageState.FAILED) {
             throw new CustomException(ErrorCode.FAILED_GENERATING_IMAGE);
+        }
 
-        aiImageResponseDto.updateAfterImagePath(aiImage.getAfterImagePath());
+        List<RecommendedProductProjection> projections =
+                aiImageRecommendedProductRepository.findWithProductAndScrap(aiImage.getId(), userId);
 
-        List<AiImageRecommendedProduct> aiImageRecommendedProducts = aiImageRecommendedProductRepository.findByAiImageId(aiImage.getId());
-
-        if(aiImageRecommendedProducts.isEmpty()) {
+        if (projections.isEmpty()) {
             throw new CustomException(ErrorCode.DESK_PRODUCT_NOT_FOUND);
         }
 
-
-        List<ProductResponseDto> productResponseDtos = aiImageRecommendedProducts.stream()
-                .map(recommendedProduct -> {
-
-                    DeskProduct deskProduct = deskProductRepository.findById(recommendedProduct.getDeskProductId());
-                    boolean isScrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.PRODUCT, deskProduct.getId());
-
-
-                    return new ProductResponseDto(
-                            deskProduct.getId(),
-                            deskProduct.getName(),
-                            deskProduct.getImagePath(),
-                            deskProduct.getPrice(),
-                            deskProduct.getPurchaseUrl(),
-                            isScrapped,
-                            recommendedProduct.getCenterX(),
-                            recommendedProduct.getCenterY(),
-                            deskProduct.getWeight()
-                    );
-                })
-                .toList();
+        List<ProductResponseDto> productResponseDtos = projections.stream()
+                .map(p -> new ProductResponseDto(
+                        p.getProductId(),
+                        p.getProductName(),
+                        p.getImagePath(),
+                        p.getPrice(),
+                        p.getPurchaseUrl(),
+                        p.getIsScrapped(),
+                        p.getCenterX(),
+                        p.getCenterY(),
+                        p.getWeight()
+                )).toList();
 
         return new AiImageAndProductResponseDto(aiImageResponseDto, productResponseDtos);
     }

@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.product.domain.model;
 
 import lombok.AllArgsConstructor;
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -33,6 +35,11 @@ public class ProductPromotion {
     private int maxPerCustomer;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public void isAvailableForPurchase(LocalDateTime now) {
+        if (now.isBefore(this.startAt))
+            throw new CustomException(ErrorCode.SALE_NOT_STARTED);
+    }
 
     // 판매 가능 수량 (총 수량 - 예약수량 - 판매수량)
     public int getAvailableQuantity() {

@@ -10,10 +10,12 @@ import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PopularSetupDto;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
 import com.kakaotech.ott.ott.product.domain.model.*;
+import com.kakaotech.ott.ott.product.domain.repository.*;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductGetResponseDto;
 import com.kakaotech.ott.ott.product.presentation.dto.response.ProductListResponseDto;
 import com.kakaotech.ott.ott.product.presentation.dto.response.PromotionProductsDto;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
+import com.kakaotech.ott.ott.scrap.domain.repository.ScrapQueryRepository;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.util.KstDateTime;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,10 +27,6 @@ import com.kakaotech.ott.ott.aiImage.application.serviceImpl.S3Uploader;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.product.application.service.ProductService;
-import com.kakaotech.ott.ott.product.domain.repository.ProductImageRepository;
-import com.kakaotech.ott.ott.product.domain.repository.ProductPromotionRepository;
-import com.kakaotech.ott.ott.product.domain.repository.ProductRepository;
-import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
 import com.kakaotech.ott.ott.product.presentation.dto.request.ProductCreateRequestDto;
 import com.kakaotech.ott.ott.product.presentation.dto.request.PromotionDto;
 import com.kakaotech.ott.ott.product.presentation.dto.request.VariantDto;
@@ -45,13 +43,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
-    private final UserAuthRepository userAuthRepository;
     private final ProductRepository productRepository;
     private final ProductVariantRepository variantRepository;
     private final ProductImageRepository imageRepository;
     private final ProductPromotionRepository promotionRepository;
     private final ScrapRepository scrapRepository;
     private final S3Uploader s3Uploader;
+    private final ProductVariantQueryRepository productVariantQueryRepository;
+    private final ScrapQueryRepository scrapQueryRepository;
 
     @Value("${cloud.aws.s3.base-url}")
     private String baseUrl;
@@ -118,39 +117,60 @@ public class ProductServiceImpl implements ProductService {
         return productGetResponseDto;
     }
 
+//    @Override
+//    @Transactional(readOnly = true)
+//    public ProductListResponseDto getProductList(Long userId, ProductType productType, PromotionType promotionType,
+//                                                 Long lastVariantId, int size) {
+//        // 상품 목록 조회
+//        List<ProductListResponseDto.Products> productDtos;
+//        List<ProductVariant> variants;
+//        if (promotionType != null) {
+//            // 특가 상품 조회
+//            variants = variantRepository.findPromotionVariantsByCursor(promotionType, lastVariantId, size);
+//        } else {
+//            // 일반 상품 조회
+//            variants = variantRepository.findNormalVariantsByCursor(productType, lastVariantId, size);
+//        }
+//
+//        // Variant를 DTO로 변환
+//        productDtos = variants.stream()
+//                .map(variant -> convertVariantToProductListDto(variant, userId, promotionType != null))
+//                .collect(Collectors.toList());
+//
+//        // 페이지네이션 정보
+//        boolean hasNext = productDtos.size() == size;
+//        Long nextLastVariantId = hasNext && !productDtos.isEmpty()
+//                ? variants.get(variants.size() - 1).getId()
+//                : null;
+//
+//        ProductListResponseDto.Pagination pagination = new ProductListResponseDto.Pagination(
+//                size, nextLastVariantId, hasNext);
+//
+//        return ProductListResponseDto.builder()
+//                .products(productDtos)
+//                .pagination(pagination)
+//                .build();
+//    }
+
     @Override
     @Transactional(readOnly = true)
     public ProductListResponseDto getProductList(Long userId, ProductType productType, PromotionType promotionType,
                                                  Long lastVariantId, int size) {
-        // 상품 목록 조회
-        List<ProductListResponseDto.Products> productDtos;
-        List<ProductVariant> variants;
-        if (promotionType != null) {
-            // 특가 상품 조회
-            variants = variantRepository.findPromotionVariantsByCursor(promotionType, lastVariantId, size);
-        } else {
-            // 일반 상품 조회
-            variants = variantRepository.findNormalVariantsByCursor(productType, lastVariantId, size);
-        }
 
-        // Variant를 DTO로 변환
-        productDtos = variants.stream()
-                .map(variant -> convertVariantToProductListDto(variant, userId, promotionType != null))
-                .collect(Collectors.toList());
+        ProductListResponseDto dto = productVariantQueryRepository
+                .findProductListByCursor(userId, productType, promotionType, lastVariantId, size);
 
-        // 페이지네이션 정보
-        boolean hasNext = productDtos.size() == size;
-        Long nextLastVariantId = hasNext && !productDtos.isEmpty()
-                ? variants.get(variants.size() - 1).getId()
-                : null;
+        List<Long> variantIds = dto.getProducts().stream()
+                .map(ProductListResponseDto.Products::getVariantId)
+                .toList();
 
-        ProductListResponseDto.Pagination pagination = new ProductListResponseDto.Pagination(
-                size, nextLastVariantId, hasNext);
+        Map<Long, Boolean> scrapMap = scrapQueryRepository.findScrapMapByUserIdAndVariantIds(userId, variantIds);
 
-        return ProductListResponseDto.builder()
-                .products(productDtos)
-                .pagination(pagination)
-                .build();
+        dto.getProducts().forEach(p ->
+                p.setScraped(scrapMap.getOrDefault(p.getVariantId(), false))
+        );
+
+        return dto;
     }
 
     @Override
