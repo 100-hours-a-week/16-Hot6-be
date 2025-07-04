@@ -190,7 +190,7 @@ public class ProductServiceImpl implements ProductService {
                 .map(product -> new PromotionProductsDto(
                         product.getVariantId(),
                         product.getName(),
-                        Optional.ofNullable(productImageMap.get(product.getId()))
+                        Optional.ofNullable(productImageMap.get(product.getVariantId()))
                                 .map(ProductImage::getImageUuid)
                                 .orElse(""),
                         product.getDiscountPrice(),
