@@ -51,6 +51,6 @@ public interface ProductPromotionJpaRepository extends JpaRepository<ProductProm
 
     @Query("SELECT p FROM ProductPromotionEntity p " +
             "WHERE p.endAt <= :now " +
-            "AND p.status <> 'ACTIVE'")
+            "AND p.status <> 'ENDED'")
     List<ProductPromotionEntity> findProductsToAutoEnded(@Param("now") LocalDateTime now);
 }

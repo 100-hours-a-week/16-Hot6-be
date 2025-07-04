@@ -36,7 +36,7 @@ public class PostAllResponseDto {
     @AllArgsConstructor
     public static class PostAuthorResponseDto {
         private final String nickname;
-        private final String profileImage;
+        private final String profileImageUrl;
     }
 
     @Getter
