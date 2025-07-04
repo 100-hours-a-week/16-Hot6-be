@@ -176,19 +176,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<PromotionProductsDto> getTodayPromotionProducts(Long userId) {
-        // 상위 7개 게시글 조회 (단일 조회)
+
         List<ProductPromotion> popularProducts = promotionRepository.findActivePromotions(LocalDateTime.now());
         List<Long> variantIds = popularProducts.stream().map(ProductPromotion::getVariantId).collect(Collectors.toList());
 
-        // AI 이미지 Batch 조회 (Domain Repository)
         Map<Long, ProductImage> productImageMap = imageRepository.findByVariantIdIn(variantIds);
 
-        // Scrap 여부 Batch 조회 (Domain Repository)
         Set<Long> scrappedProductIds = (userId != null)
                 ? new HashSet<>(scrapRepository.findScrappedServiceProductIds(userId, variantIds))
                 : Collections.emptySet();
 
-        // PopularSetupDto 생성
         return popularProducts.stream()
                 .map(product -> new PromotionProductsDto(
                         product.getVariantId(),
