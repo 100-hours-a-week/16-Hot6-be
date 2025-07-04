@@ -31,7 +31,6 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
     private final QProductImageEntity image = QProductImageEntity.productImageEntity;
     private final QProductPromotionEntity promotion = QProductPromotionEntity.productPromotionEntity;
 
-
     @Override
     public ProductListResponseDto findProductListByCursor(Long userId, ProductType productType, PromotionType promotionType, Long lastVariantId, int size) {
 
@@ -88,35 +87,29 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
     private BooleanExpression[] buildWhereConditions(ProductType productType,
                                                      PromotionType promotionType,
                                                      Long lastVariantId) {
-
-        return new BooleanExpression[] {
+        return new BooleanExpression[]{
                 productTypeEq(productType),
-                promotionTypeEq(promotionType),
-                promotionIsActiveOrSoldOut(),
+                promotionTypeConditional(promotionType),
                 lastVariantIdLt(lastVariantId)
         };
     }
+
     private BooleanExpression productTypeEq(ProductType productType) {
         return productType != null ? product.type.eq(productType) : null;
     }
 
-    private BooleanExpression promotionTypeEq(PromotionType promotionType) {
+    private BooleanExpression promotionTypeConditional(PromotionType promotionType) {
         if (promotionType != null) {
-            return promotion.type.eq(promotionType);
+            return promotion.type.eq(promotionType)
+                    .and(promotion.status.in(PromotionStatus.ACTIVE, PromotionStatus.SOLD_OUT))
+                    .and(promotion.startAt.before(LocalDateTime.now()))
+                    .and(promotion.endAt.after(LocalDateTime.now()));
         } else {
-            // promotionType이 null일 때는 promotion이 없는 상품만 조회
-            return promotion.id.isNull();
+            return promotion.id.isNull(); // 일반 상품만 조회
         }
-    }
-
-    private BooleanExpression promotionIsActiveOrSoldOut() {
-        return promotion.status.in(PromotionStatus.ACTIVE, PromotionStatus.SOLD_OUT)
-                .and(promotion.startAt.before(LocalDateTime.now()))
-                .and(promotion.endAt.after(LocalDateTime.now()));
     }
 
     private BooleanExpression lastVariantIdLt(Long lastVariantId) {
         return lastVariantId != null ? variant.id.lt(lastVariantId) : null;
     }
-
 }
