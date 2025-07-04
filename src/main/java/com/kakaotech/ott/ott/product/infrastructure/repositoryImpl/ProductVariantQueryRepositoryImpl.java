@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.product.infrastructure.repositoryImpl;
 
 import com.kakaotech.ott.ott.product.domain.model.ProductType;
+import com.kakaotech.ott.ott.product.domain.model.PromotionStatus;
 import com.kakaotech.ott.ott.product.domain.model.PromotionType;
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantQueryRepository;
 import com.kakaotech.ott.ott.product.infrastructure.entity.QProductEntity;
@@ -16,6 +17,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -42,7 +44,9 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
                 .leftJoin(variant.promotions, promotion)
                 .where(buildWhereConditions(productType, promotionType, lastVariantId))
                 .groupBy(variant.id, product.id, promotion.id)
-                .orderBy(variant.id.desc())
+                .orderBy(promotionType != null ?
+                        promotion.endAt.asc().nullsLast() :
+                        variant.id.desc())
                 .limit(size)
                 .fetch();
 
@@ -88,6 +92,7 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
         return new BooleanExpression[] {
                 productTypeEq(productType),
                 promotionTypeEq(promotionType),
+                promotionIsActiveOrSoldOut(),
                 lastVariantIdLt(lastVariantId)
         };
     }
@@ -102,6 +107,12 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
             // promotionType이 null일 때는 promotion이 없는 상품만 조회
             return promotion.id.isNull();
         }
+    }
+
+    private BooleanExpression promotionIsActiveOrSoldOut() {
+        return promotion.status.in(PromotionStatus.ACTIVE, PromotionStatus.SOLD_OUT)
+                .and(promotion.startAt.before(LocalDateTime.now()))
+                .and(promotion.endAt.after(LocalDateTime.now()));
     }
 
     private BooleanExpression lastVariantIdLt(Long lastVariantId) {
