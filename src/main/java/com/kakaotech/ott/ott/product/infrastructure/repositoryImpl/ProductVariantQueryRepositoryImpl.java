@@ -102,7 +102,6 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
         if (promotionType != null) {
             return promotion.type.eq(promotionType)
                     .and(promotion.status.in(PromotionStatus.ACTIVE, PromotionStatus.SOLD_OUT))
-                    .and(promotion.startAt.before(LocalDateTime.now()))
                     .and(promotion.endAt.after(LocalDateTime.now()));
         } else {
             return promotion.id.isNull(); // 일반 상품만 조회
