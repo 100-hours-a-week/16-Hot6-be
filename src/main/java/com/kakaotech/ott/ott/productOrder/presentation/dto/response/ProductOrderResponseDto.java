@@ -1,6 +1,5 @@
 package com.kakaotech.ott.ott.productOrder.presentation.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrderStatus;
 import com.kakaotech.ott.ott.util.KstDateTime;
@@ -10,7 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @NoArgsConstructor

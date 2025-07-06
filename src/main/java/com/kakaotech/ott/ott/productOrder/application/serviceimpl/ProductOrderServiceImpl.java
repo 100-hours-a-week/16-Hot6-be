@@ -2,8 +2,8 @@ package com.kakaotech.ott.ott.productOrder.application.serviceimpl;
 
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.orderItem.domain.model.CancelReason;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
-import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemQueryRepository;
 import com.kakaotech.ott.ott.payment.domain.model.Payment;
 import com.kakaotech.ott.ott.payment.domain.model.PaymentMethod;
@@ -58,126 +58,24 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     private final PaymentRepository paymentRepository;
     private final OrderItemQueryRepository orderItemQueryRepository;
 
-    // 주문 요청 들어오면 해당 상품 id값을 조회하여
     @Override
     @Transactional
     public ProductOrderResponseDto create(ProductOrderRequestDto productOrderRequestDto, Long userId) {
 
         User user = checkUser(userId);
 
-        // 중복 주문인지 확인(주문 상품 조합으로 확인)
         String fingerprint = OrderFingerprintUtil.generateFingerprint(productOrderRequestDto.getProducts());
-        boolean exists = productOrderRepository.existsByUserIdAndFingerprint(userId, fingerprint);
+        validateDuplicateOrder(userId, fingerprint);
 
-        if(exists) {
-            throw new CustomException(ErrorCode.ALREADY_ORDERED);
-        }
+        List<OrderItem> orderItems = createOrderItems(productOrderRequestDto);
+        int totalAmount = calculateTotalAmount(orderItems);
+        int discountAmount = calculateTotalDiscount(orderItems);
 
-        List<OrderItem> orderItems = new ArrayList<>();
-        int totalAmount = 0;
-        int orderDiscountAmount = 0;
+        ProductOrder order = saveProductOrder(userId, totalAmount, discountAmount, fingerprint, user);
+        saveOrderItems(order, orderItems);
 
-        for(ProductOrderRequestDto.ServiceProductDto serviceProduct : productOrderRequestDto.getProducts()) {
-
-            Long variantId = serviceProduct.getVariantId();
-            int quantity = serviceProduct.getQuantity();
-            int productDiscountAmount = 0;
-            int productDiscountPrice = 0;
-            Long promotionId = null;
-
-            ProductVariant productVariant = productVariantRepository.findById(variantId);
-            totalAmount += productVariant.getPrice() * quantity;
-
-            if (productVariant.isOnPromotion()) {
-                ProductPromotion productPromotion = productPromotionRepository.findByVariantIdAndStatus(productVariant.getId(), PromotionStatus.ACTIVE);
-                productPromotion.isAvailableForPurchase(LocalDateTime.now());
-                productPromotion.reservePromotionStock(serviceProduct.getQuantity());
-                productPromotionRepository.update(productPromotion);
-
-                promotionId = productPromotion.getId();
-
-                // 할인 금액 특가일 때만 계산
-                productDiscountPrice = productPromotion.getDiscountPrice();
-                productDiscountAmount = productVariant.getPrice() - productDiscountPrice;
-                orderDiscountAmount += productDiscountAmount * quantity;
-
-
-            } else {
-                productVariant.reserveStock(quantity);
-
-                productVariantRepository.update(productVariant);
-            }
-
-            OrderItem orderItem = OrderItem.createOrderItem(null, variantId, promotionId, productVariant.getPrice() * quantity,
-                    quantity, productDiscountAmount * quantity, productDiscountPrice != 0 ? productDiscountPrice * quantity : productVariant.getPrice() * quantity);
-            orderItems.add(orderItem);
-
-
-        }
-
-        // 주문 생성
-        ProductOrder productOrder = ProductOrder.createOrder(userId, totalAmount, orderDiscountAmount, fingerprint);
-        ProductOrder savedProductOrder = productOrderRepository.save(productOrder, user);
-
-        List<ProductOrderResponseDto.ServiceProductDto> serviceProductDtos = new ArrayList<>();
-        for (OrderItem orderItem : orderItems) {
-            orderItem.setOrderId(savedProductOrder.getId());
-            orderItemRepository.save(orderItem);
-            serviceProductDtos.add(new ProductOrderResponseDto.ServiceProductDto(orderItem.getOrderId(), orderItem.getPromotionId(), orderItem.getOriginalPrice(), orderItem.getQuantity(), orderItem.getDiscountAmount()));
-        }
-
-        return new ProductOrderResponseDto(
-                savedProductOrder.getId(),
-                serviceProductDtos,
-                totalAmount,
-                savedProductOrder.getStatus(),
-                new KstDateTime(savedProductOrder.getOrderedAt()));
+        return buildOrderResponse(order, orderItems);
     }
-
-//    @Override
-//    @Transactional(readOnly = true)
-//    public MyProductOrderHistoryListResponseDto getProductOrderHistory(Long userId, Long lastId, int size) {
-//
-//        User user = userRepository.findById(userId);
-//
-//        user.checkVerifiedUser();
-//
-//        Slice<ProductOrder> orders = productOrderRepository.findAllByUserId(userId, lastId, size);
-//
-//        List<MyProductOrderHistoryResponseDto> dtoList = orders.stream().map(order -> {
-//            List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(order.getId());
-//            List<MyProductOrderHistoryResponseDto.ProductDto> products = orderItems.stream()
-//                    .map(item -> {
-//                        ProductVariant productVariant = productVariantRepository.findById(item.getVariantsId());
-//                        ProductImage productImage = productImageRepository.findMainImage(productVariant.getProductId());
-//
-//                        return MyProductOrderHistoryResponseDto.ProductDto.builder()
-//                                .productId(productVariant.getId())
-//                                .status(item.getStatus().name())
-//                                .productName(productVariant.getName()) // TODO: 실제 값으로 교체
-//                                .quantity(item.getQuantity())
-//                                .amount(item.getFinalPrice()/item.getQuantity())
-//                                .imagePath(productImage.getImageUuid()) // TODO: 실제 값으로 교체
-//                                .build();
-//                    })
-//                    .toList();
-//
-//            return MyProductOrderHistoryResponseDto.builder()
-//                    .orderId(order.getId())
-//                    .orderStatus(order.getStatus())
-//                    .orderedAt(new KstDateTime(order.getOrderedAt()))
-//                    .products(products)
-//                    .build();
-//        }).toList();
-//
-//        boolean hasNext = dtoList.size() == size;
-//        Long lastOrderId = hasNext ? dtoList.get(dtoList.size() - 1).getOrderId() : null;
-//
-//        return MyProductOrderHistoryListResponseDto.builder()
-//                .orders(dtoList)
-//                .pagination(new MyProductOrderHistoryListResponseDto.Pagination(size, lastOrderId, hasNext))
-//                .build();
-//    }
 
     @Override
     @Transactional(readOnly = true)
@@ -244,41 +142,14 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         User user = checkUser(userId);
 
-        ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
+        ProductOrder productOrder = getOrderWithUserCheck(userId, orderId);
         List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(orderId);
 
-        MyProductOrderResponseDto.OrderInfo orderInfo = new MyProductOrderResponseDto.OrderInfo(productOrder.getId(), productOrder.getStatus(), productOrder.getOrderNumber(), new KstDateTime(productOrder.getOrderedAt()));
+        int refundAmount = calculateRefundAmount(orderItems);
 
-        int refundAmount = orderItems.stream()
-                .mapToInt(OrderItem::getRefundAmount)
-                .sum();
+        List<MyProductOrderResponseDto.ProductInfo> productInfo = buildProductInfoList(orderItems);
 
-        List<MyProductOrderResponseDto.ProductInfo> productInfo = orderItems.stream()
-                .map(item -> {
-                        ProductVariant productVariant = productVariantRepository.findById(item.getVariantsId());
-                        ProductImage productImage = productImageRepository.findMainImage(productVariant.getProductId());
-
-                        return new MyProductOrderResponseDto.ProductInfo(
-                        item.getId(),
-                        productVariant.getId(),
-                        productVariant.getName(),
-                        item.getStatus(),
-                        productImage.getImageUuid(),
-                        item.getFinalPrice()/item.getQuantity(),
-                        item.getQuantity()
-                );
-                })
-                .toList();
-
-        int totalPrice = productOrder.getSubtotalAmount();
-        int discountAmount = productOrder.getDiscountAmount();
-        int paymentAmount = totalPrice - discountAmount;
-
-        MyProductOrderResponseDto.UserInfo userInfo = new MyProductOrderResponseDto.UserInfo(user.getNicknameKakao(), user.getEmail());
-        MyProductOrderResponseDto.PaymentInfo paymentInfo = new MyProductOrderResponseDto.PaymentInfo(PaymentMethod.POINT, totalPrice, paymentAmount, discountAmount);
-        MyProductOrderResponseDto.RefundInfo refundInfo = new MyProductOrderResponseDto.RefundInfo(PaymentMethod.POINT, refundAmount);
-
-        return new MyProductOrderResponseDto(orderInfo, productInfo, userInfo, paymentInfo, refundInfo);
+        return buildOrderDetailResponse(productOrder, productInfo, user, refundAmount);
     }
 
     @Override
@@ -287,7 +158,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         User user = checkUser(userId);
 
-        ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
+        ProductOrder productOrder = getOrderWithUserCheck(userId, orderId);
 
         productOrder.deleteOrder();
 
@@ -300,7 +171,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         User user = checkUser(userId);
 
-        ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
+        ProductOrder productOrder = getOrderWithUserCheck(userId, orderId);
         productOrder.confirm();
 
         List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(orderId);
@@ -322,47 +193,19 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         User user = checkUser(userId);
 
-        ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
+        ProductOrder productOrder = getOrderWithUserCheck(userId, orderId);
         productOrder.partialCancel();
 
-        List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(orderId);
-        List<OrderItem> cancelItems = new ArrayList<>(productOrderPartialCancelRequestDto.getOrderItemIds().size());
+        List<OrderItem> cancelItems = cancelItem(productOrder, productOrderPartialCancelRequestDto.getOrderItemIds(), productOrderPartialCancelRequestDto.getCancelReason());
+        int refundMoney = cancelItems.stream().mapToInt(OrderItem::getRefundAmount).sum();
 
-        int refundMoney = 0;
-
-        for (OrderItem item : orderItems) {
-            if (!item.getStatus().equals(OrderItemStatus.CONFIRMED) && !item.getStatus().equals(OrderItemStatus.CANCELED)) {
-
-                if (productOrderPartialCancelRequestDto.getOrderItemIds().contains(item.getId())) {
-                    item.cancel(productOrderPartialCancelRequestDto.getCancelReason(), LocalDateTime.now());
-                    refundMoney += item.getRefundAmount();
-
-                    cancelItems.add(item);
-                    ProductVariant productVariant = productVariantRepository.findById(item.getVariantsId());
-                    if (productVariant.isOnPromotion()) {
-                        ProductPromotion productPromotion = productPromotionRepository.findByVariantIdAndStatus(productVariant.getId(), PromotionStatus.ACTIVE);
-                        productPromotion.cancelPromotionSale(item.getQuantity());
-                        productPromotionRepository.update(productPromotion);
-                    } else {
-                        productVariant.cancelSale(item.getQuantity());
-                        productVariantRepository.update(productVariant);
-                    }
-                }
-            }
-
-        }
-
-        int balanceAmount = pointHistoryRepository.findLatestPointHistoryByUserId(userId).getBalanceAfter();
-        PointHistory pointHistory = PointHistory.createPointHistory(userId, refundMoney, balanceAmount + refundMoney, PointActionType.EARN, PointActionReason.PRODUCT_REFUND);
-        pointHistoryRepository.save(pointHistory, user);
-
+        refundPoint(user, refundMoney);
         orderItemRepository.cancelOrderItem(cancelItems);
 
         productOrderRepository.cancelProductOrder(productOrder, user);
 
         Payment payment = paymentRepository.findByProductOrderId(productOrder.getId());
-        payment.partialRefund(refundMoney, cancelItems.getFirst().getCanceledAt());
-        paymentRepository.refund(payment);
+        refundPayment(payment, refundMoney, cancelItems.getFirst().getCanceledAt());
     }
 
     @Override
@@ -371,40 +214,19 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
         User user = checkUser(userId);
 
-        ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
+        ProductOrder productOrder = getOrderWithUserCheck(userId, orderId);
         productOrder.cancel();
 
-        List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(orderId);
+        List<OrderItem> cancelItems = cancelItem(productOrder, null, productOrderCancelRequestDto.getCancelReason());
+        int refundMoney = cancelItems.stream().mapToInt(OrderItem::getRefundAmount).sum();
 
-        int refundMoney = 0;
-
-        for(OrderItem item : orderItems)
-            if(!item.getStatus().equals(OrderItemStatus.CANCELED) && !item.getStatus().equals(OrderItemStatus.CONFIRMED)) {
-                item.cancel(productOrderCancelRequestDto.getCancelReason(), LocalDateTime.now());
-                refundMoney += item.getRefundAmount();
-
-                if (item.getPromotionId() != null) {
-                    ProductPromotion productPromotion = productPromotionRepository.findById(item.getPromotionId());
-                    productPromotion.cancelPromotionSale(item.getQuantity());
-                    productPromotionRepository.update(productPromotion);
-                } else {
-                    ProductVariant productVariant = productVariantRepository.findById(item.getVariantsId());
-                    productVariant.cancelSale(item.getQuantity());
-                    productVariantRepository.update(productVariant);
-                }
-            }
-
-        int userPoint = pointHistoryRepository.findLatestPointHistoryByUserId(userId).getBalanceAfter();
-        PointHistory pointHistory = PointHistory.createPointHistory(userId, refundMoney, userPoint + refundMoney, PointActionType.EARN, PointActionReason.PRODUCT_REFUND);
-        pointHistoryRepository.save(pointHistory, user);
-
-        orderItemRepository.cancelOrderItem(orderItems);
+        refundPoint(user, refundMoney);
+        orderItemRepository.cancelOrderItem(cancelItems);
 
         productOrderRepository.cancelProductOrder(productOrder, user);
-        Payment payment = paymentRepository.findByProductOrderId(productOrder.getId());
-        payment.refund(payment.getPaymentAmount(), productOrder.getCanceledAt());
-        paymentRepository.refund(payment);
 
+        Payment payment = paymentRepository.findByProductOrderId(productOrder.getId());
+        refundPayment(payment, payment.getPaymentAmount(), productOrder.getCanceledAt());
     }
 
     private User checkUser(Long userId) {
@@ -412,6 +234,154 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         user.checkVerifiedUser();
 
         return user;
+    }
+
+    private ProductPromotion getActivePromotion(Long variantId) {
+        return productPromotionRepository.findByVariantIdAndStatus(variantId, PromotionStatus.ACTIVE);
+    }
+
+    private void restoreStock(OrderItem item) {
+        if(item.getPromotionId() != null) {
+            ProductPromotion promotion = productPromotionRepository.findById(item.getPromotionId());
+            promotion.cancelPromotionSale(item.getQuantity());
+            productPromotionRepository.update(promotion);
+        } else {
+            ProductVariant variant = productVariantRepository.findById(item.getVariantsId());
+            variant.cancelSale(item.getQuantity());
+            productVariantRepository.update(variant);
+        }
+    }
+
+    private List<OrderItem> cancelItem(ProductOrder order, List<Long> cancelItemIds, CancelReason reason) {
+        List<OrderItem> cancelItems = new ArrayList<>();
+
+        for (OrderItem item : orderItemRepository.findByProductOrderId(order.getId())) {
+            if (!item.getStatus().equals(OrderItemStatus.CANCELED) &&
+                !item.getStatus().equals(OrderItemStatus.CONFIRMED) &&
+                (cancelItemIds == null || cancelItemIds.contains(item.getId()))) {
+                item.cancel(reason, LocalDateTime.now());
+                restoreStock(item);
+                cancelItems.add(item);
+            }
+        }
+
+        return cancelItems;
+    }
+
+    private void refundPoint(User user, int refundAmount) {
+        int balance = pointHistoryRepository.findLatestPointHistoryByUserId(user.getId()).getBalanceAfter();
+        PointHistory pointHistory = PointHistory.createPointHistory(user.getId(), refundAmount, balance + refundAmount,
+                PointActionType.EARN, PointActionReason.PRODUCT_REFUND);
+        pointHistoryRepository.save(pointHistory, user);
+    }
+
+    private void refundPayment(Payment payment, int amount, LocalDateTime time) {
+        payment.refund(amount, time);
+        paymentRepository.refund(payment);
+    }
+
+    private void validateDuplicateOrder(Long userId, String fingerprint) {
+        if (productOrderRepository.existsByUserIdAndFingerprint(userId, fingerprint)) {
+            throw new CustomException(ErrorCode.ALREADY_ORDERED);
+        }
+    }
+
+    private List<OrderItem> createOrderItems(ProductOrderRequestDto dto) {
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        for (ProductOrderRequestDto.ServiceProductDto serviceProduct : dto.getProducts()) {
+            ProductVariant variant = productVariantRepository.findById(serviceProduct.getVariantId());
+            ProductPromotion promotion = null;
+
+            if (variant.isOnPromotion()) {
+                promotion = getActivePromotion(variant.getId());
+                promotion.isAvailableForPurchase(LocalDateTime.now());
+                promotion.reservePromotionStock(serviceProduct.getQuantity());
+                productPromotionRepository.update(promotion);
+            } else {
+                variant.reserveStock(serviceProduct.getQuantity());
+                productVariantRepository.update(variant);
+            }
+
+            OrderItem orderItem = OrderItem.createOrderItem(variant, promotion, null, serviceProduct.getQuantity());
+            orderItems.add(orderItem);
+        }
+
+        return orderItems;
+    }
+
+    private int calculateTotalAmount(List<OrderItem> items) {
+        return items.stream().mapToInt(OrderItem::getOriginalPrice).sum();
+    }
+
+    private int calculateTotalDiscount(List<OrderItem> items) {
+        return items.stream().mapToInt(OrderItem::getDiscountAmount).sum();
+    }
+
+    private ProductOrder saveProductOrder(Long userId, int totalAmount, int discountAmount, String fingerprint, User user) {
+        ProductOrder order = ProductOrder.createOrder(userId, totalAmount, discountAmount, fingerprint);
+        return productOrderRepository.save(order, user);
+    }
+
+    private void saveOrderItems(ProductOrder order, List<OrderItem> items) {
+        for (OrderItem item : items) {
+            item.setOrderId(order.getId());
+            orderItemRepository.save(item);
+        }
+    }
+
+    private ProductOrderResponseDto buildOrderResponse(ProductOrder order, List<OrderItem> items) {
+        List<ProductOrderResponseDto.ServiceProductDto> productDtos = items.stream()
+                .map(i -> new ProductOrderResponseDto.ServiceProductDto(
+                        i.getOrderId(),
+                        i.getPromotionId(),
+                        i.getOriginalPrice(),
+                        i.getQuantity(),
+                        i.getDiscountAmount()
+                ))
+                .toList();
+
+        return new ProductOrderResponseDto(
+                order.getId(),
+                productDtos,
+                order.getSubtotalAmount(),
+                order.getStatus(),
+                new KstDateTime(order.getOrderedAt())
+        );
+    }
+
+    private int calculateRefundAmount(List<OrderItem> items) {
+        return items.stream().mapToInt(OrderItem::getRefundAmount).sum();
+    }
+
+    private List<MyProductOrderResponseDto.ProductInfo> buildProductInfoList(List<OrderItem> items) {
+        return items.stream().map(item -> {
+            ProductVariant variant = productVariantRepository.findById(item.getVariantsId());
+            ProductImage image = productImageRepository.findMainImage(variant.getProductId());
+
+            return new MyProductOrderResponseDto.ProductInfo(
+                    item.getId(),
+                    variant.getId(),
+                    variant.getName(),
+                    item.getStatus(),
+                    image.getImageUuid(),
+                    item.getFinalPrice() / item.getQuantity(),
+                    item.getQuantity()
+            );
+        }).toList();
+    }
+
+    private MyProductOrderResponseDto buildOrderDetailResponse(ProductOrder productOrder, List<MyProductOrderResponseDto.ProductInfo> productInfoList, User user, int refundAmount) {
+        MyProductOrderResponseDto.OrderInfo orderInfo = new MyProductOrderResponseDto.OrderInfo(productOrder.getId(), productOrder.getStatus(), productOrder.getOrderNumber(), new KstDateTime(productOrder.getOrderedAt()));
+        MyProductOrderResponseDto.UserInfo userInfo = new MyProductOrderResponseDto.UserInfo(user.getNicknameKakao(), user.getEmail());
+        MyProductOrderResponseDto.PaymentInfo paymentInfo = new MyProductOrderResponseDto.PaymentInfo(PaymentMethod.POINT, productOrder.getSubtotalAmount(), productOrder.getSubtotalAmount() - productOrder.getDiscountAmount(), productOrder.getDiscountAmount());
+        MyProductOrderResponseDto.RefundInfo refundInfo = new MyProductOrderResponseDto.RefundInfo(PaymentMethod.POINT, refundAmount);
+
+        return new MyProductOrderResponseDto(orderInfo, productInfoList, userInfo, paymentInfo, refundInfo);
+    }
+
+    private ProductOrder getOrderWithUserCheck(Long userId, Long orderId) {
+        return productOrderRepository.findByIdAndUserId(orderId, userId);
     }
 
 }
