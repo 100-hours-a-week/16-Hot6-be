@@ -4,6 +4,7 @@ import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
+import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemQueryRepository;
 import com.kakaotech.ott.ott.payment.domain.model.Payment;
 import com.kakaotech.ott.ott.payment.domain.model.PaymentMethod;
 import com.kakaotech.ott.ott.payment.domain.repository.PaymentRepository;
@@ -39,6 +40,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -53,15 +56,14 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     private final ProductPromotionRepository productPromotionRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final PaymentRepository paymentRepository;
+    private final OrderItemQueryRepository orderItemQueryRepository;
 
-// 주문 요청 들어오면 해당 상품 id값을 조회하여
+    // 주문 요청 들어오면 해당 상품 id값을 조회하여
     @Override
     @Transactional
     public ProductOrderResponseDto create(ProductOrderRequestDto productOrderRequestDto, Long userId) {
 
-        User user = userRepository.findById(userId);
-
-        user.checkVerifiedUser();
+        User user = checkUser(userId);
 
         // 중복 주문인지 확인(주문 상품 조합으로 확인)
         String fingerprint = OrderFingerprintUtil.generateFingerprint(productOrderRequestDto.getProducts());
@@ -132,41 +134,99 @@ public class ProductOrderServiceImpl implements ProductOrderService {
                 new KstDateTime(savedProductOrder.getOrderedAt()));
     }
 
+//    @Override
+//    @Transactional(readOnly = true)
+//    public MyProductOrderHistoryListResponseDto getProductOrderHistory(Long userId, Long lastId, int size) {
+//
+//        User user = userRepository.findById(userId);
+//
+//        user.checkVerifiedUser();
+//
+//        Slice<ProductOrder> orders = productOrderRepository.findAllByUserId(userId, lastId, size);
+//
+//        List<MyProductOrderHistoryResponseDto> dtoList = orders.stream().map(order -> {
+//            List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(order.getId());
+//            List<MyProductOrderHistoryResponseDto.ProductDto> products = orderItems.stream()
+//                    .map(item -> {
+//                        ProductVariant productVariant = productVariantRepository.findById(item.getVariantsId());
+//                        ProductImage productImage = productImageRepository.findMainImage(productVariant.getProductId());
+//
+//                        return MyProductOrderHistoryResponseDto.ProductDto.builder()
+//                                .productId(productVariant.getId())
+//                                .status(item.getStatus().name())
+//                                .productName(productVariant.getName()) // TODO: 실제 값으로 교체
+//                                .quantity(item.getQuantity())
+//                                .amount(item.getFinalPrice()/item.getQuantity())
+//                                .imagePath(productImage.getImageUuid()) // TODO: 실제 값으로 교체
+//                                .build();
+//                    })
+//                    .toList();
+//
+//            return MyProductOrderHistoryResponseDto.builder()
+//                    .orderId(order.getId())
+//                    .orderStatus(order.getStatus())
+//                    .orderedAt(new KstDateTime(order.getOrderedAt()))
+//                    .products(products)
+//                    .build();
+//        }).toList();
+//
+//        boolean hasNext = dtoList.size() == size;
+//        Long lastOrderId = hasNext ? dtoList.get(dtoList.size() - 1).getOrderId() : null;
+//
+//        return MyProductOrderHistoryListResponseDto.builder()
+//                .orders(dtoList)
+//                .pagination(new MyProductOrderHistoryListResponseDto.Pagination(size, lastOrderId, hasNext))
+//                .build();
+//    }
+
     @Override
     @Transactional(readOnly = true)
     public MyProductOrderHistoryListResponseDto getProductOrderHistory(Long userId, Long lastId, int size) {
 
-        User user = userRepository.findById(userId);
-
-        user.checkVerifiedUser();
+        User user = checkUser(userId);
 
         Slice<ProductOrder> orders = productOrderRepository.findAllByUserId(userId, lastId, size);
+        List<ProductOrder> orderContent = orders.getContent();
 
-        List<MyProductOrderHistoryResponseDto> dtoList = orders.stream().map(order -> {
-            List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(order.getId());
-            List<MyProductOrderHistoryResponseDto.ProductDto> products = orderItems.stream()
-                    .map(item -> {
-                        ProductVariant productVariant = productVariantRepository.findById(item.getVariantsId());
-                        ProductImage productImage = productImageRepository.findMainImage(productVariant.getProductId());
-
-                        return MyProductOrderHistoryResponseDto.ProductDto.builder()
-                                .productId(productVariant.getId())
-                                .status(item.getStatus().name())
-                                .productName(productVariant.getName()) // TODO: 실제 값으로 교체
-                                .quantity(item.getQuantity())
-                                .amount(item.getFinalPrice()/item.getQuantity())
-                                .imagePath(productImage.getImageUuid()) // TODO: 실제 값으로 교체
-                                .build();
-                    })
-                    .toList();
-
-            return MyProductOrderHistoryResponseDto.builder()
-                    .orderId(order.getId())
-                    .orderStatus(order.getStatus())
-                    .orderedAt(new KstDateTime(order.getOrderedAt()))
-                    .products(products)
+        if (orderContent.isEmpty()) {
+            return MyProductOrderHistoryListResponseDto.builder()
+                    .orders(List.of())
+                    .pagination(new MyProductOrderHistoryListResponseDto.Pagination(size, null, false))
                     .build();
-        }).toList();
+        }
+
+        List<Long> orderIds = orderContent.stream()
+                .map(ProductOrder::getId)
+                .toList();
+
+        List<ProductInfoDto> productInfos = orderItemQueryRepository.findAllByOrderIds(orderIds);
+
+        Map<Long, List<ProductInfoDto>> productMap = productInfos.stream()
+                .collect(Collectors.groupingBy(ProductInfoDto::getOrderId));
+
+        List<MyProductOrderHistoryResponseDto> dtoList = orderContent.stream()
+                .map(order -> {
+                    List<ProductInfoDto> products = productMap.getOrDefault(order.getId(), List.of());
+
+                    List<MyProductOrderHistoryResponseDto.ProductDto> productInfoList = products.stream()
+                            .map(p -> MyProductOrderHistoryResponseDto.ProductDto.builder()
+                                    .productId(p.getProductId())
+                                    .status(p.getItemStatus())
+                                    .productName(p.getProductName())
+                                    .quantity(p.getQuantity())
+                                    .amount(p.getUnitPrice())
+                                    .imagePath(p.getImagePath())
+                                    .build())
+                            .toList();
+
+                    return MyProductOrderHistoryResponseDto.builder()
+                            .orderId(order.getId())
+                            .orderStatus(order.getStatus())
+                            .orderedAt(new KstDateTime(order.getOrderedAt()))
+                            .products(productInfoList)
+                            .build();
+                })
+                .toList();
 
         boolean hasNext = dtoList.size() == size;
         Long lastOrderId = hasNext ? dtoList.get(dtoList.size() - 1).getOrderId() : null;
@@ -182,9 +242,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Transactional(readOnly = true)
     public MyProductOrderResponseDto getProductOrder(Long userId, Long orderId) {
 
-        User user = userRepository.findById(userId);
-
-        user.checkVerifiedUser();
+        User user = checkUser(userId);
 
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
         List<OrderItem> orderItems = orderItemRepository.findByProductOrderId(orderId);
@@ -227,9 +285,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Transactional
     public void deleteProductOrder(Long userId, Long orderId) {
 
-        User user = userRepository.findById(userId);
-
-        user.checkVerifiedUser();
+        User user = checkUser(userId);
 
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
 
@@ -242,9 +298,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Transactional
     public ProductOrderConfirmResponseDto confirmProductOrder(Long userId, Long orderId) {
 
-        User user = userRepository.findById(userId);
-
-        user.checkVerifiedUser();
+        User user = checkUser(userId);
 
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
         productOrder.confirm();
@@ -266,9 +320,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Transactional
     public void partialCancelProductOrder(Long userId, Long orderId, ProductOrderPartialCancelRequestDto productOrderPartialCancelRequestDto) {
 
-        User user = userRepository.findById(userId);
-
-        user.checkVerifiedUser();
+        User user = checkUser(userId);
 
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
         productOrder.partialCancel();
@@ -317,9 +369,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     @Transactional
     public void cancelProductOrder(Long userId, Long orderId, ProductOrderCancelRequestDto productOrderCancelRequestDto) {
 
-        User user = userRepository.findById(userId);
-
-        user.checkVerifiedUser();
+        User user = checkUser(userId);
 
         ProductOrder productOrder = productOrderRepository.findByIdAndUserId(orderId, userId);
         productOrder.cancel();
@@ -355,6 +405,13 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         payment.refund(payment.getPaymentAmount(), productOrder.getCanceledAt());
         paymentRepository.refund(payment);
 
+    }
+
+    private User checkUser(Long userId) {
+        User user = userRepository.findById(userId);
+        user.checkVerifiedUser();
+
+        return user;
     }
 
 }
