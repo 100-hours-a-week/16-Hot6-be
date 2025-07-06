@@ -2,6 +2,8 @@ package com.kakaotech.ott.ott.orderItem.domain.model;
 
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
+import com.kakaotech.ott.ott.product.domain.model.ProductPromotion;
+import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -41,12 +43,26 @@ public class OrderItem {
 
     private LocalDateTime refundedAt;
 
-    public static OrderItem createOrderItem(Long orderId, Long variantsId, Long promotionId, int originalPrice, int quantity, int discountAmount, int finalPrice) {
+    public static OrderItem createOrderItem(ProductVariant variant, ProductPromotion promotion, Long orderId, int quantity) {
+
+        int unitPrice = variant.getPrice();
+        int originalPrice = unitPrice * quantity;
+        int discountAmount = 0;
+        int finalPrice = originalPrice;
+
+        Long promotionId = null;
+
+        if (promotion != null) {
+            int discountPrice = promotion.getDiscountPrice();
+            discountAmount = (unitPrice - discountPrice) * quantity;
+            finalPrice = discountPrice * quantity;
+            promotionId = promotion.getId();
+        }
 
         return OrderItem.builder()
                 .orderId(orderId)
-                .variantsId(variantsId)
-                .promotionId(promotionId != null ? promotionId : null) // 삼항 연산자 사용
+                .variantsId(variant.getId())
+                .promotionId(promotionId) // 삼항 연산자 사용
                 .status(OrderItemStatus.PENDING)
                 .originalPrice(originalPrice)
                 .quantity(quantity)
