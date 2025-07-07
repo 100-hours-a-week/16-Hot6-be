@@ -17,6 +17,10 @@ public class KstDateTime {
 
     @JsonValue // 이걸 붙이면 JSON 응답에서 문자열로 바로 직렬화됨!
     public String toKstString() {
+        if (this.utcDateTime == null) {
+            return null;
+        }
+
         return utcDateTime
                 .atZone(ZoneOffset.UTC)
                 .withZoneSameInstant(ZoneId.of("Asia/Seoul"))

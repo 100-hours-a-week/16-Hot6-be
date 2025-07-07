@@ -78,7 +78,7 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
                 promotion.startAt,
                 promotion.endAt,
                 variant.totalQuantity.subtract(variant.reservedQuantity).subtract(variant.soldQuantity),
-                promotion.id.isNotNull(),
+                variant.isOnPromotion,
                 Expressions.constant(false),
                 product.createdAt
         );
@@ -100,11 +100,11 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
 
     private BooleanExpression promotionTypeConditional(PromotionType promotionType) {
         if (promotionType != null) {
-            return promotion.type.eq(promotionType)
+            return variant.isOnPromotion.eq(true)
                     .and(promotion.status.in(PromotionStatus.ACTIVE, PromotionStatus.SOLD_OUT))
                     .and(promotion.endAt.after(LocalDateTime.now()));
         } else {
-            return promotion.id.isNull(); // 일반 상품만 조회
+            return variant.isOnPromotion.eq(false); // 일반 상품만 조회
         }
     }
 

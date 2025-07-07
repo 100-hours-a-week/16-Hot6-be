@@ -1,6 +1,5 @@
 package com.kakaotech.ott.ott.product.presentation.dto.response;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
@@ -10,8 +9,6 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.List;
 
 @Getter
@@ -62,7 +59,7 @@ public class ProductListResponseDto {
         @JsonProperty("promotion_end_at")
         private final KstDateTime promotionEndAt;
 
-        @JsonProperty("is_promotion")
+        @JsonProperty("is_on_promotion")
         private final boolean promotion;
 
         @JsonProperty("scraped")
@@ -83,10 +80,10 @@ public class ProductListResponseDto {
             this.variantName = variantName;
             this.imageUrl = imageUrl;
             this.originalPrice = originalPrice;
-            this.discountPrice = discountPrice;
-            this.discountRate = discountRate;
-            this.promotionStartAt = promotionStartAt != null ? new KstDateTime(promotionStartAt) : null;
-            this.promotionEndAt = promotionEndAt != null ? new KstDateTime(promotionEndAt) : null;
+            this.discountPrice = promotion ? discountPrice : null;
+            this.discountRate = promotion ? discountRate : null;
+            this.promotionStartAt = promotion ? (promotionStartAt != null ? new KstDateTime(promotionStartAt) : null) : null;
+            this.promotionEndAt = promotion ? (promotionEndAt != null ? new KstDateTime(promotionEndAt) : null) : null;
             this.availableQuantity = availableQuantity;
             this.promotion = promotion;
             this.scraped = scraped;

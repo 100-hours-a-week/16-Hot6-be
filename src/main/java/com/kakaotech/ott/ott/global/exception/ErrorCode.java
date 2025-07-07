@@ -102,7 +102,11 @@ public enum ErrorCode {
     PAYMENT_POINT_BALANCE(HttpStatus.BAD_REQUEST, "결제 금액이 부족합니다."),
 
     // PAYMENT
-    PAYMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "결제한 내역이 존재하지 않습니다.");
+    PAYMENT_NOT_FOUND(HttpStatus.BAD_REQUEST, "결제한 내역이 존재하지 않습니다."),
+
+    // promotion
+    PROMOTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 진행 중인 특가가 존재합니다."),
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작시간은 종료시간보다 이전이어야 합니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
