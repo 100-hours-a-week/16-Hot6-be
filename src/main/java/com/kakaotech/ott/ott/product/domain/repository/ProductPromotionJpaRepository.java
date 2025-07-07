@@ -30,7 +30,7 @@ public interface ProductPromotionJpaRepository extends JpaRepository<ProductProm
     List<ProductPromotionEntity> findActivePromotions(@Param("now") LocalDateTime now);
 
     // 현재 진행 중인 품목 특가 조회
-    @Query("SELECT p FROM ProductPromotionEntity p WHERE p.variantEntity = :variantId AND p.status = 'ACTIVE' AND p.startAt <= :now AND p.endAt > :now")
+    @Query("SELECT p FROM ProductPromotionEntity p WHERE p.variantEntity.id = :variantId AND p.status IN ('ACTIVE', 'SOLD_OUT') AND p.startAt <= :now AND p.endAt > :now")
     Optional<ProductPromotionEntity> findCurrentPromotion(@Param("variantId") Long variantId, @Param("now") LocalDateTime now);
 
     // 만료된 특가 조회

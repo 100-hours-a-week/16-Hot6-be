@@ -60,7 +60,7 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     @Override
     public ProductVariant update(ProductVariant variant) {
         ProductVariantEntity entity = productVariantJpaRepository.findById(variant.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
+                .orElseThrow(() -> new CustomException(ErrorCode.VARIANT_NOT_FOUND));
 
         // 품목 정보 업데이트
         entity.setStatus(variant.getStatus());
@@ -78,7 +78,7 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository {
     @Override
     public void delete(Long variantId) {
         ProductVariantEntity entity = productVariantJpaRepository.findById(variantId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND)); // 적절한 에러코드로 변경 필요
+                .orElseThrow(() -> new CustomException(ErrorCode.VARIANT_NOT_FOUND));
 
         productVariantJpaRepository.delete(entity);
     }

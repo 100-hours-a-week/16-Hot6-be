@@ -34,19 +34,6 @@ public class ProductPromotionRepositoryImpl implements ProductPromotionRepositor
         ProductVariantEntity variantEntity = productVariantJpaRepository.findById(promotion.getVariantId())
                 .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        // 특가 기간 검증
-        if (promotion.getEndAt().isBefore(promotion.getStartAt())) {
-            throw new IllegalArgumentException("특가 종료일은 시작일보다 늦어야 합니다.");
-        }
-
-        // 동일 기간에 진행 중인 특가가 있는지 확인
-        Optional<ProductPromotionEntity> existingPromotion = productPromotionJpaRepository
-                .findCurrentPromotion(promotion.getVariantId(), LocalDateTime.now());
-
-        if (existingPromotion.isPresent() && promotion.getId() == null) {
-            throw new IllegalArgumentException("해당 품목에 이미 진행 중인 특가가 있습니다.");
-        }
-
         ProductPromotionEntity entity = ProductPromotionEntity.from(promotion, variantEntity);
         ProductPromotionEntity savedEntity = productPromotionJpaRepository.save(entity);
 
@@ -131,10 +118,9 @@ public class ProductPromotionRepositoryImpl implements ProductPromotionRepositor
 
     @Override
     @Transactional(readOnly = true)
-    public ProductPromotion findCurrentPromotion(Long variantId, LocalDateTime now) {
+    public Optional<ProductPromotion> findCurrentPromotion(Long variantId, LocalDateTime now) {
         return productPromotionJpaRepository.findCurrentPromotion(variantId, now)
-                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND))    // TODO: ErrorCode 재설정
-                .toDomain();
+                .map(ProductPromotionEntity::toDomain);
     }
 
     @Override

@@ -30,7 +30,7 @@ public interface ProductPromotionRepository {
     List<ProductPromotion> findActivePromotions(LocalDateTime now);
 
     // 비즈니스 메서드들
-    ProductPromotion findCurrentPromotion(Long variantId, LocalDateTime now);
+    Optional<ProductPromotion> findCurrentPromotion(Long variantId, LocalDateTime now);
 
     List<ProductPromotion> findExpiredPromotions(LocalDateTime now);
 
