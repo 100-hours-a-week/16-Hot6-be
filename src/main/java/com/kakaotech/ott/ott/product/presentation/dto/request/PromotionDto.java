@@ -25,7 +25,7 @@ public class PromotionDto {
     private Integer discountPrice;
 
     @NotNull(message = "총 재고는 필수입니다")
-    @Min(value = 0, message = "총 재고는 0 이상이어야 합니다")
+    @Min(value = 1, message = "총 재고는 1개 이상이어야 합니다")
     private Integer totalQuantity;
 
     @NotNull(message = "시작 시간은 필수입니다")
