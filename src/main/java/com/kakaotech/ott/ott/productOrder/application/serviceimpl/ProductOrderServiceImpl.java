@@ -87,52 +87,14 @@ public class ProductOrderServiceImpl implements ProductOrderService {
         List<ProductOrder> orderContent = orders.getContent();
 
         if (orderContent.isEmpty()) {
-            return MyProductOrderHistoryListResponseDto.builder()
-                    .orders(List.of())
-                    .pagination(new MyProductOrderHistoryListResponseDto.Pagination(size, null, false))
-                    .build();
+            return buildEmptyOrderHistory(size);
         }
 
-        List<Long> orderIds = orderContent.stream()
-                .map(ProductOrder::getId)
-                .toList();
+        Map<Long, List<ProductInfoDto>> productMap = getGroupedProductInfos(orderContent);
 
-        List<ProductInfoDto> productInfos = orderItemQueryRepository.findAllByOrderIds(orderIds);
+        List<MyProductOrderHistoryResponseDto> orderDtos = mapToOrderHistoryDtos(orderContent, productMap);
 
-        Map<Long, List<ProductInfoDto>> productMap = productInfos.stream()
-                .collect(Collectors.groupingBy(ProductInfoDto::getOrderId));
-
-        List<MyProductOrderHistoryResponseDto> dtoList = orderContent.stream()
-                .map(order -> {
-                    List<ProductInfoDto> products = productMap.getOrDefault(order.getId(), List.of());
-
-                    List<MyProductOrderHistoryResponseDto.ProductDto> productInfoList = products.stream()
-                            .map(p -> MyProductOrderHistoryResponseDto.ProductDto.builder()
-                                    .productId(p.getProductId())
-                                    .status(p.getItemStatus())
-                                    .productName(p.getProductName())
-                                    .quantity(p.getQuantity())
-                                    .amount(p.getUnitPrice())
-                                    .imagePath(p.getImagePath())
-                                    .build())
-                            .toList();
-
-                    return MyProductOrderHistoryResponseDto.builder()
-                            .orderId(order.getId())
-                            .orderStatus(order.getStatus())
-                            .orderedAt(new KstDateTime(order.getOrderedAt()))
-                            .products(productInfoList)
-                            .build();
-                })
-                .toList();
-
-        boolean hasNext = dtoList.size() == size;
-        Long lastOrderId = hasNext ? dtoList.get(dtoList.size() - 1).getOrderId() : null;
-
-        return MyProductOrderHistoryListResponseDto.builder()
-                .orders(dtoList)
-                .pagination(new MyProductOrderHistoryListResponseDto.Pagination(size, lastOrderId, hasNext))
-                .build();
+        return buildOrderHistoryResponse(orderDtos, size);
     }
 
 
@@ -382,6 +344,53 @@ public class ProductOrderServiceImpl implements ProductOrderService {
 
     private ProductOrder getOrderWithUserCheck(Long userId, Long orderId) {
         return productOrderRepository.findByIdAndUserId(orderId, userId);
+    }
+
+    private Map<Long, List<ProductInfoDto>> getGroupedProductInfos(List<ProductOrder> orders) {
+        List<Long> orderIds = orders.stream().map(ProductOrder::getId).toList();
+        List<ProductInfoDto> productInfos = orderItemQueryRepository.findAllByOrderIds(orderIds);
+        return productInfos.stream().collect(Collectors.groupingBy(ProductInfoDto::getOrderId));
+    }
+
+    private List<MyProductOrderHistoryResponseDto> mapToOrderHistoryDtos(List<ProductOrder> orders, Map<Long, List<ProductInfoDto>> productMap) {
+        return orders.stream()
+                .map(order -> {
+                    List<MyProductOrderHistoryResponseDto.ProductDto> productDtos = productMap.getOrDefault(order.getId(), List.of())
+                            .stream()
+                            .map(p -> MyProductOrderHistoryResponseDto.ProductDto.builder()
+                                    .productId(p.getProductId())
+                                    .status(p.getItemStatus())
+                                    .productName(p.getProductName())
+                                    .quantity(p.getQuantity())
+                                    .amount(p.getUnitPrice())
+                                    .imagePath(p.getImagePath())
+                                    .build())
+                            .toList();
+
+                    return MyProductOrderHistoryResponseDto.builder()
+                            .orderId(order.getId())
+                            .orderStatus(order.getStatus())
+                            .orderedAt(new KstDateTime(order.getOrderedAt()))
+                            .products(productDtos)
+                            .build();
+                }).toList();
+    }
+
+    private MyProductOrderHistoryListResponseDto buildEmptyOrderHistory(int size) {
+        return MyProductOrderHistoryListResponseDto.builder()
+                .orders(List.of())
+                .pagination(new MyProductOrderHistoryListResponseDto.Pagination(size, null, false))
+                .build();
+    }
+
+    private MyProductOrderHistoryListResponseDto buildOrderHistoryResponse(List<MyProductOrderHistoryResponseDto> dtoList, int size) {
+        boolean hasNext = dtoList.size() == size;
+        Long lastOrderId = hasNext ? dtoList.getLast().getOrderId() : null;
+
+        return MyProductOrderHistoryListResponseDto.builder()
+                .orders(dtoList)
+                .pagination(new MyProductOrderHistoryListResponseDto.Pagination(size, lastOrderId, hasNext))
+                .build();
     }
 
 }
