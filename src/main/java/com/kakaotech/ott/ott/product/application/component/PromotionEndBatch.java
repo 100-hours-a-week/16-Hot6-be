@@ -31,9 +31,9 @@ public class PromotionEndBatch {
 
             ProductVariant productVariant = productVariantRepository.findById(promotion.getVariantId());
             productVariant.setPromotionStatus(false);
+            productVariant.confirmSale(promotion.getSoldQuantity());
+            productVariant.cancelReservation(promotion.getTotalQuantity() - promotion.getSoldQuantity());
             productVariantRepository.update(productVariant);
         }
-
-
     }
 }
