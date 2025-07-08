@@ -67,4 +67,6 @@ public class User {
             throw new CustomException(ErrorCode.USER_NOT_VERIFIED);
     }
 
+    public void setId(Long userId) { this.id = userId; }
+
 }

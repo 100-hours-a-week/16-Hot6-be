@@ -9,6 +9,7 @@ import com.kakaotech.ott.ott.post.domain.repository.PostJpaRepository;
 import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.user.domain.repository.UserJpaRepository;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,51 +36,57 @@ class LikeRepositoryImplTest {
     @InjectMocks
     private LikeRepositoryImpl likeRepositoryImpl;
 
+    private final Long validUserId = 1L;
+    private final Long validPostId = 1L;
+    private final Long invalidUserId = 999L;
+
+    private Like like;
+    private UserEntity userEntity;
+    private PostEntity postEntity;
+    private LikeEntity likeEntity;
+    private LikeEntity savedLikeEntity;
+    private Like expectedLike;
+
+    @BeforeEach
+    void setUp() {
+        like = mock(Like.class);
+        userEntity = mock(UserEntity.class);
+        postEntity = mock(PostEntity.class);
+        likeEntity = mock(LikeEntity.class);
+        savedLikeEntity = mock(LikeEntity.class);
+        expectedLike = mock(Like.class);
+    }
+
     @Test
     void 유저가_게시글_좋아요_삭제_요청하면_JpaRepository_메서드_호출됨() {
-
-        // given
-        Long userId = 1L;
-        Long postId = 1L;
-
         // when
-        likeRepositoryImpl.deleteByUserEntityIdAndTargetId(userId, postId);
+        likeRepositoryImpl.deleteByUserEntityIdAndTargetId(validUserId, validPostId);
 
         // then
-        verify(likeJpaRepository, times(1)).deleteByUserEntityIdAndTargetId(userId, postId);
+        verify(likeJpaRepository, times(1)).deleteByUserEntityIdAndTargetId(validUserId, validPostId);
     }
 
     @Test
     void 좋아요_저장시_DB에_저장되고_도메인_객체_반환() {
-
         // given
-        Like like = mock(Like.class);
-        UserEntity userEntity = mock(UserEntity.class);
-        PostEntity postEntity = mock(PostEntity.class);
-        LikeEntity likeEntity = mock(LikeEntity.class);
-        LikeEntity savedEntity = mock(LikeEntity.class);
-        Like expectedLike = mock(Like.class);
-
-        when(like.getUserId()).thenReturn(1L);
-        when(like.getPostId()).thenReturn(1L);
-        when(userJpaRepository.findById(1L)).thenReturn(Optional.of(userEntity));
-        when(postJpaRepository.findById(1L)).thenReturn(Optional.of(postEntity));
+        when(like.getUserId()).thenReturn(validUserId);
+        when(like.getPostId()).thenReturn(validPostId);
+        when(userJpaRepository.findById(validUserId)).thenReturn(Optional.of(userEntity));
+        when(postJpaRepository.findById(validPostId)).thenReturn(Optional.of(postEntity));
 
         try (var mockedStatic = org.mockito.Mockito.mockStatic(LikeEntity.class)) {
             mockedStatic.when(() -> LikeEntity.from(like, userEntity, postEntity)).thenReturn(likeEntity);
-
-            when(likeJpaRepository.save(likeEntity)).thenReturn(savedEntity);
-
-            when(savedEntity.toDomain()).thenReturn(expectedLike);
+            when(likeJpaRepository.save(likeEntity)).thenReturn(savedLikeEntity);
+            when(savedLikeEntity.toDomain()).thenReturn(expectedLike);
 
             // when
             Like result = likeRepositoryImpl.save(like);
 
             // then
-            verify(userJpaRepository, times(1)).findById(1L);
+            assertEquals(expectedLike, result);
+            verify(userJpaRepository, times(1)).findById(validUserId);
             verify(likeJpaRepository, times(1)).save(likeEntity);
-
-            assertEquals(result, savedEntity.toDomain());
+            verify(postJpaRepository, times(1)).findById(validPostId);
         }
     }
 
@@ -87,9 +94,8 @@ class LikeRepositoryImplTest {
     void 좋아요_저장시_유저가_없으면_USER_NOT_FOUND_예외_반환() {
 
         // given
-        Like like = mock(Like.class);
-
-        when(like.getUserId()).thenReturn(-999L);
+        when(userJpaRepository.findById(invalidUserId)).thenReturn(Optional.empty());
+        when(like.getUserId()).thenReturn(invalidUserId);
 
         // when
         CustomException exception = assertThrows(
@@ -98,8 +104,7 @@ class LikeRepositoryImplTest {
         );
 
         // then
-        verify(userJpaRepository, times(1)).findById(like.getUserId());
-
+        verify(userJpaRepository, times(1)).findById(invalidUserId);
         assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
         assertEquals("해당 사용자가 존재하지 않습니다.", exception.getMessage());
 
@@ -109,16 +114,13 @@ class LikeRepositoryImplTest {
     void 유저가_게시글에_좋아요를_눌렀을때_true_반환() {
 
         // given
-        Long userId = 1L;
-        Long postId = 1L;
-
-        when(likeJpaRepository.existsByUserEntityIdAndPostEntityId(userId, postId)).thenReturn(true);
+        when(likeJpaRepository.existsByUserEntityIdAndPostEntityId(validUserId, validPostId)).thenReturn(true);
 
         // when
-        boolean result = likeRepositoryImpl.existsByUserIdAndPostId(userId, postId);
+        boolean result = likeRepositoryImpl.existsByUserIdAndPostId(validUserId, validPostId);
 
         // then
-        verify(likeJpaRepository, times(1)).existsByUserEntityIdAndPostEntityId(userId, postId);
+        verify(likeJpaRepository, times(1)).existsByUserEntityIdAndPostEntityId(validUserId, validPostId);
         assertTrue(result);
     }
 
@@ -126,16 +128,13 @@ class LikeRepositoryImplTest {
     void 유저가_게시글에_좋아요를_누르지_않았을때_false_반환() {
 
         // given
-        Long userId = 1L;
-        Long postId = 1L;
-
-        when(likeJpaRepository.existsByUserEntityIdAndPostEntityId(userId, postId)).thenReturn(false);
+        when(likeJpaRepository.existsByUserEntityIdAndPostEntityId(validUserId, validPostId)).thenReturn(false);
 
         // when
-        boolean result = likeRepositoryImpl.existsByUserIdAndPostId(userId, postId);
+        boolean result = likeRepositoryImpl.existsByUserIdAndPostId(validUserId, validPostId);
 
         // then
-        verify(likeJpaRepository, times(1)).existsByUserEntityIdAndPostEntityId(userId, postId);
+        verify(likeJpaRepository, times(1)).existsByUserEntityIdAndPostEntityId(validUserId, validPostId);
         assertFalse(result);
     }
 
@@ -143,35 +142,32 @@ class LikeRepositoryImplTest {
     void 게시글_좋아요_수를_정상적으로_조회_성공() {
 
         // given
-        Long postId = 1L;
-
-        when(likeJpaRepository.countByPostId(postId)).thenReturn(5L);
+        when(likeJpaRepository.countByPostId(validPostId)).thenReturn(5L);
 
         // when
-        Long result = likeRepositoryImpl.findByPostId(postId);
+        Long result = likeRepositoryImpl.findByPostId(validPostId);
 
         // then
-        verify(likeJpaRepository, times(1)).countByPostId(postId);
+        verify(likeJpaRepository, times(1)).countByPostId(validPostId);
 
-        assertEquals(result, likeJpaRepository.countByPostId(postId));
+        assertEquals(result, likeJpaRepository.countByPostId(validPostId));
     }
 
     @Test
     void 유저가_좋아요한_게시글_목록을_Set_타입으로_반환() {
 
         // given
-        Long userid = 1L;
         List<Long> postIds = Arrays.asList(1L, 2L, 3L);
         List<Long> likedPostIds = Arrays.asList(2L, 3L);
 
-        when(likeJpaRepository.findLikedPostIds(userid, postIds)).thenReturn(likedPostIds);
+        when(likeJpaRepository.findLikedPostIds(validUserId, postIds)).thenReturn(likedPostIds);
 
         // when
-        Set<Long> result = likeRepositoryImpl.findLikedPostIdsByUserId(userid, postIds);
+        Set<Long> result = likeRepositoryImpl.findLikedPostIdsByUserId(validUserId, postIds);
 
         // then
-        verify(likeJpaRepository, times(1)).findLikedPostIds(userid, postIds);
+        verify(likeJpaRepository, times(1)).findLikedPostIds(validUserId, postIds);
 
-        assertEquals(result, new HashSet<>(likeJpaRepository.findLikedPostIds(userid, postIds)));
+        assertEquals(result, new HashSet<>(likeJpaRepository.findLikedPostIds(validUserId, postIds)));
     }
 }
