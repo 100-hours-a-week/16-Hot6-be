@@ -7,6 +7,7 @@ import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.ProductMainC
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,14 +18,23 @@ public class ProductMainCategoryRepositoryImpl implements ProductMainCategoryRep
 
 
     @Override
-    public ProductMainCategoryEntity save(ProductMainCategory productMainCategory) {
+    public ProductMainCategory save(ProductMainCategory productMainCategory) {
 
         return productMainCategoryJpaRepository.findByName(productMainCategory.getName())
-                .orElseGet(() -> productMainCategoryJpaRepository.save(ProductMainCategoryEntity.from(productMainCategory)));
+                .orElseGet(() -> productMainCategoryJpaRepository.save(ProductMainCategoryEntity.from(productMainCategory)))
+                .toDomain();
     }
 
     @Override
     public Optional<ProductMainCategoryEntity> findByName(String mainCategoryName) {
         return productMainCategoryJpaRepository.findByName(mainCategoryName);
+    }
+
+    @Override
+    public List<ProductMainCategory> findByNameIn(List<String> names) {
+        return productMainCategoryJpaRepository.findByNameIn(names)
+                .stream()
+                .map(ProductMainCategoryEntity::toDomain)
+                .toList();
     }
 }

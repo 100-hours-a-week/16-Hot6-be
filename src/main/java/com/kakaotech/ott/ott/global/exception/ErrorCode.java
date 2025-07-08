@@ -84,6 +84,10 @@ public enum ErrorCode {
     INVALID_VARIANT_STATUS(HttpStatus.BAD_REQUEST, "품목 상태가 올바르지 않습니다."),
     SALE_NOT_STARTED(HttpStatus.NOT_FOUND, "판매 중인 상품이 아닙니다."),
 
+    // Category
+    MAIN_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "메인 카테고리가 존재하지 않습니다."),
+    SUB_CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "서브 카테고리가 존재하지 않습니다."),
+
     // ORDERITEM
     NOT_ORDERED_ITEM_STATE(HttpStatus.BAD_REQUEST, "주문 대기 상태가 아닙니다."),
     NOT_PAID_ITEM_STATE(HttpStatus.BAD_REQUEST, "결제 완료 상태가 아닙니다."),
@@ -106,7 +110,10 @@ public enum ErrorCode {
 
     // promotion
     PROMOTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 진행 중인 특가가 존재합니다."),
-    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작시간은 종료시간보다 이전이어야 합니다.");
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작시간은 종료시간보다 이전이어야 합니다."),
+
+    // BATCH
+    BATCH_NOT_FOUND(HttpStatus.NOT_FOUND, "배치 내역이 존재하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
