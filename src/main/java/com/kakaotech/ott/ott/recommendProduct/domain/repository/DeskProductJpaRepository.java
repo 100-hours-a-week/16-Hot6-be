@@ -53,4 +53,7 @@ public interface DeskProductJpaRepository extends JpaRepository<DeskProductEntit
     boolean existsByProductCode(String productCode);
 
     Optional<DeskProductEntity> findByProductCode(String productCode);
+
+    List<DeskProductEntity> findByProductCodeIn(@Param("productCodes") List<String> productCodes);
+
 }

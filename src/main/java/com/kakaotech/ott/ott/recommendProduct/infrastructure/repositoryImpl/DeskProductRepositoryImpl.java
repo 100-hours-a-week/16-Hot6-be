@@ -6,6 +6,7 @@ import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductJpaRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
+import com.kakaotech.ott.ott.recommendProduct.domain.repository.ProductSubCategoryJpaRepository;
 import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.DeskProductEntity;
 import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.ProductSubCategoryEntity;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +23,13 @@ import java.util.stream.Collectors;
 public class DeskProductRepositoryImpl implements DeskProductRepository {
 
     private final DeskProductJpaRepository deskProductJpaRepository;
+    private final ProductSubCategoryJpaRepository productSubCategoryJpaRepository;
 
     @Override
-    public DeskProduct save(DeskProduct deskProduct, ProductSubCategoryEntity productSubCategoryEntity,
+    public DeskProduct save(DeskProduct deskProduct,
                                   AiImageEntity aiImageEntity) {
+        ProductSubCategoryEntity productSubCategoryEntity = productSubCategoryJpaRepository.findById(deskProduct.getSubCategoryId())
+                .orElseThrow(() -> new CustomException(ErrorCode.SUB_CATEGORY_NOT_FOUND));
 
         return deskProductJpaRepository.save(DeskProductEntity.from(deskProduct, productSubCategoryEntity, aiImageEntity))
                 .toDomain();
@@ -100,5 +104,13 @@ public class DeskProductRepositoryImpl implements DeskProductRepository {
         return deskProductJpaRepository.findByProductCode(productCode)
                 .orElseThrow(() -> new CustomException(ErrorCode.DESK_PRODUCT_NOT_FOUND))
                 .toDomain();
+    }
+
+    @Override
+    public List<DeskProduct> findByProductCodeIn(List<String> productCodes) {
+        return deskProductJpaRepository.findByProductCodeIn(productCodes)
+                .stream()
+                .map(DeskProductEntity::toDomain)
+                .toList();
     }
 }
