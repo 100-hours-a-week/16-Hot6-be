@@ -218,7 +218,7 @@ public class ProductVariant {
 
     public boolean isActive() {
         return (this.status == VariantStatus.ACTIVE
-                || this.status == VariantStatus.OUT_OF_STOCK) && getAvailableQuantity() > 0;
+                || this.status == VariantStatus.OUT_OF_STOCK);
     }
 
     // 이미지 추가
