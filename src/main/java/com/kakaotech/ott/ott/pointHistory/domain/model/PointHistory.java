@@ -1,5 +1,7 @@
 package com.kakaotech.ott.ott.pointHistory.domain.model;
 
+import com.kakaotech.ott.ott.global.exception.CustomException;
+import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -30,5 +32,13 @@ public class PointHistory {
                 .type(type)
                 .description(description)
                 .build();
+    }
+
+    public PointHistory deduct(int amount) {
+        if (this.getBalanceAfter() < amount)
+            throw new CustomException(ErrorCode.INSUFFICIENT_POINT_BALANCE);
+
+        return createPointHistory(this.userId, amount, this.getBalanceAfter() - amount,
+                PointActionType.DEDUCT, PointActionReason.PRODUCT_PURCHASE);
     }
 }
