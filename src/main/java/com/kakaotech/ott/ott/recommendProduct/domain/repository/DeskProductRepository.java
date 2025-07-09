@@ -2,7 +2,6 @@ package com.kakaotech.ott.ott.recommendProduct.domain.repository;
 
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
-import com.kakaotech.ott.ott.recommendProduct.infrastructure.entity.ProductSubCategoryEntity;
 import org.springframework.data.domain.Slice;
 
 import java.util.List;
@@ -10,7 +9,7 @@ import java.util.List;
 
 public interface DeskProductRepository {
 
-    DeskProduct save(DeskProduct deskProduct, ProductSubCategoryEntity productSubCategoryEntity, AiImageEntity aiImageEntity);
+    DeskProduct save(DeskProduct deskProduct, AiImageEntity aiImageEntity);
 
     List<DeskProduct> findTop7ByWeight();
 
@@ -27,4 +26,7 @@ public interface DeskProductRepository {
     boolean existsByProductCode(String productCode);
 
     DeskProduct findByProductCode(String productCode);
+
+    List<DeskProduct> findByProductCodeIn(List<String> productCodes);
+
 }

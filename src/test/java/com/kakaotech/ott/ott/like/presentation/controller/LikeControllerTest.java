@@ -4,6 +4,7 @@ import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.like.application.service.LikeService;
 import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,15 +25,23 @@ class LikeControllerTest {
     @InjectMocks
     private LikeController likeController;
 
-    @Test
-    void 로그인_사용자가_게시글_좋아요_요청하면_201_반환() {
+    private Long userId;
+    private final Long postId = 1L;
+    private LikeRequestDto likeRequestDto;
+    private UserPrincipal userPrincipal;
 
-        // given
-        UserPrincipal userPrincipal = mock(UserPrincipal.class);
+    @BeforeEach
+    void setUp() {
+        userPrincipal = mock(UserPrincipal.class);
         when(userPrincipal.getId()).thenReturn(1L);
 
-        Long userId = userPrincipal.getId();
-        LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
+        userId = userPrincipal.getId();
+
+        likeRequestDto = new LikeRequestDto(postId);
+    }
+
+    @Test
+    void 로그인_사용자가_게시글_좋아요_요청하면_201_반환() {
 
         // when
         ResponseEntity<ApiResponse> result = likeController.activeLike(userPrincipal, likeRequestDto);
@@ -47,13 +56,6 @@ class LikeControllerTest {
 
     @Test
     void 로그인_사용자가_게시글_좋아요_취소_요청하면_204_반환() {
-
-        // given
-        UserPrincipal userPrincipal = mock(UserPrincipal.class);
-        when(userPrincipal.getId()).thenReturn(1L);
-
-        Long userId = userPrincipal.getId();
-        LikeRequestDto likeRequestDto = new LikeRequestDto(1L);
 
         // when
         ResponseEntity<Void> result = likeController.deactiveLike(userPrincipal, likeRequestDto);

@@ -24,11 +24,8 @@ public class ProductPromotion {
     private BigDecimal rate;
     private int totalQuantity;
 
-
-    @Builder.Default
-    private int reservedQuantity = 0;
-    @Builder.Default
-    private int soldQuantity = 0;
+    private int reservedQuantity;
+    private int soldQuantity;
 
     private LocalDateTime startAt;
     private LocalDateTime endAt;

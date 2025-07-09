@@ -19,11 +19,9 @@ public class Product {
     private String description;
     private Map<String, Object> specification;  // JSON 형태로 저장될 사양 정보
 
-    @Builder.Default
-    private int salesCount = 0;
+    private int salesCount;
 
-    @Builder.Default
-    private int scrapCount = 0;
+    private int scrapCount;
 
     @Builder.Default
     private List<ProductVariant> variants = new ArrayList<>();
