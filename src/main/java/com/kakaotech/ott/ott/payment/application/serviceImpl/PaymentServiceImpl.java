@@ -4,7 +4,6 @@ import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
 import com.kakaotech.ott.ott.payment.application.event.PaymentCompletedEvent;
-import com.kakaotech.ott.ott.payment.application.event.PaymentEventHandler;
 import com.kakaotech.ott.ott.payment.application.service.PaymentService;
 import com.kakaotech.ott.ott.payment.domain.model.Payment;
 import com.kakaotech.ott.ott.payment.domain.model.PaymentMethod;
@@ -21,6 +20,7 @@ import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserRepository;
 import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +38,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final ProductOrderRepository productOrderRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final OrderItemRepository orderItemRepository;
-    private final PaymentEventHandler paymentEventHandler;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -52,7 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = Payment.createPayment(orderId, PaymentMethod.POINT, paymentRequestDto.getPoint());
         Payment savedPayment = paymentRepository.save(payment, user);
 
-        paymentEventHandler.handlePaymentCompleted(new PaymentCompletedEvent(orderId, userId, paymentRequestDto.getPoint()));
+        eventPublisher.publishEvent(new PaymentCompletedEvent(orderId, userId, paymentRequestDto.getPoint()));
 
         return new PaymentResponseDto(savedPointHistory.getId(), orderId, savedPayment.getPaymentAmount(), new KstDateTime(savedPayment.getPaidAt()));
     }
