@@ -18,13 +18,10 @@ public class ProductVariant {
     private int price;
     private int totalQuantity;
 
-    @Builder.Default
-    private int reservedQuantity = 0;
-    @Builder.Default
-    private int soldQuantity = 0;
+    private int reservedQuantity;
+    private int soldQuantity;
 
-    @Builder.Default
-    private boolean isOnPromotion = false;
+    private boolean isOnPromotion;
 
     @Builder.Default
     private List<ProductPromotion> promotions = new ArrayList<>();
