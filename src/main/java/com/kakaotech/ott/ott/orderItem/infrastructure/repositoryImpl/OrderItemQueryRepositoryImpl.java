@@ -37,7 +37,7 @@ public class OrderItemQueryRepositoryImpl implements OrderItemQueryRepository {
                 .from(orderItem)
                 .join(productVariant).on(orderItem.productVariantEntity.id.eq(productVariant.id))
                 .leftJoin(productImage).on(
-                        productImage.variantEntity.id.eq(productVariant.productEntity.id)
+                        productImage.variantEntity.id.eq(productVariant.id)
                                 .and(productImage.sequence.eq(1))
                 )
                 .where(orderItem.productOrderEntity.id.in(orderIds))
