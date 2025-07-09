@@ -319,7 +319,7 @@ public class ProductOrderServiceImpl implements ProductOrderService {
     private List<MyProductOrderResponseDto.ProductInfo> buildProductInfoList(List<OrderItem> items) {
         return items.stream().map(item -> {
             ProductVariant variant = productVariantRepository.findById(item.getVariantsId());
-            ProductImage image = productImageRepository.findMainImage(variant.getProductId());
+            ProductImage image = productImageRepository.findMainImage(variant.getId());
 
             return new MyProductOrderResponseDto.ProductInfo(
                     item.getId(),
