@@ -6,6 +6,8 @@ import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
+import com.kakaotech.ott.ott.payment.application.event.PaymentCompletedEvent;
+import com.kakaotech.ott.ott.payment.application.event.PaymentEventHandler;
 import com.kakaotech.ott.ott.payment.application.service.PaymentService;
 import com.kakaotech.ott.ott.payment.domain.model.Payment;
 import com.kakaotech.ott.ott.payment.domain.model.PaymentMethod;
@@ -49,65 +51,83 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderItemRepository orderItemRepository;
     private final ProductPromotionRepository productPromotionRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final PaymentEventHandler paymentEventHandler;
+
+//    @Override
+//    @Transactional
+//    public PaymentResponseDto createPayment(PaymentRequestDto paymentRequestDto, Long userId, Long orderId) {
+//
+//        User user = userRepository.findById(userId);
+//
+//        PointHistory pointHistory = pointHistoryRepository.findLatestPointHistoryByUserId(userId);
+//
+//        if (pointHistory.getBalanceAfter() < paymentRequestDto.getPoint()) {
+//            throw new CustomException(ErrorCode.INSUFFICIENT_POINT_BALANCE);
+//        }
+//
+//        ProductOrder productOrder = productOrderRepository.findByIdAndUserIdToPayment(orderId, userId);
+//
+//        if (paymentRequestDto.getPoint() < productOrder.getSubtotalAmount() - productOrder.getDiscountAmount()) {
+//            throw new CustomException(ErrorCode.PAYMENT_POINT_BALANCE);
+//        }
+//
+//        int afterPaymentPoint = pointHistory.getBalanceAfter() - paymentRequestDto.getPoint();
+//
+//        PointHistory afterPointHistory = PointHistory.createPointHistory(userId, paymentRequestDto.getPoint(),
+//                afterPaymentPoint, PointActionType.DEDUCT, PointActionReason.PRODUCT_PURCHASE);
+//
+//        if (productOrder.getStatus().equals(ProductOrderStatus.PAID)) {
+//
+//            throw new CustomException(ErrorCode.ALREADY_PAID);
+//        }
+//
+//        productOrder.pay();
+//        productOrderRepository.paymentOrder(productOrder);
+//
+//        Payment payment = Payment.createPayment(orderId, PaymentMethod.POINT, paymentRequestDto.getPoint());
+//
+//        Payment savedPayment = paymentRepository.save(payment, user);
+//
+//        PointHistory savedPointHistory = pointHistoryRepository.save(afterPointHistory, user);
+//
+//        List<OrderItem> orderItemList = orderItemRepository.findByProductOrderId(productOrder.getId());
+//
+//        for(OrderItem orderItem : orderItemList) {
+//            if (orderItem.getPromotionId() != null) {
+//                ProductPromotion productPromotion = productPromotionRepository.findById(orderItem.getPromotionId());
+//                productPromotion.confirmPromotionSale(orderItem.getQuantity());
+//                productPromotionRepository.update(productPromotion);
+//
+//            } else {
+//                ProductVariant productVariant = productVariantRepository.findById(orderItem.getVariantsId());
+//                productVariant.confirmSale(orderItem.getQuantity());
+//                productVariantRepository.update(productVariant);
+//            }
+//
+//            if (orderItem.getStatus().equals(OrderItemStatus.PENDING))
+//                orderItem.pay();
+//        }
+//
+//        orderItemRepository.payOrderItem(orderItemList);
+//
+//        return new PaymentResponseDto(savedPointHistory.getId(), productOrder.getId(), savedPayment.getPaymentAmount(), new KstDateTime(savedPayment.getPaidAt()));
+//    }
 
     @Override
     @Transactional
     public PaymentResponseDto createPayment(PaymentRequestDto paymentRequestDto, Long userId, Long orderId) {
-
         User user = userRepository.findById(userId);
 
         PointHistory pointHistory = pointHistoryRepository.findLatestPointHistoryByUserId(userId);
-
-        if (pointHistory.getBalanceAfter() < paymentRequestDto.getPoint()) {
-            throw new CustomException(ErrorCode.INSUFFICIENT_POINT_BALANCE);
-        }
-
-        ProductOrder productOrder = productOrderRepository.findByIdAndUserIdToPayment(orderId, userId);
-
-        if (paymentRequestDto.getPoint() < productOrder.getSubtotalAmount() - productOrder.getDiscountAmount()) {
-            throw new CustomException(ErrorCode.PAYMENT_POINT_BALANCE);
-        }
-
-        int afterPaymentPoint = pointHistory.getBalanceAfter() - paymentRequestDto.getPoint();
-
-        PointHistory afterPointHistory = PointHistory.createPointHistory(userId, paymentRequestDto.getPoint(),
-                afterPaymentPoint, PointActionType.DEDUCT, PointActionReason.PRODUCT_PURCHASE);
-
-        if (productOrder.getStatus().equals(ProductOrderStatus.PAID)) {
-
-            throw new CustomException(ErrorCode.ALREADY_PAID);
-        }
-
-        productOrder.pay();
-        productOrderRepository.paymentOrder(productOrder);
+        PointHistory newPointHistory = pointHistory.deduct(paymentRequestDto.getPoint());
+        PointHistory savedPointHistory = pointHistoryRepository.save(newPointHistory, user);
 
         Payment payment = Payment.createPayment(orderId, PaymentMethod.POINT, paymentRequestDto.getPoint());
-
         Payment savedPayment = paymentRepository.save(payment, user);
 
-        PointHistory savedPointHistory = pointHistoryRepository.save(afterPointHistory, user);
+        paymentEventHandler.handlePaymentCompleted(new PaymentCompletedEvent(orderId, userId, paymentRequestDto.getPoint()));
 
-        List<OrderItem> orderItemList = orderItemRepository.findByProductOrderId(productOrder.getId());
-
-        for(OrderItem orderItem : orderItemList) {
-            if (orderItem.getPromotionId() != null) {
-                ProductPromotion productPromotion = productPromotionRepository.findById(orderItem.getPromotionId());
-                productPromotion.confirmPromotionSale(orderItem.getQuantity());
-                productPromotionRepository.update(productPromotion);
-
-            } else {
-                ProductVariant productVariant = productVariantRepository.findById(orderItem.getVariantsId());
-                productVariant.confirmSale(orderItem.getQuantity());
-                productVariantRepository.update(productVariant);
-            }
-
-            if (orderItem.getStatus().equals(OrderItemStatus.PENDING))
-                orderItem.pay();
-        }
-
-        orderItemRepository.payOrderItem(orderItemList);
-
-        return new PaymentResponseDto(savedPointHistory.getId(), productOrder.getId(), savedPayment.getPaymentAmount(), new KstDateTime(savedPayment.getPaidAt()));
+        return new PaymentResponseDto(savedPointHistory.getId(), orderId, savedPayment.getPaymentAmount(), new KstDateTime(savedPayment.getPaidAt()));
     }
 
     @Override
