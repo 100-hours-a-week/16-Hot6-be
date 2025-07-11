@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.recommendProduct.application.component;
 
+import com.kakaotech.ott.ott.batch.application.component.BatchExecutor;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -16,6 +17,7 @@ public class ClickCountAggregator {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final DeskProductRepository deskProductRepository;
+    private final BatchExecutor batchExecutor;
 
     private static final String PRODUCT_CLICK_COUNT_CACHE = "productClickCount";
 
@@ -23,16 +25,14 @@ public class ClickCountAggregator {
         redisTemplate.opsForHash().increment(PRODUCT_CLICK_COUNT_CACHE, String.valueOf(deskProductId), 1);
     }
 
-    /**
-     * 1분마다 실행:
-     * 1) Redis에서 Snapshot 가져옴
-     * 2) Redis 값 제거
-     * 3) DB 반영
-     */
     @Scheduled(fixedDelay = 60_000)
     @SchedulerLock(name = "flush-click-counts", lockAtMostFor = "PT59S")
     @Transactional
     public void flush() {
+        batchExecutor.execute("flush-click-counts", this::processFlush);
+    }
+
+    private void processFlush() {
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(PRODUCT_CLICK_COUNT_CACHE);
 
         if (entries.isEmpty()) return;
