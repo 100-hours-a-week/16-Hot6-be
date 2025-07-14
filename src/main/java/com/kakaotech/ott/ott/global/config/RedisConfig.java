@@ -32,10 +32,9 @@ public class RedisConfig {
     private String activeProfile;
 
     // 캐시 키 상수 정의
-    public static final String POPULAR_SETUPS_CACHE = "popularSetups";
-    public static final String RECOMMEND_ITEMS_CACHE = "recommendItems";
-    public static final String TODAY_PROMOTION_CACHE = "todayPromotion";
-    public static final String HOME_DATA_CACHE = "homeData";
+    public static final String POPULAR_SETUPS_CACHE = "main:popular:posts";
+    public static final String RECOMMEND_ITEMS_CACHE = "main:recommend:products";
+    public static final String TODAY_PROMOTION_CACHE = "main:today:promotions";
 
     // ObjectMapper 설정 - JSON 직렬화/역직렬화 최적화
     @Bean
@@ -107,19 +106,15 @@ public class RedisConfig {
 
             // 인기 게시글 캐시 (자정까지)
             cacheConfigurations.put(POPULAR_SETUPS_CACHE,
-                    defaultCacheConfig().entryTtl(getTimeUntilMidnight(baseTtl)));
+                    defaultCacheConfig().entryTtl(baseTtl));
 
             // 추천 상품 캐시 (자정까지)
             cacheConfigurations.put(RECOMMEND_ITEMS_CACHE,
-                    defaultCacheConfig().entryTtl(getTimeUntilMidnight(baseTtl)));
+                    defaultCacheConfig().entryTtl(baseTtl));
 
             // 특가 상품 캐시 (오후 1시까지)
             cacheConfigurations.put(TODAY_PROMOTION_CACHE,
-                    defaultCacheConfig().entryTtl(getTimeUntil13PM(baseTtl)));
-
-            // 홈 데이터 통합 캐시 (가장 짧은 TTL)
-            cacheConfigurations.put(HOME_DATA_CACHE,
-                    defaultCacheConfig().entryTtl(getShorterTtl(baseTtl)));
+                    defaultCacheConfig().entryTtl(baseTtl));
 
             builder.withInitialCacheConfigurations(cacheConfigurations);
 
@@ -133,41 +128,5 @@ public class RedisConfig {
             return Duration.ofHours(25);
         }
         return Duration.ofHours(1);
-    }
-
-    private Duration getTimeUntilMidnight(Duration fallback) {
-        if ("dev".equals(activeProfile)) {
-            return fallback;
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime midnight = now.toLocalDate().plusDays(1).atStartOfDay();
-        return Duration.between(now, midnight);
-    }
-
-    private Duration getTimeUntil13PM(Duration fallback) {
-        if ("dev".equals(activeProfile)) {
-            return fallback;
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime target = now.toLocalDate().atTime(13, 0);
-
-        if (now.isAfter(target)) {
-            target = target.plusDays(1);
-        }
-
-        return Duration.between(now, target);
-    }
-
-    private Duration getShorterTtl(Duration fallback) {
-        if ("dev".equals(activeProfile)) {
-            return fallback;
-        }
-
-        Duration untilMidnight = getTimeUntilMidnight(fallback);
-        Duration until13PM = getTimeUntil13PM(fallback);
-
-        return untilMidnight.compareTo(until13PM) < 0 ? untilMidnight : until13PM;
     }
 }
