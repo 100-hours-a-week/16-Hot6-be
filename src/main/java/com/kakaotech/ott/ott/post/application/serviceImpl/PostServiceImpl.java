@@ -4,6 +4,8 @@ import com.kakaotech.ott.ott.aiImage.application.serviceImpl.S3Uploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
+import com.kakaotech.ott.ott.global.cache.DistributedLock;
+import com.kakaotech.ott.ott.global.config.RedisConfig;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
@@ -31,6 +33,7 @@ import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -177,6 +180,36 @@ public class PostServiceImpl implements PostService {
     public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size,
                                          Long lastPostId, Integer lastLikeCount, Long lastViewCount, Double lastWeightCount) {
         return postQueryRepository.getAllPost(userId, category, sort, size, lastPostId, lastLikeCount, lastViewCount, lastWeightCount);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = RedisConfig.POPULAR_SETUPS_CACHE, key = "#userId")
+    @DistributedLock(keyPrefix = "popular_setups", key = "#userId")
+    public List<PopularSetupDto> getPopularSetups(Long userId) {
+        // 상위 7개 게시글 조회 (단일 조회)
+        List<Post> popularPosts = postRepository.findTop7ByWeight();
+        List<Long> postIds = popularPosts.stream().map(Post::getId).collect(Collectors.toList());
+
+        // AI 이미지 Batch 조회 (Domain Repository)
+        Map<Long, AiImage> aiImageMap = aiImageRepository.findByPostIds(postIds);
+
+        // Scrap 여부 Batch 조회 (Domain Repository)
+        Set<Long> scrappedPostIds = (userId != null)
+                ? new HashSet<>(scrapRepository.findScrappedPostIds(userId, postIds))
+                : Collections.emptySet();
+
+        // PopularSetupDto 생성
+        return popularPosts.stream()
+                .map(post -> new PopularSetupDto(
+                        post.getId(),
+                        post.getTitle(),
+                        Optional.ofNullable(aiImageMap.get(post.getId()))
+                                .map(AiImage::getAfterImagePath)
+                                .orElse(""),
+                        (userId != null) && scrappedPostIds.contains(post.getId())
+                ))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -350,34 +383,6 @@ public class PostServiceImpl implements PostService {
 
         Post savedPost = postRepository.save(post);
         return new PostCreateResponseDto(savedPost.getId());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<PopularSetupDto> getPopularSetups(Long userId) {
-        // 상위 7개 게시글 조회 (단일 조회)
-        List<Post> popularPosts = postRepository.findTop7ByWeight();
-        List<Long> postIds = popularPosts.stream().map(Post::getId).collect(Collectors.toList());
-
-        // AI 이미지 Batch 조회 (Domain Repository)
-        Map<Long, AiImage> aiImageMap = aiImageRepository.findByPostIds(postIds);
-
-        // Scrap 여부 Batch 조회 (Domain Repository)
-        Set<Long> scrappedPostIds = (userId != null)
-                ? new HashSet<>(scrapRepository.findScrappedPostIds(userId, postIds))
-                : Collections.emptySet();
-
-        // PopularSetupDto 생성
-        return popularPosts.stream()
-                .map(post -> new PopularSetupDto(
-                        post.getId(),
-                        post.getTitle(),
-                        Optional.ofNullable(aiImageMap.get(post.getId()))
-                                .map(AiImage::getAfterImagePath)
-                                .orElse(""),
-                        (userId != null) && scrappedPostIds.contains(post.getId())
-                ))
-                .collect(Collectors.toList());
     }
 
 
