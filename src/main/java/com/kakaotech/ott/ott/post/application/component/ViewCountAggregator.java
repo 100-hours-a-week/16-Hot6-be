@@ -1,61 +1,49 @@
 package com.kakaotech.ott.ott.post.application.component;
 
+import com.kakaotech.ott.ott.batch.application.component.BatchExecutor;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
+import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Component
+@RequiredArgsConstructor
 public class ViewCountAggregator {
 
-    // postId -> 누적 조회수 델타
-    private final ConcurrentMap<Long, AtomicLong> cache = new ConcurrentHashMap<>( );
-
+    private final RedisTemplate<String, Object> redisTemplate;
     private final PostRepository postRepository;
+    private final BatchExecutor batchExecutor;
 
-    public ViewCountAggregator(PostRepository postRepository) {
-        this.postRepository = postRepository;
-    }
+    private static final String POST_VIEW_COUNT_CACHE = "postViewCount";
 
     public void increment(Long postId) {
-        cache.computeIfAbsent(postId, id -> new AtomicLong()).incrementAndGet();
+        redisTemplate.opsForHash().increment(POST_VIEW_COUNT_CACHE, String.valueOf(postId), 1);
     }
 
-    /**
-     * 1분마다 실행:
-     * 1) 키별로 모아둔 카운터를 snapshot으로 추출
-     * 2) 원본 AtomicLong 은 0으로 리셋
-     * 3) snapshot을 한 건씩 DB에 반영(update view_count = view_count + delta)
-     */
     @Scheduled(fixedDelay = 60_000)
-    @SchedulerLock(name = "flush-view-counts", lockAtMostFor = "PT59S")
+    @SchedulerLock(name = "flush-posts-view-counts", lockAtMostFor = "PT59S")
     @Transactional
     public void flush() {
-        if (cache.isEmpty()) {
-            return;
+        batchExecutor.execute("flush-posts-view-counts", this::processFlush);
+    }
+
+    private void processFlush() {
+        Map<Object, Object> entries = redisTemplate.opsForHash().entries(POST_VIEW_COUNT_CACHE);
+
+        for (Map.Entry<Object, Object> entry : entries.entrySet()) {
+            Long postId = Long.parseLong(entry.getKey().toString());
+            Long delta = Long.parseLong(entry.getValue().toString());
+
+            if (delta > 0) {
+                postRepository.incrementViewCount(postId, delta);
+            }
         }
 
-        // 1) snapshot & reset
-        Map<Long, Long> toUpdate = new HashMap<>();
-        cache.forEach((postId, counter) -> {
-            long delta = counter.getAndSet(0);
-            if (delta > 0) {
-                toUpdate.put(postId, delta);
-            } else {
-                cache.remove(postId, counter);  // 조회가 한 번도 없는 postId는 제거
-            }
-        });
-
-        // 2) DB에 배치 반영
-        toUpdate.forEach((postId, delta) -> {
-            postRepository.incrementViewCount(postId, delta);
-        });
+        redisTemplate.delete(POST_VIEW_COUNT_CACHE);
     }
 }

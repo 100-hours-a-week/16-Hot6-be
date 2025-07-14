@@ -83,6 +83,7 @@ public class AdminServiceImpl implements AdminService{
         List<AdminProductStatusResponseDto.PaidProductOrder> paidProductOrders = paidGrouped.entrySet().stream()
                 .map(entry -> {
                     Long productOrderId = entry.getKey();
+                    Payment payment = paymentRepository.findByProductOrderId(productOrderId);
                     List<AdminProductStatusResponseDto.PaidProductOrder.PaidOrderItem> paidOrderItems = entry.getValue().stream()
                             .map(item -> {
                                 Long ordererId = productOrderRepository.findById(item.getOrderId()).getUserId();
@@ -96,7 +97,7 @@ public class AdminServiceImpl implements AdminService{
                                         productVariant.getName(),
                                         item.getQuantity(),
                                         item.getFinalPrice(),
-                                        new KstDateTime(productVariant.getCreatedAt())
+                                        new KstDateTime(payment.getPaidAt())
                                 );
                             })
                             .toList();
