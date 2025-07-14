@@ -36,7 +36,7 @@ public class OrderDeleteBatchJob {
     }
 
     private void processDelete() {
-        LocalDateTime threshold = LocalDateTime.now().minusMinutes(30);
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(5);
         List<ProductOrder> ordersToDelete = productOrderRepository.findOrdersToAutoDelete(threshold);
         for (ProductOrder order : ordersToDelete) {
             order.fail();
