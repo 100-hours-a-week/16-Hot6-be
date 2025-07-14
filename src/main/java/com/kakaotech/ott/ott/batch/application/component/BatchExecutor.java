@@ -16,7 +16,7 @@ public class BatchExecutor {
     public void execute(String jobName, Runnable action) {
         LocalDateTime scheduleAt = LocalDateTime.now().withSecond(0).withNano(0);
         BatchJobLog log = BatchJobLog.createBatchJobLog(jobName, scheduleAt);
-        batchJobLogRepository.save(log);
+        log = batchJobLogRepository.save(log);
 
         try {
             action.run();
