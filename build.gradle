@@ -85,6 +85,9 @@ dependencies {
 
 	// Redis Connection Pool
 	implementation 'org.apache.commons:commons-pool2'
+
+	// Redisson
+	implementation 'org.redisson:redisson-spring-boot-starter:3.50.0'
 }
 
 tasks.named('test') {
