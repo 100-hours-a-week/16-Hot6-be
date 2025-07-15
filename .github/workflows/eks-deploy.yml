@@ -3,7 +3,7 @@ name: Backend CI & Update Dev Manifest
 on:
   push:
     branches:
-      - feat/dev
+      - dev
 
 jobs:
   # 1. 개발용 이미지를 빌드하고 푸시하는 Job (출력(outputs) 제거)
