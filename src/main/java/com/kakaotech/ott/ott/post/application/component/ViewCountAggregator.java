@@ -15,7 +15,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ViewCountAggregator {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final PostRepository postRepository;
     private final BatchExecutor batchExecutor;
 
