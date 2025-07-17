@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.recommendProduct.application.component;
 
+import com.kakaotech.ott.ott.batch.application.component.BatchExecutor;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -12,12 +13,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class RecommendProductUpdater {
 
     private final DeskProductRepository deskProductRepository;
+    private final BatchExecutor batchExecutor;
 
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
-    @SchedulerLock(name = "update-desk-products-weights", lockAtMostFor = "PT23H")
+    @SchedulerLock(name = "update-desk-products-weights", lockAtMostFor = "PT5M")
     @Transactional
     public void updateWeights() {
-        // ✅ Native Query를 통해 Batch Update
+        batchExecutor.execute("update-desk-products-weights", this::processUpdateWeight);
+
+    }
+
+    private void processUpdateWeight() {
         deskProductRepository.batchUpdateWeights();
     }
+
 }
