@@ -13,11 +13,11 @@ import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,9 +26,10 @@ import java.util.List;
 public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRepository {
 
     private final JPAQueryFactory queryFactory;
-    private final QProductVariantEntity variant    = QProductVariantEntity.productVariantEntity;
-    private final QProductEntity        product    = QProductEntity.productEntity;
-    private final QProductImageEntity   image      = QProductImageEntity.productImageEntity;
+
+    private final QProductVariantEntity   variant   = QProductVariantEntity.productVariantEntity;
+    private final QProductEntity          product   = QProductEntity.productEntity;
+    private final QProductImageEntity     image     = QProductImageEntity.productImageEntity;
     private final QProductPromotionEntity promotion = QProductPromotionEntity.productPromotionEntity;
 
     @Override
@@ -39,79 +40,68 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
             Long lastVariantId,
             int size
     ) {
-        LocalDateTime now = LocalDateTime.now();
-        List<ProductListResponseDto.Products> products = fetchProducts(now, productType, promotionType, lastVariantId, size);
-        return buildResponse(products, size);
-    }
+        List<ProductListResponseDto.Products> result;
 
-    private List<ProductListResponseDto.Products> fetchProducts(
-            LocalDateTime now,
-            ProductType productType,
-            PromotionType promotionType,
-            Long lastVariantId,
-            int size
-    ) {
-        JPAQuery<ProductListResponseDto.Products> baseQuery = queryFactory
-                .select(productListProjection())
-                .distinct()
-                .from(variant)
-                .join(variant.productEntity, product)
-                .leftJoin(variant.images, image).on(image.sequence.eq(1));
-
-        if (promotionType != null) {
-            applyPromotionFilter(baseQuery, now, lastVariantId);
+        if (promotionType == null) {
+            // ────────── 일반 상품만 조회 (프로모션 컬럼은 모두 null) ──────────
+            result = queryFactory
+                    .select(productListProjectionWithoutPromotion())
+                    .distinct()
+                    .from(variant)
+                    .join(variant.productEntity, product)
+                    .leftJoin(variant.images, image)
+                    .on(image.sequence.eq(1))
+                    .where(
+                            productTypeEq(productType),
+                            variant.isOnPromotion.eq(false),
+                            lastVariantIdLt(lastVariantId)
+                    )
+                    .orderBy(variant.id.desc())
+                    .limit(size)
+                    .fetch();
         } else {
-            applyDefaultFilter(baseQuery, lastVariantId);
+            // ────────── 프로모션 상품만 조회 ──────────
+            result = queryFactory
+                    .select(productListProjectionWithPromotion())
+                    .distinct()
+                    .from(variant)
+                    .join(variant.productEntity, product)
+                    .leftJoin(variant.images, image)
+                    .on(image.sequence.eq(1))
+                    .join(variant.promotions, promotion)
+                    .on(
+                            promotion.status.in(PromotionStatus.ACTIVE, PromotionStatus.SOLD_OUT),
+                            promotion.endAt.after(LocalDateTime.now())
+                    )
+                    .where(
+                            productTypeEq(productType),
+                            variant.isOnPromotion.eq(true),
+                            lastVariantIdLt(lastVariantId)
+                    )
+                    .orderBy(promotion.endAt.asc().nullsLast())
+                    .limit(size)
+                    .fetch();
         }
 
-        return baseQuery
-                .limit(size)
-                .fetch();
-    }
-
-    private void applyPromotionFilter(JPAQuery<ProductListResponseDto.Products> query,
-                                      LocalDateTime now,
-                                      Long lastVariantId) {
-        query
-                .innerJoin(variant.promotions, promotion)
-                .on(
-                        promotion.status.in(PromotionStatus.ACTIVE, PromotionStatus.SOLD_OUT)
-                                .and(promotion.endAt.after(now))
-                )
-                .where(
-                        variant.isOnPromotion.eq(true),
-                        variant.id.lt(lastVariantId)
-                )
-                .orderBy(promotion.endAt.asc().nullsLast());
-    }
-
-    private void applyDefaultFilter(JPAQuery<ProductListResponseDto.Products> query,
-                                    Long lastVariantId) {
-        query
-                .where(
-                        variant.isOnPromotion.eq(false),
-                        variant.id.lt(lastVariantId)
-                )
-                .orderBy(variant.id.desc());
-    }
-
-    private ProductListResponseDto buildResponse(List<ProductListResponseDto.Products> list, int size) {
-        boolean hasNext = list.size() == size;
-        Long nextLastId = hasNext ? list.get(list.size() - 1).getVariantId() : null;
+        boolean hasNext = result.size() == size;
+        Long nextLastVariantId = hasNext
+                ? result.get(result.size() - 1).getVariantId()
+                : null;
 
         ProductListResponseDto.Pagination pagination = ProductListResponseDto.Pagination.builder()
                 .size(size)
-                .lastVariantId(nextLastId)
+                .lastVariantId(nextLastVariantId)
                 .hasNext(hasNext)
                 .build();
 
         return ProductListResponseDto.builder()
-                .products(list)
+                .products(result)
                 .pagination(pagination)
                 .build();
     }
 
-    private ConstructorExpression<ProductListResponseDto.Products> productListProjection() {
+    /** 프로모션 정보 없이 조회할 때 (discountPrice, rate, startAt, endAt 모두 null) */
+    private ConstructorExpression<ProductListResponseDto.Products> productListProjectionWithoutPromotion() {
         return Projections.constructor(
                 ProductListResponseDto.Products.class,
                 product.id,
@@ -119,18 +109,50 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
                 product.type.stringValue(),
                 variant.id,
                 variant.name,
-                image.imageUuid.max(),
+                image.imageUuid,
+                variant.price,
+                Expressions.nullExpression(Integer.class),       // discountPrice 타입에 맞춰 변경
+                Expressions.nullExpression(BigDecimal.class),        // rate
+                Expressions.nullExpression(LocalDateTime.class), // startAt
+                Expressions.nullExpression(LocalDateTime.class), // endAt
+                variant.totalQuantity.subtract(variant.reservedQuantity).subtract(variant.soldQuantity),
+                variant.isOnPromotion,
+                Expressions.constant(false),
+                product.createdAt
+        );
+    }
+
+    /** 프로모션 정보 함께 조회할 때 */
+    private ConstructorExpression<ProductListResponseDto.Products> productListProjectionWithPromotion() {
+        return Projections.constructor(
+                ProductListResponseDto.Products.class,
+                product.id,
+                product.name,
+                product.type.stringValue(),
+                variant.id,
+                variant.name,
+                image.imageUuid,
                 variant.price,
                 promotion.discountPrice,
                 promotion.rate,
                 promotion.startAt,
                 promotion.endAt,
-                variant.totalQuantity
-                        .subtract(variant.reservedQuantity)
-                        .subtract(variant.soldQuantity),
+                variant.totalQuantity.subtract(variant.reservedQuantity).subtract(variant.soldQuantity),
                 variant.isOnPromotion,
                 Expressions.constant(false),
                 product.createdAt
         );
+    }
+
+    private BooleanExpression productTypeEq(ProductType productType) {
+        return productType != null
+                ? product.type.eq(productType)
+                : null;
+    }
+
+    private BooleanExpression lastVariantIdLt(Long lastVariantId) {
+        return lastVariantId != null
+                ? variant.id.lt(lastVariantId)
+                : null;
     }
 }
