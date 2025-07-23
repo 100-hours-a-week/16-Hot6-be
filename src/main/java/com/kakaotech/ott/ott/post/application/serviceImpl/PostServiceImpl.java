@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.post.application.serviceImpl;
 
 import com.kakaotech.ott.ott.aiImage.application.serviceImpl.S3Uploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
@@ -139,6 +140,8 @@ public class PostServiceImpl implements PostService {
 
         User user = userAuthRepository.findById(post.getUserId());
 
+        AiImageConcept concept = getConceptForPost(postId, post.getType());
+
         boolean isOwner = post.getUserId().equals(userId);
 
         boolean liked = likeCheck(userId, postId);
@@ -157,6 +160,7 @@ public class PostServiceImpl implements PostService {
                 post.getTitle(),
                 post.getContent(),
                 post.getType(),
+                concept,
                 new PostAuthorResponseDto(isActive
                         ? user.getNicknameCommunity()
                         : "알 수 없음",
@@ -172,6 +176,14 @@ public class PostServiceImpl implements PostService {
                 imageUrls,
                 new KstDateTime(post.getCreatedAt())
         );
+    }
+
+    private AiImageConcept getConceptForPost(Long postId, PostType postType) {
+        if (postType == PostType.FREE) {
+            return null;
+        }
+
+        return aiImageRepository.findByPostId(postId).getConcept();
     }
 
     private boolean likeCheck(Long userId, Long postId) {

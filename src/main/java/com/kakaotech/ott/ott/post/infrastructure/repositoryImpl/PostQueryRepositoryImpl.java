@@ -1,7 +1,7 @@
 package com.kakaotech.ott.ott.post.infrastructure.repositoryImpl;
 
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.aiImage.infrastructure.entity.QAiImageEntity;
-import com.kakaotech.ott.ott.like.infrastructure.entity.LikeEntity;
 import com.kakaotech.ott.ott.like.infrastructure.entity.QLikeEntity;
 import com.kakaotech.ott.ott.post.application.component.PostDtoMapper;
 import com.kakaotech.ott.ott.post.domain.model.PostType;
@@ -9,13 +9,13 @@ import com.kakaotech.ott.ott.post.domain.repository.PostQueryRepository;
 import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.post.infrastructure.entity.QPostEntity;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
+import com.kakaotech.ott.ott.post.presentation.dto.response.ThumbnailAndConceptMap;
 import com.kakaotech.ott.ott.postImage.entity.QPostImageEntity;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.infrastructure.entity.QScrapEntity;
 import com.kakaotech.ott.ott.scrap.infrastructure.entity.ScrapEntity;
 import com.kakaotech.ott.ott.user.infrastructure.entity.QUserEntity;
 import com.kakaotech.ott.ott.util.scheduler.LikeRedisKey;
-import com.kakaotech.ott.ott.util.scheduler.ScrapRedisKey;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -42,9 +42,12 @@ class PostQueryRepositoryImpl implements PostQueryRepository {
 
         Map<Long, Boolean> likedMap = fetchLikedMap(userId, postIds);
         Map<Long, Boolean> scrappedMap = fetchScrappedMap(userId, postIds);
-        Map<Long, String> thumbnailMap = fetchThumbnailMap(postIds);
 
-        List<PostAllResponseDto.Posts> posts = convertToPostDtos(postEntities, size, likedMap, scrappedMap, thumbnailMap);
+        ThumbnailAndConceptMap thumbnailAndConceptMap = fetchThumbnailAndConceptMap(postIds);
+        Map<Long, String> thumbnailMap = thumbnailAndConceptMap.getThumbnailMap();
+        Map<Long, AiImageConcept> conceptMap = thumbnailAndConceptMap.getConceptMap();
+
+        List<PostAllResponseDto.Posts> posts = convertToPostDtos(postEntities, size, likedMap, scrappedMap, thumbnailMap, conceptMap);
         PostAllResponseDto.Pagination pagination = createPagination(posts, size);
 
         return new PostAllResponseDto(posts, pagination);
@@ -162,26 +165,13 @@ class PostQueryRepositoryImpl implements PostQueryRepository {
         return result;
     }
 
-
-//    private Map<Long, Boolean> fetchScrappedMap(Long userId, List<Long> postIds) {
-//        if (userId == null || postIds.isEmpty()) return Collections.emptyMap();
-//
-//        QScrapEntity scrap = QScrapEntity.scrapEntity;
-//        return queryFactory.selectFrom(scrap)
-//                .where(scrap.userEntity.id.eq(userId)
-//                        .and(scrap.type.eq(ScrapType.POST))
-//                        .and(scrap.targetId.in(postIds)))
-//                .fetch()
-//                .stream()
-//                .collect(Collectors.toMap(s -> s.getTargetId(), s -> true));
-//    }
-
-    private Map<Long, String> fetchThumbnailMap(List<Long> postIds) {
+    private ThumbnailAndConceptMap fetchThumbnailAndConceptMap(List<Long> postIds) {
         Map<Long, String> thumbnailMap = new HashMap<>();
+        Map<Long, AiImageConcept> conceptMap = new HashMap<>();
         QPostImageEntity postImage = QPostImageEntity.postImageEntity;
         QAiImageEntity aiImage = QAiImageEntity.aiImageEntity;
 
-        List<Tuple> aiImages = queryFactory.select(aiImage.postId, aiImage.afterImagePath)
+        List<Tuple> aiImages = queryFactory.select(aiImage.postId, aiImage.afterImagePath, aiImage.concept)
                 .from(aiImage)
                 .where(aiImage.postId.in(postIds))
                 .fetch();
@@ -191,6 +181,7 @@ class PostQueryRepositoryImpl implements PostQueryRepository {
         for (Tuple tuple : aiImages) {
             Long postId = tuple.get(aiImage.postId);
             thumbnailMap.put(postId, tuple.get(aiImage.afterImagePath));
+            conceptMap.put(postId, tuple.get(aiImage.concept));
             aiPostIds.add(postId);
         }
 
@@ -209,17 +200,19 @@ class PostQueryRepositoryImpl implements PostQueryRepository {
                             tuple.get(postImage.postEntity.id), tuple.get(postImage.imageUuid))
                     );
         }
-        return thumbnailMap;
+        return new ThumbnailAndConceptMap(thumbnailMap, conceptMap);
     }
 
     private List<PostAllResponseDto.Posts> convertToPostDtos(List<PostEntity> postEntities, int size,
                                                              Map<Long, Boolean> likedMap,
                                                              Map<Long, Boolean> scrappedMap,
-                                                             Map<Long, String> thumbnailMap) {
+                                                             Map<Long, String> thumbnailMap,
+                                                             Map<Long, AiImageConcept> conceptMap) {
         return postEntities.stream()
                 .limit(size)
                 .map(p -> postDtoMapper.toDto(
                         p,
+                        conceptMap.getOrDefault(p.getId(), null),
                         thumbnailMap.getOrDefault(p.getId(), ""),
                         likedMap.getOrDefault(p.getId(), false),
                         scrappedMap.getOrDefault(p.getId(), false)))

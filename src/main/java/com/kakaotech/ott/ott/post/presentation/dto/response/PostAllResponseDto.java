@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.post.presentation.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +19,7 @@ public class PostAllResponseDto {
     public static class Posts {
         private final Long postId;
         private final String title;
+        private final AiImageConcept concept;
         private final PostAuthorResponseDto author;
         private final String thumbnailUrl;
         private final Long likeCount;
