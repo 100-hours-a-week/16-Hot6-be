@@ -24,4 +24,7 @@ public interface ScrapRepository {
     int findByPostId(Long postId, ScrapType type);
 
     Slice<Scrap> findUserScrap(Long userId, Long cursorId, int size);
+
+    void bulkInsertOrReactivateWithBatch(List<Scrap> scraps, int batchSize);
+    void bulkDeactivateWithBatch(List<Scrap> scraps, int batchSize);
 }

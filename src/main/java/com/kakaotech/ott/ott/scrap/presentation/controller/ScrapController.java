@@ -19,24 +19,13 @@ public class ScrapController {
     private final ScrapService scrapService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse> activeScrap(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                  @RequestBody @Valid ScrapRequestDto scrapRequestDto) {
+    public ResponseEntity<ApiResponse> toggleScrap(@AuthenticationPrincipal UserPrincipal userPrincipal,
+                                                   @RequestBody @Valid ScrapRequestDto scrapRequestDto) {
 
         Long userId = userPrincipal.getId();
 
-        scrapService.likeScrap(userId, scrapRequestDto);
+        scrapService.toggleScrap(userId, scrapRequestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("스크랩 완료", null));
-    }
-
-    @DeleteMapping
-    public ResponseEntity<Void> deactiveScrap(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                    @RequestBody @Valid ScrapRequestDto scrapRequestDto) {
-
-        Long userId = userPrincipal.getId();
-
-        scrapService.unlikeScrap(userId, scrapRequestDto);
-
-        return ResponseEntity.noContent().build();
     }
 }

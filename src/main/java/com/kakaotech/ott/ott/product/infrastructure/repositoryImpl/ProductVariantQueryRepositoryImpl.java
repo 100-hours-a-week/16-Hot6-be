@@ -17,6 +17,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,31 +27,66 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
 
     private final JPAQueryFactory queryFactory;
 
-    private final QProductVariantEntity variant = QProductVariantEntity.productVariantEntity;
-    private final QProductEntity product = QProductEntity.productEntity;
-    private final QProductImageEntity image = QProductImageEntity.productImageEntity;
+    private final QProductVariantEntity   variant   = QProductVariantEntity.productVariantEntity;
+    private final QProductEntity          product   = QProductEntity.productEntity;
+    private final QProductImageEntity     image     = QProductImageEntity.productImageEntity;
     private final QProductPromotionEntity promotion = QProductPromotionEntity.productPromotionEntity;
 
     @Override
-    public ProductListResponseDto findProductListByCursor(Long userId, ProductType productType, PromotionType promotionType, Long lastVariantId, int size) {
+    public ProductListResponseDto findProductListByCursor(
+            Long userId,
+            ProductType productType,
+            PromotionType promotionType,
+            Long lastVariantId,
+            int size
+    ) {
+        List<ProductListResponseDto.Products> result;
 
-        List<ProductListResponseDto.Products> result = queryFactory
-                .select(productListProjection())
-                .distinct()
-                .from(variant)
-                .join(variant.productEntity, product)
-                .leftJoin(variant.images, image).on(image.sequence.eq(1))
-                .leftJoin(variant.promotions, promotion)
-                .where(buildWhereConditions(productType, promotionType, lastVariantId))
-                .groupBy(variant.id, product.id, promotion.id)
-                .orderBy(promotionType != null ?
-                        promotion.endAt.asc().nullsLast() :
-                        variant.id.desc())
-                .limit(size)
-                .fetch();
+        if (promotionType == null) {
+            // ────────── 일반 상품만 조회 (프로모션 컬럼은 모두 null) ──────────
+            result = queryFactory
+                    .select(productListProjectionWithoutPromotion())
+                    .distinct()
+                    .from(variant)
+                    .join(variant.productEntity, product)
+                    .leftJoin(variant.images, image)
+                    .on(image.sequence.eq(1))
+                    .where(
+                            productTypeEq(productType),
+                            variant.isOnPromotion.eq(false),
+                            lastVariantIdLt(lastVariantId)
+                    )
+                    .orderBy(variant.id.desc())
+                    .limit(size)
+                    .fetch();
+        } else {
+            // ────────── 프로모션 상품만 조회 ──────────
+            result = queryFactory
+                    .select(productListProjectionWithPromotion())
+                    .distinct()
+                    .from(variant)
+                    .join(variant.productEntity, product)
+                    .leftJoin(variant.images, image)
+                    .on(image.sequence.eq(1))
+                    .join(variant.promotions, promotion)
+                    .on(
+                            promotion.status.in(PromotionStatus.ACTIVE, PromotionStatus.SOLD_OUT),
+                            promotion.endAt.after(LocalDateTime.now())
+                    )
+                    .where(
+                            productTypeEq(productType),
+                            variant.isOnPromotion.eq(true),
+                            lastVariantIdLt(lastVariantId)
+                    )
+                    .orderBy(promotion.endAt.asc().nullsLast())
+                    .limit(size)
+                    .fetch();
+        }
 
         boolean hasNext = result.size() == size;
-        Long nextLastVariantId = hasNext ? result.get(result.size() - 1).getVariantId() : null;
+        Long nextLastVariantId = hasNext
+                ? result.get(result.size() - 1).getVariantId()
+                : null;
 
         ProductListResponseDto.Pagination pagination = ProductListResponseDto.Pagination.builder()
                 .size(size)
@@ -64,14 +100,38 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
                 .build();
     }
 
-    private ConstructorExpression<ProductListResponseDto.Products> productListProjection() {
-        return Projections.constructor(ProductListResponseDto.Products.class,
+    /** 프로모션 정보 없이 조회할 때 (discountPrice, rate, startAt, endAt 모두 null) */
+    private ConstructorExpression<ProductListResponseDto.Products> productListProjectionWithoutPromotion() {
+        return Projections.constructor(
+                ProductListResponseDto.Products.class,
                 product.id,
                 product.name,
                 product.type.stringValue(),
                 variant.id,
                 variant.name,
-                image.imageUuid.max(),
+                image.imageUuid,
+                variant.price,
+                Expressions.nullExpression(Integer.class),       // discountPrice 타입에 맞춰 변경
+                Expressions.nullExpression(BigDecimal.class),        // rate
+                Expressions.nullExpression(LocalDateTime.class), // startAt
+                Expressions.nullExpression(LocalDateTime.class), // endAt
+                variant.totalQuantity.subtract(variant.reservedQuantity).subtract(variant.soldQuantity),
+                variant.isOnPromotion,
+                Expressions.constant(false),
+                product.createdAt
+        );
+    }
+
+    /** 프로모션 정보 함께 조회할 때 */
+    private ConstructorExpression<ProductListResponseDto.Products> productListProjectionWithPromotion() {
+        return Projections.constructor(
+                ProductListResponseDto.Products.class,
+                product.id,
+                product.name,
+                product.type.stringValue(),
+                variant.id,
+                variant.name,
+                image.imageUuid,
                 variant.price,
                 promotion.discountPrice,
                 promotion.rate,
@@ -84,31 +144,15 @@ public class ProductVariantQueryRepositoryImpl implements ProductVariantQueryRep
         );
     }
 
-    private BooleanExpression[] buildWhereConditions(ProductType productType,
-                                                     PromotionType promotionType,
-                                                     Long lastVariantId) {
-        return new BooleanExpression[]{
-                productTypeEq(productType),
-                promotionTypeConditional(promotionType),
-                lastVariantIdLt(lastVariantId)
-        };
-    }
-
     private BooleanExpression productTypeEq(ProductType productType) {
-        return productType != null ? product.type.eq(productType) : null;
-    }
-
-    private BooleanExpression promotionTypeConditional(PromotionType promotionType) {
-        if (promotionType != null) {
-            return variant.isOnPromotion.eq(true)
-                    .and(promotion.status.in(PromotionStatus.ACTIVE, PromotionStatus.SOLD_OUT))
-                    .and(promotion.endAt.after(LocalDateTime.now()));
-        } else {
-            return variant.isOnPromotion.eq(false); // 일반 상품만 조회
-        }
+        return productType != null
+                ? product.type.eq(productType)
+                : null;
     }
 
     private BooleanExpression lastVariantIdLt(Long lastVariantId) {
-        return lastVariantId != null ? variant.id.lt(lastVariantId) : null;
+        return lastVariantId != null
+                ? variant.id.lt(lastVariantId)
+                : null;
     }
 }

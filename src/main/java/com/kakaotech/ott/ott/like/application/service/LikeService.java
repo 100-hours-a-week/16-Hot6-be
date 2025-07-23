@@ -4,7 +4,5 @@ import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
 
 public interface LikeService {
 
-    void likePost(Long userId, LikeRequestDto likeRequestDto);
-
-    void unlikePost(Long userId, LikeRequestDto likeRequestDto);
+    void toggleLike(Long userId, LikeRequestDto likeRequestDto);
 }
