@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.scrap.infrastructure.entity;
 import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
+import com.kakaotech.ott.ott.util.AuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class ScrapEntity {
+public class ScrapEntity extends AuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,9 +38,8 @@ public class ScrapEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "last_event_id", nullable = false, length = 32)
+    private String lastEventId;
 
     public Scrap toDomain() {
         return Scrap.builder()
@@ -48,7 +48,9 @@ public class ScrapEntity {
                 .type(this.type)
                 .targetId(this.targetId)
                 .isActive(this.isActive)
-                .createdAt(this.createdAt)
+                .lastEventId(this.lastEventId)
+                .createdAt(this.getCreatedAt())
+                .updatedAt(this.getUpdatedAt())
                 .build();
     }
 
@@ -59,7 +61,7 @@ public class ScrapEntity {
                 .type(scrap.getType())
                 .targetId(scrap.getTargetId())
                 .isActive(scrap.getIsActive())
-                .createdAt(scrap.getCreatedAt())
+                .lastEventId(scrap.getLastEventId())
                 .build();
     }
 }
