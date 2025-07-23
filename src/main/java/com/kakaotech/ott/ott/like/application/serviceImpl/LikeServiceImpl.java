@@ -1,65 +1,42 @@
 package com.kakaotech.ott.ott.like.application.serviceImpl;
 
-import com.kakaotech.ott.ott.global.exception.CustomException;
-import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.application.service.LikeService;
-import com.kakaotech.ott.ott.like.domain.model.Like;
-import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
 import com.kakaotech.ott.ott.like.presentation.dto.request.LikeRequestDto;
-import com.kakaotech.ott.ott.post.domain.model.Post;
-import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
-import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
+import com.kakaotech.ott.ott.util.scheduler.LikeRedisKey;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class LikeServiceImpl implements LikeService {
 
-    private final LikeRepository likeRepository;
-    private final UserAuthRepository userAuthRepository;
-    private final PostRepository postRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    @Transactional
     @Override
-    public void likePost(Long userId, LikeRequestDto likeRequestDto) {
+    public void toggleLike(Long userId, LikeRequestDto dto) {
+        Long postId = dto.getPostId();
+        String user = userId.toString();
+        String setKey = LikeRedisKey.setLikeKey(postId);
 
-        User user = userAuthRepository.findById(userId);
+        boolean isLiked = Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(setKey, user));
+        String action = isLiked ? "unlike" : "like";
 
-        Post post = postRepository.findById(likeRequestDto.getPostId());
-
-        boolean exists = likeRepository.existsByUserIdAndPostId(userId, likeRequestDto.getPostId());
-
-        // 이미 좋아요 상태라면 아무 동작 하지 않음
-        if(exists) {
-            throw new CustomException(ErrorCode.LIKE_ALREADY_EXISTS);
+        if (isLiked) {
+            redisTemplate.opsForSet().remove(setKey, user);
+        } else {
+            redisTemplate.opsForSet().add(setKey, user);
         }
 
-        Like like = Like.createLike(userId, likeRequestDto.getPostId());
-        Like savedLike = likeRepository.save(like);
+        Map<String, String> ev = Map.of(
+                "userId", user,
+                "postId", postId.toString(),
+                "action", action,
+                "ts", String.valueOf(System.currentTimeMillis())
+        );
+        redisTemplate.opsForStream().add(LikeRedisKey.LIKE_STREAM_KEY, ev);
 
-        postRepository.incrementLikeCount(likeRequestDto.getPostId(), 1L);
-    }
-
-    @Transactional
-    @Override
-    public void unlikePost(Long userId, LikeRequestDto likeRequestDto) {
-
-        User user = userAuthRepository.findById(userId);
-
-        Post post = postRepository.findById(likeRequestDto.getPostId());
-
-        boolean exists = likeRepository.existsByUserIdAndPostId(userId, likeRequestDto.getPostId());
-
-        // 이미 좋아요 상태라면 아무 동작 하지 않음
-        if(!exists) {
-            throw new CustomException(ErrorCode.LIKE_NOT_FOUND);
-        }
-
-        likeRepository.deleteByUserEntityIdAndTargetId(userId, likeRequestDto.getPostId());
-
-        postRepository.incrementLikeCount(likeRequestDto.getPostId(), -1L);
     }
 }

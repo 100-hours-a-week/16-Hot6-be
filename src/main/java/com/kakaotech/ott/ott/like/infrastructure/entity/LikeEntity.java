@@ -3,6 +3,7 @@ package com.kakaotech.ott.ott.like.infrastructure.entity;
 import com.kakaotech.ott.ott.like.domain.model.Like;
 import com.kakaotech.ott.ott.post.infrastructure.entity.PostEntity;
 import com.kakaotech.ott.ott.user.infrastructure.entity.UserEntity;
+import com.kakaotech.ott.ott.util.AuditEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -22,7 +23,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class LikeEntity {
+public class LikeEntity extends AuditEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,9 +40,8 @@ public class LikeEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "last_event_id", nullable = false, length = 32)
+    private String lastEventId;
 
     public Like toDomain() {
         return Like.builder()
@@ -49,7 +49,9 @@ public class LikeEntity {
                 .userId(this.userEntity.getId())
                 .postId(this.postEntity.getId())
                 .isActive(this.isActive)
-                .createdAt(this.createdAt)
+                .lastEventId(this.lastEventId)
+                .createdAt(this.getCreatedAt())
+                .updatedAt(this.getUpdatedAt())
                 .build();
     }
 
@@ -60,7 +62,7 @@ public class LikeEntity {
                 .userEntity(userEntity)
                 .postEntity(postEntity)
                 .isActive(like.getIsActive())
-                .createdAt(like.getCreatedAt())
+                .lastEventId(like.getLastEventId())
                 .build();
     }
 }
