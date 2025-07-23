@@ -28,7 +28,7 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<PostAllResponseDto>> getAllPostS(
+    public ResponseEntity<ApiResponse<PostAllResponseDto>> getAllPosts(
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             @RequestParam(required = false) String category,
             @RequestParam(required = false, defaultValue = "LATEST") String sort,
