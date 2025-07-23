@@ -2,78 +2,85 @@ package com.kakaotech.ott.ott.scrap.application.serviceImpl;
 
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
-import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
-import com.kakaotech.ott.ott.product.domain.repository.ProductRepository;
-import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
-import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import com.kakaotech.ott.ott.scrap.application.service.ScrapService;
-import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
-import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.scrap.presentation.dto.request.ScrapRequestDto;
-import com.kakaotech.ott.ott.user.domain.model.User;
-import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
+import com.kakaotech.ott.ott.util.scheduler.ScrapRedisKey;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class ScrapServiceImpl implements ScrapService {
 
-    private final ScrapRepository scrapRepository;
-    private final UserAuthRepository userAuthRepository;
-    private final PostRepository postRepository;
-    private final DeskProductRepository deskProductRepository;
-    private final ProductRepository productRepository;
-    private final ProductVariantRepository productVariantRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    @Transactional
     @Override
-    public void likeScrap(Long userId, ScrapRequestDto scrapRequestDto) {
+    public void toggleScrap(Long userId, ScrapRequestDto scrapRequestDto) {
+        Long targetId   = scrapRequestDto.getTargetId();
+        String user = userId.toString();
+        String setKey = setScrapKey(scrapRequestDto.getType(), targetId);
 
-        User user = userAuthRepository.findById(userId);
+        boolean isScrapped = Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(setKey, user));
+        String action = isScrapped ? "unscrap" : "scrap";
 
-        boolean exists = scrapRepository.existsByUserIdAndTypeAndPostId(userId, scrapRequestDto.getType(), scrapRequestDto.getTargetId());
-        // 이미 스크랩 상태라면 아무 동작 하지 않음
-        if(exists) {
-            throw new CustomException(ErrorCode.SCRAP_ALREADY_EXISTS);
+        if (isScrapped) {
+            redisTemplate.opsForSet().remove(setKey, user);
+        } else {
+            redisTemplate.opsForSet().add(setKey, user);
         }
 
-        Scrap scrap = Scrap.createScrap(userId, scrapRequestDto.getType(), scrapRequestDto.getTargetId());
-        Scrap savedscrap = scrapRepository.save(scrap);
+        String streamKey = streamScrapKey(scrapRequestDto.getType());
 
-        if (scrapRequestDto.getType().equals(ScrapType.POST))
-            postRepository.incrementScrapCount(scrapRequestDto.getTargetId(), 1L);
-        else if (scrapRequestDto.getType().equals(ScrapType.PRODUCT))
-            deskProductRepository.incrementScrapCount(scrapRequestDto.getTargetId(), 1L);
-        else // 판매상품
-            productVariantRepository.incrementScrapCount(scrapRequestDto.getTargetId(), 1L);
+        Map<String, String> ev = Map.of(
+                "userId", user,
+                "targetId", targetId.toString(),
+                "type", scrapRequestDto.getType().name(),
+                "action", action,
+                "ts", String.valueOf(System.currentTimeMillis())
+        );
+        redisTemplate.opsForStream().add(streamKey, ev);
+
     }
 
-    @Transactional
-    @Override
-    public void unlikeScrap(Long userId, ScrapRequestDto scrapRequestDto) {
-
-        User user = userAuthRepository.findById(userId);
-
-        boolean exists = scrapRepository.existsByUserIdAndTypeAndPostId(userId, scrapRequestDto.getType(), scrapRequestDto.getTargetId());
-
-
-        // 이미 스크랩 상태라면 아무 동작 하지 않음
-        if(!exists) {
-            throw new CustomException(ErrorCode.SCRAP_NOT_FOUND);
+    private String setScrapKey(ScrapType type, Long targetId) {
+        String setKey;
+        switch (type) {
+            case POST:
+                setKey = ScrapRedisKey.postSetKey(targetId);
+                break;
+            case PRODUCT:
+                setKey = ScrapRedisKey.productSetKey(targetId);
+                break;
+            case SERVICE_PRODUCT:
+                setKey = ScrapRedisKey.serviceProductSetKey(targetId);
+                break;
+            default:
+                throw new CustomException(ErrorCode.NOT_SCRAP_TYPE);
         }
 
-        scrapRepository.deleteByUserEntityIdAndTypeAndTargetId(userId, scrapRequestDto.getTargetId());
-
-        if (scrapRequestDto.getType().equals(ScrapType.POST))
-            postRepository.incrementScrapCount(scrapRequestDto.getTargetId(), -1L);
-        else if (scrapRequestDto.getType().equals(ScrapType.PRODUCT))
-            deskProductRepository.incrementScrapCount(scrapRequestDto.getTargetId(), -1L);
-        else // 판매상품
-            productVariantRepository.incrementScrapCount(scrapRequestDto.getTargetId(), -1L);
+        return setKey;
     }
 
+    private String streamScrapKey(ScrapType type) {
+        String streamKey;
+        switch (type) {
+            case POST:
+                streamKey = ScrapRedisKey.SCRAP_STREAM_KEY_POST;
+                break;
+            case PRODUCT:
+                streamKey = ScrapRedisKey.SCRAP_STREAM_KEY_PRODUCT;
+                break;
+            case SERVICE_PRODUCT:
+                streamKey = ScrapRedisKey.SCRAP_STREAM_KEY_SERVICE_PRODUCT;
+                break;
+            default:
+                throw new CustomException(ErrorCode.NOT_SCRAP_TYPE);
+        }
 
+        return streamKey;
+    }
 }
