@@ -38,5 +38,25 @@ public class LikeSyncServiceImpl implements LikeSyncService{
                 .toArray(SqlParameterSource[]::new);
 
         namedParameterJdbcTemplate.batchUpdate(sql, batch);
+
+        for (Map.Entry<Long, Long> entry : deltas.entrySet()) {
+            Long postId = entry.getKey();
+            Long delta = entry.getValue();
+
+            String updateSql = """
+            UPDATE posts
+               SET like_count = CASE
+                                   WHEN like_count + :delta < 0 THEN 0
+                                   ELSE like_count + :delta
+                                END
+             WHERE id = :postId
+        """;
+
+            MapSqlParameterSource param = new MapSqlParameterSource()
+                    .addValue("delta", delta)
+                    .addValue("postId", postId);
+
+            namedParameterJdbcTemplate.update(updateSql, param);
+        }
     }
 }
