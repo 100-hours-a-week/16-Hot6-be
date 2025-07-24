@@ -34,7 +34,7 @@ public class DistributedLockAspect {
         Cacheable cacheable = method.getAnnotation(Cacheable.class);
 
         // 1. 캐시와 락 키 생성
-        String cacheName = cacheable.value()[0];
+        String cacheName = cacheable.cacheNames()[0];
         Object dynamicKey = spelKeyGenerator.generateKey(distributedLock.key(), signature, joinPoint.getArgs());
         String lockKey = "lock:" + distributedLock.keyPrefix() + "::" + dynamicKey;
 
