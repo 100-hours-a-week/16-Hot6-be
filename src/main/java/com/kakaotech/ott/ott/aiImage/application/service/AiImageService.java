@@ -11,6 +11,8 @@ import java.io.IOException;
 
 public interface AiImageService {
 
+    void checkQuota(Long userId);
+
     AiImageSaveResponseDto handleImageValidation(MultipartFile image, AiImageConcept concept, Long userId) throws IOException;
 
     AiImage insertAiImage(AiImageAndProductRequestDto aiImageAndProductRequestDto);

@@ -7,22 +7,17 @@ import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.aiImage.domain.model.ImageGenerationHistory;
 import com.kakaotech.ott.ott.aiImage.domain.repository.ImageGenerationHistoryRepository;
+import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
-import com.kakaotech.ott.ott.recommendProduct.domain.model.AiImageRecommendedProduct;
-import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.AiImageRecommendedProductRepository;
-import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.AiImageAndProductRequestDto;
 
 import com.kakaotech.ott.ott.aiImage.application.service.AiImageService;
-import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.*;
 import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.ProductResponseDto;
 import com.kakaotech.ott.ott.recommendProduct.presentation.dto.response.RecommendedProductProjection;
-import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
-import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.util.KstDateTime;
@@ -42,13 +37,23 @@ public class AiImageServiceImpl implements AiImageService {
     private final AiImageRepository aiImageRepository;
     private final UserAuthRepository userAuthRepository;
 
-    private final DeskProductRepository deskProductRepository;
-    private final ScrapRepository scrapRepository;
-
     private final ImageUploader imageUploader;
-    private final FastApiClient fastApiClient;
     private final ImageGenerationHistoryRepository imageGenerationHistoryRepository;
     private final AiImageRecommendedProductRepository aiImageRecommendedProductRepository;
+    private final FastApiClient fastApiClient;
+
+    @Override
+    @Transactional
+    public void checkQuota(Long userId) {
+
+        User user = userAuthRepository.findById(userId);
+
+        int remainQuota = aiImageRepository.countUserIdAndStateIn(userId);
+
+        if (remainQuota == 5) {
+            throw new CustomException(ErrorCode.QUOTA_ALREADY_USED);
+        }
+    }
 
     @Override
     @Transactional
@@ -99,57 +104,6 @@ public class AiImageServiceImpl implements AiImageService {
 
         return savedAiImage;
     }
-
-//    @Override
-//    @Transactional(readOnly = true)
-//    public AiImageAndProductResponseDto getAiImage(Long imageId, Long userId) {
-//        AiImage aiImage = aiImageRepository.findById(imageId)
-//                .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
-//                .toDomain();
-//
-//        if (!aiImage.getUserId().equals(userId)) {
-//            throw new CustomException(ErrorCode.USER_FORBIDDEN);
-//        }
-//
-//        AiImageResponseDto aiImageResponseDto = new AiImageResponseDto(aiImage.getId(), aiImage.getPostId(), aiImage.getState(), aiImage.getBeforeImagePath(), aiImage.getAfterImagePath(), new KstDateTime(aiImage.getCreatedAt()));
-//
-//        if(aiImage.getState().equals(AiImageState.PENDING)) {
-//            return new AiImageAndProductResponseDto(aiImageResponseDto, null);
-//        } else if(aiImage.getState().equals(AiImageState.FAILED))
-//            throw new CustomException(ErrorCode.FAILED_GENERATING_IMAGE);
-//
-//        aiImageResponseDto.updateAfterImagePath(aiImage.getAfterImagePath());
-//
-//        List<AiImageRecommendedProduct> aiImageRecommendedProducts = aiImageRecommendedProductRepository.findByAiImageId(aiImage.getId());
-//
-//        if(aiImageRecommendedProducts.isEmpty()) {
-//            throw new CustomException(ErrorCode.DESK_PRODUCT_NOT_FOUND);
-//        }
-//
-//
-//        List<ProductResponseDto> productResponseDtos = aiImageRecommendedProducts.stream()
-//                .map(recommendedProduct -> {
-//
-//                    DeskProduct deskProduct = deskProductRepository.findById(recommendedProduct.getDeskProductId());
-//                    boolean isScrapped = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.PRODUCT, deskProduct.getId());
-//
-//
-//                    return new ProductResponseDto(
-//                            deskProduct.getId(),
-//                            deskProduct.getName(),
-//                            deskProduct.getImagePath(),
-//                            deskProduct.getPrice(),
-//                            deskProduct.getPurchaseUrl(),
-//                            isScrapped,
-//                            recommendedProduct.getCenterX(),
-//                            recommendedProduct.getCenterY(),
-//                            deskProduct.getWeight()
-//                    );
-//                })
-//                .toList();
-//
-//        return new AiImageAndProductResponseDto(aiImageResponseDto, productResponseDtos);
-//    }
 
     @Override
     @Transactional(readOnly = true)

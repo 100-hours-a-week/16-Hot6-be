@@ -15,6 +15,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -140,6 +141,13 @@ public class AiImageRepositoryImpl implements AiImageRepository {
         return aiImageJpaRepository.findByPostId(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AIIMAGE_NOT_FOUND))
                 .toDomain();
+    }
+
+    @Override
+    public int countUserIdAndStateIn(Long userId) {
+        List<AiImageState> states = Arrays.asList(AiImageState.SUCCESS, AiImageState.PENDING);
+
+        return aiImageJpaRepository.countByUserEntity_IdAndStateIn(userId, states);
     }
 
 }
