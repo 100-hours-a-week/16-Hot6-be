@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.scrap.infrastructure.sycn;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -11,6 +12,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ScrapSyncServiceImpl implements ScrapSyncService{
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -39,6 +41,54 @@ public class ScrapSyncServiceImpl implements ScrapSyncService{
                 .toArray(SqlParameterSource[]::new);
 
         namedParameterJdbcTemplate.batchUpdate(sql, batch);
+
+        for (Map.Entry<String, Long> entry : deltas.entrySet()) {
+            String[] parts = entry.getKey().split(":"); // key = "POST:123" → [POST, 123]
+            String type = parts[0];
+            Long targetId = Long.parseLong(parts[1]);
+            Long delta = entry.getValue();
+
+            String updateSql;
+            MapSqlParameterSource param = new MapSqlParameterSource()
+                    .addValue("delta", delta)
+                    .addValue("targetId", targetId);
+
+            switch (type) {
+                case "POST" -> updateSql = """
+                UPDATE posts
+                   SET scrap_count = CASE
+                                        WHEN scrap_count + :delta < 0 THEN 0
+                                        ELSE scrap_count + :delta
+                                     END
+                 WHERE id = :targetId
+            """;
+
+                case "PRODUCT" -> updateSql = """
+                UPDATE desk_products
+                   SET scrap_count = CASE
+                                        WHEN scrap_count + :delta < 0 THEN 0
+                                        ELSE scrap_count + :delta
+                                     END
+                 WHERE id = :targetId
+            """;
+
+                case "SERVICE_PRODUCT" -> updateSql = """
+                UPDATE service_products
+                   SET scrap_count = CASE
+                                        WHEN scrap_count + :delta < 0 THEN 0
+                                        ELSE scrap_count + :delta
+                                     END
+                 WHERE id = :targetId
+            """;
+
+                default -> {
+                    log.warn("⚠️ Unknown scrap type: {}", type);
+                    continue;
+                }
+            }
+
+            namedParameterJdbcTemplate.update(updateSql, param);
+        }
     }
 }
 

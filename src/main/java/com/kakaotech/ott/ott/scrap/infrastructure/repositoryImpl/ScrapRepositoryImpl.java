@@ -1,6 +1,5 @@
 package com.kakaotech.ott.ott.scrap.infrastructure.repositoryImpl;
 
-import com.kakaotech.ott.ott.like.domain.model.Like;
 import com.kakaotech.ott.ott.scrap.domain.model.Scrap;
 import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapJpaRepository;

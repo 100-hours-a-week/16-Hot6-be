@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.scrap.infrastructure.repositoryImpl;
 
+import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapQueryRepository;
 import com.kakaotech.ott.ott.scrap.infrastructure.entity.QScrapEntity;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -28,8 +29,8 @@ public class ScrapQueryRepositoryImpl implements ScrapQueryRepository {
         return queryFactory
                 .select(scrap.targetId, scrap.id.count().gt(0))
                 .from(scrap)
-                .where(scrap.userEntity.id.eq(userId), scrap.targetId.in(variantIds))
-                .groupBy(scrap.targetId)
+                .where(scrap.userEntity.id.eq(userId), scrap.type.eq(ScrapType.SERVICE_PRODUCT), scrap.targetId.in(variantIds))
+                .groupBy(scrap.targetId, scrap.type)
                 .fetch()
                 .stream()
                 .collect(Collectors.toMap(
