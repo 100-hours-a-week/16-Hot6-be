@@ -39,12 +39,10 @@ public class RedisStreamConsumerConfig {
     @Bean(destroyMethod = "stop")
     public StreamMessageListenerContainer<String, MapRecord<String,String,String>>
     likeListenerContainer() {
-        // 1) Consumer Group 생성(이미 있으면 예외 무시)
         try {
             redisTemplate.opsForStream().createGroup(LIKE_STREAM_KEY, LIKE_GROUP);
         } catch (Exception ignored) {}
 
-        // 2) Container 옵션
         StreamMessageListenerContainerOptions<String, MapRecord<String,String,String>> opts =
                 StreamMessageListenerContainerOptions
                         .<String, MapRecord<String,String,String>>builder()
@@ -52,11 +50,9 @@ public class RedisStreamConsumerConfig {
                         .batchSize(BATCH_SIZE)
                         .build();
 
-        // 3) Container 생성
         var container = StreamMessageListenerContainer
                 .create(connectionFactory, opts);
 
-        // 4) 메시지 수신 등록
         String consumerName = "likeConsumer-" + UUID.randomUUID().toString();
         container.receive(
                 Consumer.from(LIKE_GROUP, consumerName),
@@ -91,7 +87,6 @@ public class RedisStreamConsumerConfig {
             return;
         }
 
-        // 단일 레코드도 batch 파라미터 형태로 만들어서 넘긴다
         boolean isLike = "like".equals(action);
         String eventId = record.getId().toString();
 
@@ -101,12 +96,10 @@ public class RedisStreamConsumerConfig {
         Map<Long,Long> deltas = Map.of(postId, isLike ? 1L : -1L);
 
         try {
-            // 5) 기존 syncBatchWithVersion 호출
             likeSyncService.syncBatchWithVersion(upsertParams, deltas);
             ackAndDelete(LIKE_STREAM_KEY, LIKE_GROUP, record.getId());
         } catch (Exception ex) {
             log.error("▶ syncBatchWithVersion failed for {}, will retry later", record.getId(), ex);
-            // 필요하면 PEL에 남겨두고 리트라이 스케줄러가 처리하게…
         }
     }
 
@@ -192,7 +185,7 @@ public class RedisStreamConsumerConfig {
 
         List<Object[]> upsertParams =
                 List.<Object[]>of(new Object[]{userId, type, targetId, isScrap, eventId});
-        Map<String, Long> deltas = Map.of(targetId + ":" + type, isScrap ? 1L : -1L);
+        Map<String, Long> deltas = Map.of(type + ":" + targetId, isScrap ? 1L : -1L);
 
         try {
             scrapSyncService.syncBatchWithVersion(upsertParams, deltas);
