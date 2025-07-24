@@ -134,7 +134,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = RedisConfig.POPULAR_SETUPS_CACHE, key = "#userId")
+    @Cacheable(cacheNames = RedisConfig.POPULAR_SETUPS_CACHE, key = "#userId == null ? 'GUEST' : #userId")
     @DistributedLock(keyPrefix = "popular_setups", key = "#userId")
     public List<PopularSetupDto> getPopularSetups(Long userId) {
         // 상위 7개 게시글 조회 (단일 조회)

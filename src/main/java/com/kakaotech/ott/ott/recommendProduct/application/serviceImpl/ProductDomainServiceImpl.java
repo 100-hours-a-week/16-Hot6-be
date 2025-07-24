@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.recommendProduct.application.serviceImpl;
 
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.AiImageSaveResponseDto;
+import com.kakaotech.ott.ott.global.cache.DistributedLock;
 import com.kakaotech.ott.ott.global.config.RedisConfig;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
@@ -130,7 +131,8 @@ public class ProductDomainServiceImpl implements ProductDomainService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = RedisConfig.RECOMMEND_ITEMS_CACHE, key = "#userId")
+    @Cacheable(cacheNames = RedisConfig.RECOMMEND_ITEMS_CACHE, key = "#userId == null ? 'GUEST' : #userId")
+    @DistributedLock(keyPrefix = "recommend_items", key = "#userId")
     public List<RecommendedItemsDto> getRecommendItems(Long userId) {
         return deskProductRepository.findTop7ByWeight().stream()
                 .map(deskProduct -> new RecommendedItemsDto(
