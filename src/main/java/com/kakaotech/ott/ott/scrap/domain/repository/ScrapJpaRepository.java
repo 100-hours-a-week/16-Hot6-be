@@ -28,7 +28,7 @@ public interface ScrapJpaRepository extends JpaRepository<ScrapEntity, Long> {
     void deleteByUserEntityIdAndTargetId(Long userId, Long postId);
 
     // Batch 조회 쿼리
-    @Query("SELECT s.targetId FROM ScrapEntity s WHERE s.userEntity.id = :userId AND s.type = 'POST' AND s.targetId IN :postIds")
+    @Query("SELECT s.targetId FROM ScrapEntity s WHERE s.userEntity.id = :userId AND s.type = 'POST' AND s.targetId IN :postIds AND s.isActive = true")
     List<Long> findScrappedPostIds(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
 
 
