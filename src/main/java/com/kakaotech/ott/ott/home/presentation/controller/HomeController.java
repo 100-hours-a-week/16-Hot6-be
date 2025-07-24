@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.home.presentation.controller;
 
 import com.kakaotech.ott.ott.global.response.ApiResponse;
+import com.kakaotech.ott.ott.home.application.service.HomeService;
 import com.kakaotech.ott.ott.home.presentation.dto.response.MainResponseDto;
 import com.kakaotech.ott.ott.post.application.service.PostService;
 import com.kakaotech.ott.ott.product.application.service.ProductService;
@@ -17,10 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class HomeController {
-
-    private final PostService postService;
-    private final ProductDomainService productDomainService;
-    private final ProductService productService;
+    private final HomeService homeService;
 
     @GetMapping("/main")
     public ResponseEntity<ApiResponse<MainResponseDto>> home(
@@ -28,12 +26,7 @@ public class HomeController {
 
         Long userId = (userPrincipal == null) ? null : userPrincipal.getId();
 
-        MainResponseDto mainResponseDto = new MainResponseDto(
-                postService.getPopularSetups(userId),
-                productDomainService.getRecommendItems(userId),
-                productService.getTodayPromotionProducts(userId)
-        );
-
+        MainResponseDto mainResponseDto = homeService.getMainPageData(userId);
         return ResponseEntity.ok(ApiResponse.success("랜딩페이지 조회 성공", mainResponseDto));
     }
 

@@ -1,6 +1,8 @@
 package com.kakaotech.ott.ott.recommendProduct.application.serviceImpl;
 
 import com.kakaotech.ott.ott.aiImage.presentation.dto.response.AiImageSaveResponseDto;
+import com.kakaotech.ott.ott.global.cache.DistributedLock;
+import com.kakaotech.ott.ott.global.config.RedisConfig;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.recommendProduct.application.service.ProductDomainService;
@@ -22,6 +24,7 @@ import com.kakaotech.ott.ott.scrap.domain.model.ScrapType;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -128,6 +131,8 @@ public class ProductDomainServiceImpl implements ProductDomainService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = RedisConfig.RECOMMEND_ITEMS_CACHE, key = "#userId == null ? 'GUEST' : #userId")
+    @DistributedLock(keyPrefix = "recommend_items", key = "#userId")
     public List<RecommendedItemsDto> getRecommendItems(Long userId) {
         return deskProductRepository.findTop7ByWeight().stream()
                 .map(deskProduct -> new RecommendedItemsDto(
