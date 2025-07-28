@@ -1,7 +1,9 @@
 package com.kakaotech.ott.ott.global.config;
 
+import com.kakaotech.ott.ott.aiImage.infrastructure.stream.AiImageResultConsumer;
 import com.kakaotech.ott.ott.like.infrastructure.sync.LikeSyncService;
 import com.kakaotech.ott.ott.scrap.infrastructure.sycn.ScrapSyncService;
+import com.kakaotech.ott.ott.util.scheduler.AiImageRedisKey;
 import com.kakaotech.ott.ott.util.scheduler.LikeRedisKey;
 import com.kakaotech.ott.ott.util.scheduler.ScrapRedisKey;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,8 @@ public class RedisStreamConsumerConfig {
     private final StringRedisTemplate     redisTemplate;
     private final LikeSyncService         likeSyncService;
     private final ScrapSyncService        scrapSyncService;
+
+    private final AiImageResultConsumer aiImageResultConsumer;
 
     @Bean(destroyMethod = "stop")
     public StreamMessageListenerContainer<String, MapRecord<String,String,String>>
@@ -197,5 +201,43 @@ public class RedisStreamConsumerConfig {
     private void ackAndDelete(String streamKey, String group, RecordId id) {
         redisTemplate.opsForStream().acknowledge(streamKey, group, id);
         redisTemplate.opsForStream().delete(streamKey, id);
+    }
+
+
+    @Bean(destroyMethod = "stop")
+    public StreamMessageListenerContainer<String, MapRecord<String, String, String>>
+    aiImageResultListenerContainer() {
+        return createAiImageContainer(
+                AiImageRedisKey.COMPLETED_IMAGES_STREAM,
+                AiImageRedisKey.TO_BE_GROUP
+        );
+    }
+
+    private StreamMessageListenerContainer<String, MapRecord<String, String, String>>
+    createAiImageContainer(String streamKey, String group) {
+        try {
+            redisTemplate.opsForStream().createGroup(streamKey, group);
+        } catch (Exception ignored) {}
+
+        var opts = StreamMessageListenerContainerOptions
+                .<String, MapRecord<String, String, String>>builder()
+                .pollTimeout(POLL_TIMEOUT)
+                .batchSize(BATCH_SIZE)
+                .build();
+
+        var container = StreamMessageListenerContainer
+                .create(connectionFactory, opts);
+
+        String consumer = group + "-" + UUID.randomUUID();
+        container.receive(
+                Consumer.from(group, consumer),
+                StreamOffset.create(streamKey, ReadOffset.lastConsumed()),
+                record -> aiImageResultConsumer.handleCompletedImageResult(record)
+        );
+
+        container.start();
+        log.info("▶ AI Image result listener started: stream='{}', group='{}', consumer='{}'",
+                streamKey, group, consumer);
+        return container;
     }
 }
