@@ -77,6 +77,7 @@ public class AiImageController {
         return ResponseEntity.ok(ApiResponse.success("AI 이미지 생성 요청이 접수되었습니다.", aiImageSaveResponseDto));
     }
 
+    // 사용되지 않는 엔드포인트
     @PostMapping("/ai-images/result")
     public ResponseEntity<ApiResponse<AiImageSaveResponseDto>> receiveResult(
             @Valid @RequestBody AiImageAndProductRequestDto requestDto) {
