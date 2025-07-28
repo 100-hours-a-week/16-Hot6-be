@@ -16,15 +16,15 @@ public class BatchExecutor {
     public void execute(String jobName, Runnable action) {
         LocalDateTime scheduleAt = LocalDateTime.now().withSecond(0).withNano(0);
         BatchJobLog log = BatchJobLog.createBatchJobLog(jobName, scheduleAt);
-        log = batchJobLogRepository.save(log);
+        BatchJobLog savedLog = batchJobLogRepository.save(log);
 
         try {
             action.run();
-            log.markSuccess();
+            savedLog.markSuccess();
         } catch (Exception e) {
-            log.markFailed(e.getMessage());
+            savedLog.markFailed(e.getMessage());
         } finally {
-            batchJobLogRepository.update(log);
+            batchJobLogRepository.update(savedLog);
         }
     }
 

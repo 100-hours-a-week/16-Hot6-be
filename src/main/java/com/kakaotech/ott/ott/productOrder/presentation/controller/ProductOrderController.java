@@ -4,7 +4,6 @@ import com.kakaotech.ott.ott.global.response.ApiResponse;
 import com.kakaotech.ott.ott.productOrder.application.service.ProductOrderService;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderCancelRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialCancelRequestDto;
-import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderPartialConfirmRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.request.ProductOrderRequestDto;
 import com.kakaotech.ott.ott.productOrder.presentation.dto.response.*;
 import com.kakaotech.ott.ott.user.domain.model.UserPrincipal;

@@ -2,8 +2,11 @@ package com.kakaotech.ott.ott.post.application.serviceImpl;
 
 import com.kakaotech.ott.ott.aiImage.application.serviceImpl.S3Uploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.comment.domain.repository.CommentRepository;
+import com.kakaotech.ott.ott.global.cache.DistributedLock;
+import com.kakaotech.ott.ott.global.config.RedisConfig;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
 import com.kakaotech.ott.ott.like.domain.repository.LikeRepository;
@@ -29,8 +32,12 @@ import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.util.KstDateTime;
+import com.kakaotech.ott.ott.util.scheduler.LikeRedisKey;
+import com.kakaotech.ott.ott.util.scheduler.ScrapRedisKey;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,6 +62,7 @@ public class PostServiceImpl implements PostService {
     private final CommentRepository commentRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final PostQueryRepository postQueryRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
 
     @Value("${cloud.aws.s3.base-url}")
@@ -100,7 +108,6 @@ public class PostServiceImpl implements PostService {
 
         PointHistory afterPointHistory = PointHistory.createPointHistory(user.getId(), 200, beforePointHistory.getBalanceAfter() + 200, PointActionType.EARN, PointActionReason.POST_CREATE);
         pointHistoryRepository.save(afterPointHistory, user);
-        // user.updatePoint(200); TODO: PointHistory로 변경
         userAuthRepository.save(user);
 
         Post savedPost = postRepository.save(post);
@@ -119,64 +126,41 @@ public class PostServiceImpl implements PostService {
         return new PostCreateResponseDto(savedPost.getId());
     }
 
-//    @Override
-//    @Transactional(readOnly = true)
-//    public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size, Long lastPostId,
-//                                         Integer lastLikeCount, Long lastViewCount, Double lastWeightCount) {
-//        List<Post> posts = postRepository.findAllByCursor(size, lastPostId, lastLikeCount, lastViewCount, lastWeightCount, category, sort);
-//
-//        List<PostAllResponseDto.Posts> dtoList = posts.stream()
-//                .map(post -> {
-//                    User author = userAuthRepository.findById(post.getUserId());
-//
-//                    boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
-//                    boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
-//                    int commentCount = commentRepository.findByPostId(post.getId());
-//                    Long likeCount = likeRepository.findByPostId(post.getId());
-//
-//                    String thumbnailImage = switch (post.getType()) {
-//                        case AI -> aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
-//                        case FREE -> post.getImages().isEmpty() ? "" : post.getImages().get(0).getImageUuid();
-//                    };
-//
-//                    boolean isActive = userAuthRepository.findById(post.getUserId()).isActive();
-//
-//                    return new PostAllResponseDto.Posts(
-//                            post.getId(),
-//                            post.getTitle(),
-//                            new PostAllResponseDto.PostAuthorResponseDto(isActive
-//                                    ? author.getNicknameCommunity()
-//                                    : "알 수 없음",
-//                                    isActive
-//                                    ? author.getImagePath()
-//                                    : basicProfile),
-//                            thumbnailImage,
-//                            likeCount,
-//                            commentCount,
-//                            post.getViewCount(),
-//                            post.getWeight(),
-//                            new KstDateTime(post.getCreatedAt()),
-//                            liked,
-//                            scrapped
-//                    );
-//                })
-//                .toList();
-//
-//
-//        boolean hasNext = dtoList.size() == size;
-//        Long nextLastId = hasNext ? dtoList.get(dtoList.size() - 1).getPostId() : null;
-//        Long nextLastLikeCount = hasNext ? dtoList.get(dtoList.size() - 1).getLikeCount() : null;
-//        Long nextLastViewCount = hasNext ? dtoList.get(dtoList.size() - 1).getViewCount() : null;
-//        Double nextLastWeightCount = hasNext ? dtoList.get(dtoList.size() - 1).getWeightCount() : null;
-//
-//        return new PostAllResponseDto(dtoList, new PostAllResponseDto.Pagination(size, nextLastId, nextLastLikeCount, nextLastViewCount, nextLastWeightCount, hasNext));
-//    }
-
     @Override
     @Transactional(readOnly = true)
     public PostAllResponseDto getAllPost(Long userId, String category, String sort, int size,
                                          Long lastPostId, Integer lastLikeCount, Long lastViewCount, Double lastWeightCount) {
         return postQueryRepository.getAllPost(userId, category, sort, size, lastPostId, lastLikeCount, lastViewCount, lastWeightCount);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = RedisConfig.POPULAR_SETUPS_CACHE, key = "#userId == null ? 'GUEST' : #userId")
+    @DistributedLock(keyPrefix = "popular_setups", key = "#userId")
+    public List<PopularSetupDto> getPopularSetups(Long userId) {
+        // 상위 7개 게시글 조회 (단일 조회)
+        List<Post> popularPosts = postRepository.findTop7ByWeight();
+        List<Long> postIds = popularPosts.stream().map(Post::getId).collect(Collectors.toList());
+
+        // AI 이미지 Batch 조회 (Domain Repository)
+        Map<Long, AiImage> aiImageMap = aiImageRepository.findByPostIds(postIds);
+
+        // Scrap 여부 Batch 조회 (Domain Repository)
+        Set<Long> scrappedPostIds = (userId != null)
+                ? new HashSet<>(scrapRepository.findScrappedPostIds(userId, postIds))
+                : Collections.emptySet();
+
+        // PopularSetupDto 생성
+        return popularPosts.stream()
+                .map(post -> new PopularSetupDto(
+                        post.getId(),
+                        post.getTitle(),
+                        Optional.ofNullable(aiImageMap.get(post.getId()))
+                                .map(AiImage::getAfterImagePath)
+                                .orElse(""),
+                        (userId != null) && scrappedPostIds.contains(post.getId())
+                ))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -189,9 +173,13 @@ public class PostServiceImpl implements PostService {
 
         User user = userAuthRepository.findById(post.getUserId());
 
+        AiImageConcept concept = getConceptForPost(postId, post.getType());
+
         boolean isOwner = post.getUserId().equals(userId);
-        boolean liked = likeRepository.existsByUserIdAndPostId(userId, post.getId());
-        boolean scrapped = (userId != null) && scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, post.getId());
+
+        boolean liked = likeCheck(userId, postId);
+
+        boolean scrapped = scrapCheck(userId, postId);
 
         List<?> imageUrls = imageLoaderManager.loadImages(post.getType(), postId);
 
@@ -205,6 +193,7 @@ public class PostServiceImpl implements PostService {
                 post.getTitle(),
                 post.getContent(),
                 post.getType(),
+                concept,
                 new PostAuthorResponseDto(isActive
                         ? user.getNicknameCommunity()
                         : "알 수 없음",
@@ -220,6 +209,56 @@ public class PostServiceImpl implements PostService {
                 imageUrls,
                 new KstDateTime(post.getCreatedAt())
         );
+    }
+
+    private AiImageConcept getConceptForPost(Long postId, PostType postType) {
+        if (postType == PostType.FREE) {
+            return null;
+        }
+
+        return aiImageRepository.findByPostId(postId).getConcept();
+    }
+
+    private boolean likeCheck(Long userId, Long postId) {
+        String key = LikeRedisKey.setLikeKey(postId);
+        String member = String.valueOf(userId);
+
+        Boolean inRedis = redisTemplate.opsForSet().isMember(key, member);
+
+        if (Boolean.TRUE.equals(inRedis)) {
+            return true;
+        }
+        if (Boolean.FALSE.equals(inRedis)) {
+            return false;
+        }
+
+        boolean inDb = likeRepository.existsByUserIdAndPostId(userId, postId);
+        if (inDb) {
+            redisTemplate.opsForSet().add(key, member);
+        }
+
+        return inDb;
+    }
+
+    private boolean scrapCheck(Long userId, Long targetId) {
+        String key = ScrapRedisKey.postSetKey(targetId);
+        String member = String.valueOf(userId);
+
+        Boolean inRedis = redisTemplate.opsForSet().isMember(key, member);
+
+        if (Boolean.TRUE.equals(inRedis)) {
+            return true;
+        }
+        if (Boolean.FALSE.equals(inRedis)) {
+            return false;
+        }
+
+        boolean inDb = scrapRepository.existsByUserIdAndTypeAndPostId(userId, ScrapType.POST, targetId);
+        if (inDb) {
+            redisTemplate.opsForSet().add(key, member);
+        }
+
+        return inDb;
     }
 
     @Override
@@ -350,34 +389,6 @@ public class PostServiceImpl implements PostService {
 
         Post savedPost = postRepository.save(post);
         return new PostCreateResponseDto(savedPost.getId());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<PopularSetupDto> getPopularSetups(Long userId) {
-        // 상위 7개 게시글 조회 (단일 조회)
-        List<Post> popularPosts = postRepository.findTop7ByWeight();
-        List<Long> postIds = popularPosts.stream().map(Post::getId).collect(Collectors.toList());
-
-        // AI 이미지 Batch 조회 (Domain Repository)
-        Map<Long, AiImage> aiImageMap = aiImageRepository.findByPostIds(postIds);
-
-        // Scrap 여부 Batch 조회 (Domain Repository)
-        Set<Long> scrappedPostIds = (userId != null)
-                ? new HashSet<>(scrapRepository.findScrappedPostIds(userId, postIds))
-                : Collections.emptySet();
-
-        // PopularSetupDto 생성
-        return popularPosts.stream()
-                .map(post -> new PopularSetupDto(
-                        post.getId(),
-                        post.getTitle(),
-                        Optional.ofNullable(aiImageMap.get(post.getId()))
-                                .map(AiImage::getAfterImagePath)
-                                .orElse(""),
-                        (userId != null) && scrappedPostIds.contains(post.getId())
-                ))
-                .collect(Collectors.toList());
     }
 
 

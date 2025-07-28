@@ -19,24 +19,14 @@ public class LikeController {
     private final LikeService likeService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse> activeLike(@AuthenticationPrincipal UserPrincipal userPrincipal,
+    public ResponseEntity<ApiResponse> toggleLike(@AuthenticationPrincipal UserPrincipal userPrincipal,
                                                   @RequestBody @Valid LikeRequestDto likeRequestDto) {
 
         Long userId = userPrincipal.getId();
 
-        likeService.likePost(userId, likeRequestDto);
+        likeService.toggleLike(userId, likeRequestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("좋아요 완료", null));
     }
 
-    @DeleteMapping
-    public ResponseEntity<Void> deactiveLike(@AuthenticationPrincipal UserPrincipal userPrincipal,
-                                                  @RequestBody @Valid LikeRequestDto likeRequestDto) {
-
-        Long userId = userPrincipal.getId();
-
-        likeService.unlikePost(userId, likeRequestDto);
-
-        return ResponseEntity.noContent().build();
-    }
 }

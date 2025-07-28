@@ -13,14 +13,22 @@ import java.util.List;
 
 public interface ScrapJpaRepository extends JpaRepository<ScrapEntity, Long> {
 
-    boolean existsByUserEntityIdAndTypeAndTargetId(Long userId, ScrapType type, Long targetId);
+    @Query("""
+    SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END
+    FROM ScrapEntity s
+    WHERE s.userEntity.id = :userId
+      AND s.type = :type
+      AND s.targetId = :targetId
+      AND s.isActive = true
+""")
+    boolean existsActiveByUserEntityIdAndTypeAndTargetId(Long userId, ScrapType type, Long targetId);
 
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM ScrapEntity s WHERE s.userEntity.id = :userId AND s.targetId = :postId")
     void deleteByUserEntityIdAndTargetId(Long userId, Long postId);
 
     // Batch 조회 쿼리
-    @Query("SELECT s.targetId FROM ScrapEntity s WHERE s.userEntity.id = :userId AND s.type = 'POST' AND s.targetId IN :postIds")
+    @Query("SELECT s.targetId FROM ScrapEntity s WHERE s.userEntity.id = :userId AND s.type = 'POST' AND s.targetId IN :postIds AND s.isActive = true")
     List<Long> findScrappedPostIds(@Param("userId") Long userId, @Param("postIds") List<Long> postIds);
 
 

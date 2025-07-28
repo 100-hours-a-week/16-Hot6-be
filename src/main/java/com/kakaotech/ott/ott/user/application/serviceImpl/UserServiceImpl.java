@@ -2,6 +2,7 @@ package com.kakaotech.ott.ott.user.application.serviceImpl;
 
 import com.kakaotech.ott.ott.aiImage.application.service.ImageUploader;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.aiImage.domain.repository.AiImageRepository;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
@@ -13,10 +14,7 @@ import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.post.domain.model.PostType;
 import com.kakaotech.ott.ott.post.domain.repository.PostRepository;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PostAllResponseDto;
-import com.kakaotech.ott.ott.post.presentation.dto.response.PostAuthorResponseDto;
-import com.kakaotech.ott.ott.product.domain.model.Product;
 import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
-import com.kakaotech.ott.ott.product.domain.repository.ProductRepository;
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
 import com.kakaotech.ott.ott.recommendProduct.domain.model.DeskProduct;
 import com.kakaotech.ott.ott.recommendProduct.domain.repository.DeskProductRepository;
@@ -147,13 +145,17 @@ public class UserServiceImpl implements UserService {
                 .map(post -> {
 
                     String thumbnailImage;
+                    AiImageConcept concept;
                     if (post.getType().equals(PostType.FREE)) {
                         thumbnailImage = post.getImages().isEmpty()
                                 ? null
                                 : post.getImages().get(0).getImageUuid();
+                        concept = null;
                     }
                     else {
-                        thumbnailImage = aiImageRepository.findByPostId(post.getId()).getAfterImagePath();
+                        AiImage aiImage = aiImageRepository.findByPostId(post.getId());
+                        thumbnailImage = aiImage.getAfterImagePath();
+                        concept = aiImage.getConcept();
                     }
                     boolean liked = likedPostIds.contains(post.getId());
                     boolean scrapped = scrappedPostIds.contains(post.getId());
@@ -161,6 +163,7 @@ public class UserServiceImpl implements UserService {
                     return new PostAllResponseDto.Posts(
                             post.getId(),
                             post.getTitle(),
+                            concept,
                             new PostAllResponseDto.PostAuthorResponseDto(
                                     user.getNicknameCommunity(),
                                     user.getImagePath()

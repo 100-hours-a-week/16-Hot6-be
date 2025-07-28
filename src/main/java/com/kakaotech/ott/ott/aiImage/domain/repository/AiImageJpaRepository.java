@@ -1,5 +1,6 @@
 package com.kakaotech.ott.ott.aiImage.domain.repository;
 
+import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.aiImage.infrastructure.entity.AiImageEntity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -13,6 +14,9 @@ import java.util.Optional;
 public interface AiImageJpaRepository extends JpaRepository<AiImageEntity, Long> {
 
     Optional<AiImageEntity> findByBeforeImagePath(String beforeImagePath);
+
+    @Query("SELECT COUNT(a) FROM AiImageEntity a WHERE a.userEntity.id = :userId AND a.state IN :states AND FUNCTION('DATE', a.createdAt) = CURRENT_DATE")
+    int countByUserEntity_IdAndStateIn(Long userId, List<AiImageState> states);
 
     @Query("""
         SELECT ai 

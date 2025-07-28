@@ -54,7 +54,9 @@ public class AiImageController {
 
         Long userId = userPrincipal.getId();
 
-        userAuthService.checkQuota(userId);
+        //userAuthService.checkQuota(userId);
+
+        aiImageService.checkQuota(userId);
 
         MultipartFile image = requestDto.getBeforeImagePath();
 

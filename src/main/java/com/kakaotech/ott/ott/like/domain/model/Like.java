@@ -17,12 +17,17 @@ public class Like {
 
     private Boolean isActive;
 
+    private String lastEventId;
+
     private LocalDateTime createdAt;
 
-    public static Like createLike(Long userId, Long postId) {
+    private LocalDateTime updatedAt;
+
+    public static Like createLike(Long userId, Long postId, String lastEventId) {
         return Like.builder()
                 .userId(userId)
                 .postId(postId)
+                .lastEventId(lastEventId)
                 .isActive(true)  // 기본 활성화
                 .build();
     }

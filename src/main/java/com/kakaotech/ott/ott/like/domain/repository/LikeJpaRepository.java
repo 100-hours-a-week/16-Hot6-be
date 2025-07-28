@@ -11,8 +11,16 @@ import java.util.List;
 
 public interface LikeJpaRepository extends JpaRepository<LikeEntity, Long> {
 
+    @Query("""
+    SELECT CASE WHEN COUNT(l) > 0 THEN true ELSE false END
+    FROM LikeEntity l
+    WHERE l.userEntity.id = :userId
+      AND l.postEntity.id = :postId
+      AND l.isActive = true
+""")
+    boolean existsActiveByUserIdAndPostId(@Param("userId") Long userId,
+                                          @Param("postId") Long postId);
 
-    boolean existsByUserEntityIdAndPostEntityId(Long userId, Long postId);
 
     @Modifying(clearAutomatically = true)
     @Query("DELETE FROM LikeEntity l WHERE l.userEntity.id = :userId AND l.postEntity.id = :postId")

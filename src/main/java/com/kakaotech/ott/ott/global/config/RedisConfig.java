@@ -4,15 +4,30 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.kakaotech.ott.ott.global.cache.CustomCacheErrorHandler;
+import com.kakaotech.ott.ott.like.infrastructure.sync.LikeEvent;
+import com.kakaotech.ott.ott.scrap.infrastructure.sycn.ScrapEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
+import org.redisson.spring.data.connection.RedissonConnectionFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
+import org.springframework.cache.annotation.CachingConfigurer;
+import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -26,16 +41,58 @@ import java.util.*;
 @Configuration
 @EnableCaching
 @RequiredArgsConstructor
-public class RedisConfig {
+public class RedisConfig implements CachingConfigurer {
 
     @Value("${spring.profiles.active}")
     private String activeProfile;
 
     // 캐시 키 상수 정의
-    public static final String POPULAR_SETUPS_CACHE = "popularSetups";
-    public static final String RECOMMEND_ITEMS_CACHE = "recommendItems";
-    public static final String TODAY_PROMOTION_CACHE = "todayPromotion";
-    public static final String HOME_DATA_CACHE = "homeData";
+    public static final String POPULAR_SETUPS_CACHE = "main:popular:posts";
+    public static final String RECOMMEND_ITEMS_CACHE = "main:recommend:products";
+    public static final String TODAY_PROMOTION_CACHE = "main:today:promotions";
+
+    // feat, dev 환경을 위한 Redis Standalone 설정
+    @Bean(destroyMethod = "shutdown")
+    @Profile({"feat", "dev"})
+    public RedissonClient redissonClient(
+            @Value("${spring.data.redis.host}") String host,
+            @Value("${spring.data.redis.port}") int port,
+            @Value("${spring.data.redis.password}") String password
+    ) {
+        Config config = new Config();
+        config.useSingleServer()
+                .setAddress("redis://" + host + ":" + port)
+                .setPassword(password);
+        return Redisson.create(config);
+    }
+
+    // prod 환경을 위한 Redis Sentinel 설정
+    @Bean(destroyMethod = "shutdown")
+    @Profile("prod")
+    public RedissonClient redissonClientProd(
+            @Value("${spring.data.redis.sentinel.master}") String masterName,
+            @Value("${spring.data.redis.sentinel.nodes}") String nodes,
+            @Value("${spring.data.redis.password}") String masterPassword,
+            @Value("${spring.data.redis.sentinel.password}") String sentinelPassword
+    ) {
+        Config config = new Config();
+        String[] sentinelNodes = Arrays.stream(nodes.split(","))
+                .map(node -> "redis://" + node.trim())
+                .toArray(String[]::new);
+
+        config.useSentinelServers()
+                .setMasterName(masterName)
+                .addSentinelAddress(sentinelNodes)
+                .setPassword(masterPassword)
+                .setSentinelPassword(sentinelPassword);
+        return Redisson.create(config);
+    }
+
+    // Redisson 기반 RedisConnectionFactory 생성
+    @Bean
+    public RedisConnectionFactory redisConnectionFactory(RedissonClient redissonClient) {
+        return new RedissonConnectionFactory(redissonClient);
+    }
 
     // ObjectMapper 설정 - JSON 직렬화/역직렬화 최적화
     @Bean
@@ -87,6 +144,47 @@ public class RedisConfig {
         return template;
     }
 
+    @Primary
+    @Bean(name = "stringRedisTemplate")
+    public RedisTemplate<String, String> stringRedisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, String> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+
+        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+        template.setKeySerializer(stringSerializer);
+        template.setValueSerializer(stringSerializer);
+        template.setHashKeySerializer(stringSerializer);
+        template.setHashValueSerializer(stringSerializer);
+        template.setDefaultSerializer(stringSerializer);
+
+        template.afterPropertiesSet();
+        return template;
+    }
+
+    @Bean(name = "likeEventRedisTemplate")
+    public RedisTemplate<String, LikeEvent> likeEventRedisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, LikeEvent> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        template.afterPropertiesSet();
+        return template;
+    }
+
+    @Bean(name = "scrapEventRedisTemplate")
+    public RedisTemplate<String, ScrapEvent> scrapEventRedisTemplate(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, ScrapEvent> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        template.afterPropertiesSet();
+        return template;
+    }
+
     // 기본 캐시 설정
     private RedisCacheConfiguration defaultCacheConfig() {
         return RedisCacheConfiguration.defaultCacheConfig()
@@ -107,23 +205,25 @@ public class RedisConfig {
 
             // 인기 게시글 캐시 (자정까지)
             cacheConfigurations.put(POPULAR_SETUPS_CACHE,
-                    defaultCacheConfig().entryTtl(getTimeUntilMidnight(baseTtl)));
+                    defaultCacheConfig().entryTtl(baseTtl));
 
             // 추천 상품 캐시 (자정까지)
             cacheConfigurations.put(RECOMMEND_ITEMS_CACHE,
-                    defaultCacheConfig().entryTtl(getTimeUntilMidnight(baseTtl)));
+                    defaultCacheConfig().entryTtl(baseTtl));
 
             // 특가 상품 캐시 (오후 1시까지)
             cacheConfigurations.put(TODAY_PROMOTION_CACHE,
-                    defaultCacheConfig().entryTtl(getTimeUntil13PM(baseTtl)));
-
-            // 홈 데이터 통합 캐시 (가장 짧은 TTL)
-            cacheConfigurations.put(HOME_DATA_CACHE,
-                    defaultCacheConfig().entryTtl(getShorterTtl(baseTtl)));
+                    defaultCacheConfig().entryTtl(baseTtl));
 
             builder.withInitialCacheConfigurations(cacheConfigurations);
 
         };
+    }
+
+    @Override
+    @Bean
+    public CacheErrorHandler errorHandler() {
+        return new CustomCacheErrorHandler();
     }
 
     // === Helper Method ===
@@ -133,41 +233,5 @@ public class RedisConfig {
             return Duration.ofHours(25);
         }
         return Duration.ofHours(1);
-    }
-
-    private Duration getTimeUntilMidnight(Duration fallback) {
-        if ("dev".equals(activeProfile)) {
-            return fallback;
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime midnight = now.toLocalDate().plusDays(1).atStartOfDay();
-        return Duration.between(now, midnight);
-    }
-
-    private Duration getTimeUntil13PM(Duration fallback) {
-        if ("dev".equals(activeProfile)) {
-            return fallback;
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime target = now.toLocalDate().atTime(13, 0);
-
-        if (now.isAfter(target)) {
-            target = target.plusDays(1);
-        }
-
-        return Duration.between(now, target);
-    }
-
-    private Duration getShorterTtl(Duration fallback) {
-        if ("dev".equals(activeProfile)) {
-            return fallback;
-        }
-
-        Duration untilMidnight = getTimeUntilMidnight(fallback);
-        Duration until13PM = getTimeUntil13PM(fallback);
-
-        return untilMidnight.compareTo(until13PM) < 0 ? untilMidnight : until13PM;
     }
 }

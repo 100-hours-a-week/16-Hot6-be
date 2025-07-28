@@ -44,6 +44,7 @@ public enum ErrorCode {
     // Scrap
     SCRAP_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 스크랩한 게시글입니다."),
     SCRAP_NOT_FOUND(HttpStatus.CONFLICT, "스크랩하지 않은 게시글입니다."),
+    NOT_SCRAP_TYPE(HttpStatus.BAD_REQUEST, "스크랩 가능한 객체가 아닙니다."),
 
     // Like
     LIKE_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 좋아요한 게시글입니다."),
