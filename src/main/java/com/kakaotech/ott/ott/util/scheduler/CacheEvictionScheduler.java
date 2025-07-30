@@ -4,40 +4,55 @@ import com.kakaotech.ott.ott.global.config.RedisConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.Objects;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class CacheEvictionScheduler {
-    private final CacheManager cacheManager;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    // 매일 자정에 실행되어 캐시 삭제(인기, 추천, 홈 데이터)
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
-    public void evictExpiredCaches() {
-        evictCache(RedisConfig.POPULAR_SETUPS_CACHE);
-        evictCache(RedisConfig.RECOMMEND_ITEMS_CACHE);
-        evictCache(RedisConfig.HOME_DATA_CACHE);
+    // 매일 00:01에 실행되어 캐시 삭제(인기, 추천)
+    @Scheduled(cron = "0 1 0 * * *", zone = "Asia/Seoul")
+    public void evictMidnightUpdateCaches() {
+        deleteKeysByPattern(RedisConfig.POPULAR_SETUPS_CACHE + "*");
+        deleteKeysByPattern(RedisConfig.RECOMMEND_ITEMS_CACHE + "*");
+        log.info("Popular setups and Recommend items caches have been evicted.");
     }
 
-    // 매일 오후 1시에 실행
-    @Scheduled(cron = "0 0 13 * * *", zone = "Asia/Seoul")
+    // 매일 오후 1시 1분에 실행
+    @Scheduled(cron = "0 1 13 * * *", zone = "Asia/Seoul")
     public void evictCachesAt13PM() {
-        evictCache(RedisConfig.TODAY_PROMOTION_CACHE);
-        evictCache(RedisConfig.HOME_DATA_CACHE);
+        deleteKeysByPattern(RedisConfig.TODAY_PROMOTION_CACHE + "*");
+        log.info("Today promotion products cache has been evicted.");
     }
 
-    private void evictCache(String cacheName) {
-        try {
-            Objects.requireNonNull(cacheManager.getCache(cacheName)).clear();
-        } catch (NullPointerException e) {
-            log.warn("Cache '{}' not found or is null. Skipping eviction.", cacheName);
-        } catch (Exception e) {
-            log.error("Error while evicting cache '{}'", cacheName, e);
-        }
-    }
+    private void deleteKeysByPattern(String pattern) {
+        DefaultRedisScript<String> script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("scripts/delete-keys-by-pattern.lua")));
+        script.setResultType(String.class);
 
+        String cursor = "0";
+        int scanCount = 100; // 한 번에 스캔하고 삭제할 키의 개수
+
+        do {
+            cursor = redisTemplate.execute(
+                    script,
+                    Collections.singletonList(cursor), // KEYS[1]
+                    pattern,                           // ARGV[1]
+                    String.valueOf(scanCount)          // ARGV[2]
+            );
+        } while (!cursor.equals("0"));
+        log.info("Successfully deleted keys with pattern: {}", pattern);
+    }
 }

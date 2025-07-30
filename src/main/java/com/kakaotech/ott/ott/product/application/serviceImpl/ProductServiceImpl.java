@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImage;
+import com.kakaotech.ott.ott.global.cache.DistributedLock;
+import com.kakaotech.ott.ott.global.config.RedisConfig;
 import com.kakaotech.ott.ott.post.domain.model.Post;
 import com.kakaotech.ott.ott.post.presentation.dto.response.PopularSetupDto;
 import com.kakaotech.ott.ott.postImage.domain.PostImage;
@@ -19,6 +21,7 @@ import com.kakaotech.ott.ott.scrap.domain.repository.ScrapQueryRepository;
 import com.kakaotech.ott.ott.scrap.domain.repository.ScrapRepository;
 import com.kakaotech.ott.ott.util.KstDateTime;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -175,8 +178,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = RedisConfig.TODAY_PROMOTION_CACHE, key = "#userId == null ? 'GUEST' : #userId")
+    @DistributedLock(keyPrefix = "today_promotion", key = "#userId")
     public List<PromotionProductsDto> getTodayPromotionProducts(Long userId) {
-
         List<ProductPromotion> popularProducts = promotionRepository.findActivePromotions(LocalDateTime.now());
         List<Long> variantIds = popularProducts.stream().map(ProductPromotion::getVariantId).collect(Collectors.toList());
 
