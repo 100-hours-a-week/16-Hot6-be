@@ -1,39 +1,41 @@
-package com.kakaotech.ott.ott.payment.application.event;
+package com.kakaotech.ott.ott.product.application.event;
 
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
-import com.kakaotech.ott.ott.orderItem.domain.model.OrderItemStatus;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
 import com.kakaotech.ott.ott.product.domain.model.ProductPromotion;
 import com.kakaotech.ott.ott.product.domain.model.ProductVariant;
 import com.kakaotech.ott.ott.product.domain.repository.ProductPromotionRepository;
 import com.kakaotech.ott.ott.product.domain.repository.ProductVariantRepository;
-import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
-import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class PaymentEventHandler {
+public class ProductInventoryEventHandler {
 
-    private final ProductOrderRepository productOrderRepository;
-    private final OrderItemRepository orderItemRepository;
     private final ProductVariantRepository productVariantRepository;
     private final ProductPromotionRepository productPromotionRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Async
-    @EventListener
-    @Transactional
-    public void handlePaymentCompleted(PaymentCompletedEvent event) {
-        ProductOrder order = productOrderRepository.findById(event.getOrderId());
-        order.pay();
-
-        List<OrderItem> items = orderItemRepository.findByProductOrderId(order.getId());
+    @Retryable(
+            value = Exception.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 2000)
+    )
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handlerProductInventoryUpdateHandler(ProductInventoryUpdateEvent event) {
+        List<OrderItem> items = orderItemRepository.findByProductOrderId(event.getProductOrderId());
         for (OrderItem item : items) {
             if (item.getPromotionId() != null) {
                 ProductPromotion promo = productPromotionRepository.findById(item.getPromotionId());
@@ -44,13 +46,6 @@ public class PaymentEventHandler {
                 variant.confirmSale(item.getQuantity());
                 productVariantRepository.update(variant);
             }
-            if (item.getStatus().equals(OrderItemStatus.PENDING)) {
-                item.pay();
-            }
         }
-
-        productOrderRepository.paymentOrder(order);
-        orderItemRepository.payOrderItem(items);
     }
 }
-
