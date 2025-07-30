@@ -22,7 +22,7 @@ public class AiImageEventPublisher {
     public String publishImageProcessingRequest(String initialImageUrl, AiImageConcept concept) {
         try {
             Map<String, String> messageData = Map.of(
-                    "initialImageUrl", initialImageUrl,
+                    "initial_image_url", initialImageUrl,
                     "concept", String.valueOf(concept)
             );
 

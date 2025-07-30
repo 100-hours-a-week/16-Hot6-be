@@ -62,13 +62,13 @@ public class AiImageResultConsumer {
     private AiImageAndProductRequestDto parseMessageToRequestDto(Map<String, String> messageData) throws ParseException {
         try {
             // initialImageUrl 설정
-            String initialImageUrl = messageData.get("initialImageUrl");
+            String initialImageUrl = messageData.get("initial_image_url");
             if (initialImageUrl == null) {
                 throw new ParseException("initialImageUrl is required");
             }
 
             // processedImageUrl 설정 (nullable)
-            String processedImageUrl = messageData.get("processedImageUrl");
+            String processedImageUrl = messageData.get("processed_image_url");
 
             // products JSON 문자열을 객체 리스트로 변환
             String productsJson = messageData.get("products");
