@@ -131,8 +131,6 @@ public class ProductDomainServiceImpl implements ProductDomainService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = RedisConfig.RECOMMEND_ITEMS_CACHE, key = "#userId == null ? 'GUEST' : #userId")
-    @DistributedLock(keyPrefix = "recommend_items", key = "#userId")
     public List<RecommendedItemsDto> getRecommendItems(Long userId) {
         return deskProductRepository.findTop7ByWeight().stream()
                 .map(deskProduct -> new RecommendedItemsDto(
