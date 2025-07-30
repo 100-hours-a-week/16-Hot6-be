@@ -1,6 +1,7 @@
 package com.kakaotech.ott.ott.global.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -47,9 +48,7 @@ public class RedisConfig implements CachingConfigurer {
     private String activeProfile;
 
     // 캐시 키 상수 정의
-    public static final String POPULAR_SETUPS_CACHE = "main:popular:posts";
-    public static final String RECOMMEND_ITEMS_CACHE = "main:recommend:products";
-    public static final String TODAY_PROMOTION_CACHE = "main:today:promotions";
+    public static final String MAIN_CACHE = "main:page:info";
 
     // feat, dev 환경을 위한 Redis Standalone 설정
     @Bean(destroyMethod = "shutdown")
@@ -95,8 +94,31 @@ public class RedisConfig implements CachingConfigurer {
     }
 
     // ObjectMapper 설정 - JSON 직렬화/역직렬화 최적화
-    @Bean
+    @Bean(name = "cacheObjectMapper")
     public ObjectMapper cacheObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Java 8 시간 API 지원
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        // null 값 제외
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        // 타입 정보 활성화
+        mapper.activateDefaultTyping(
+                mapper.getPolymorphicTypeValidator(),
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                JsonTypeInfo.As.PROPERTY
+        );
+
+        return mapper;
+    }
+
+    // HTTP 응답 전용 ObjectMapper - 타입 정보 제외 (클라이언트 응답)
+    @Bean(name = "httpResponseObjectMapper")
+    @Primary  // Spring Boot 기본 ObjectMapper로 사용
+    public ObjectMapper httpResponseObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
 
         // Java 8 시간 API 지원
@@ -109,10 +131,16 @@ public class RedisConfig implements CachingConfigurer {
         return mapper;
     }
 
-    // Redis Json 직렬화 설정
-    @Bean
-    public GenericJackson2JsonRedisSerializer jsonRedisSerializer() {
+    // 캐시 전용 Redis Json 직렬화 설정
+    @Bean(name = "cacheJsonRedisSerializer")
+    public GenericJackson2JsonRedisSerializer cacheJsonRedisSerializer() {
         return new GenericJackson2JsonRedisSerializer(cacheObjectMapper());
+    }
+
+    // HTTP 응답 전용 Redis Json 직렬화 설정
+    @Bean(name = "httpJsonRedisSerializer")
+    public GenericJackson2JsonRedisSerializer httpJsonRedisSerializer() {
+        return new GenericJackson2JsonRedisSerializer(httpResponseObjectMapper());
     }
 
     // RedisTemplate 설정 - <String, JSON>
@@ -124,8 +152,8 @@ public class RedisConfig implements CachingConfigurer {
         // Key는 String, Value는 JSON으로 직렬화
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(jsonRedisSerializer());
-        template.setHashValueSerializer(jsonRedisSerializer());
+        template.setValueSerializer(httpJsonRedisSerializer());
+        template.setHashValueSerializer(httpJsonRedisSerializer());
 
         template.afterPropertiesSet();
         return template;
@@ -191,7 +219,7 @@ public class RedisConfig implements CachingConfigurer {
                 .serializeKeysWith(RedisSerializationContext.SerializationPair
                         .fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair
-                        .fromSerializer(jsonRedisSerializer()))
+                        .fromSerializer(cacheJsonRedisSerializer()))
                 .disableCachingNullValues();
     }
 
@@ -203,16 +231,8 @@ public class RedisConfig implements CachingConfigurer {
 
             Duration baseTtl = getCacheTtl();
 
-            // 인기 게시글 캐시 (자정까지)
-            cacheConfigurations.put(POPULAR_SETUPS_CACHE,
-                    defaultCacheConfig().entryTtl(baseTtl));
-
-            // 추천 상품 캐시 (자정까지)
-            cacheConfigurations.put(RECOMMEND_ITEMS_CACHE,
-                    defaultCacheConfig().entryTtl(baseTtl));
-
-            // 특가 상품 캐시 (오후 1시까지)
-            cacheConfigurations.put(TODAY_PROMOTION_CACHE,
+            // 메인 페이지 캐시
+            cacheConfigurations.put(MAIN_CACHE,
                     defaultCacheConfig().entryTtl(baseTtl));
 
             builder.withInitialCacheConfigurations(cacheConfigurations);
