@@ -92,6 +92,10 @@ dependencies {
 
 	// Redis Connection Pool
 	implementation 'org.apache.commons:commons-pool2'
+
+	// Retry
+	implementation 'org.springframework.retry:spring-retry'
+	implementation 'org.springframework:spring-aspects'
 }
 
 tasks.named('test') {
