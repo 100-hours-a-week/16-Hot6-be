@@ -1,9 +1,9 @@
 package com.kakaotech.ott.ott.payment.application.serviceImpl;
 
+import com.kakaotech.ott.ott.orderItem.application.event.OrderItemCompletedEvent;
 import com.kakaotech.ott.ott.orderItem.domain.model.OrderItem;
 import com.kakaotech.ott.ott.orderItem.domain.model.RefundReason;
 import com.kakaotech.ott.ott.orderItem.domain.repository.OrderItemRepository;
-import com.kakaotech.ott.ott.payment.application.event.PaymentCompletedEvent;
 import com.kakaotech.ott.ott.payment.application.service.PaymentService;
 import com.kakaotech.ott.ott.payment.domain.model.Payment;
 import com.kakaotech.ott.ott.payment.domain.model.PaymentMethod;
@@ -14,6 +14,8 @@ import com.kakaotech.ott.ott.payment.presentation.dto.response.PaymentResponseDt
 import com.kakaotech.ott.ott.payment.presentation.dto.response.RefundResponseDto;
 import com.kakaotech.ott.ott.pointHistory.domain.model.PointHistory;
 import com.kakaotech.ott.ott.pointHistory.domain.repository.PointHistoryRepository;
+import com.kakaotech.ott.ott.product.application.event.ProductInventoryUpdateEvent;
+import com.kakaotech.ott.ott.productOrder.application.event.ProductOrderCompletedEvent;
 import com.kakaotech.ott.ott.productOrder.domain.model.ProductOrder;
 import com.kakaotech.ott.ott.productOrder.domain.repository.ProductOrderRepository;
 import com.kakaotech.ott.ott.user.domain.model.User;
@@ -52,7 +54,11 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = Payment.createPayment(orderId, PaymentMethod.POINT, paymentRequestDto.getPoint());
         Payment savedPayment = paymentRepository.save(payment, user);
 
-        eventPublisher.publishEvent(new PaymentCompletedEvent(orderId, userId, paymentRequestDto.getPoint()));
+        eventPublisher.publishEvent(new ProductOrderCompletedEvent(orderId));
+
+        eventPublisher.publishEvent(new OrderItemCompletedEvent(orderId));
+
+        eventPublisher.publishEvent(new ProductInventoryUpdateEvent(orderId));
 
         return new PaymentResponseDto(savedPointHistory.getId(), orderId, savedPayment.getPaymentAmount(), new KstDateTime(savedPayment.getPaidAt()));
     }

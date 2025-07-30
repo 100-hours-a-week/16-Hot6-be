@@ -89,7 +89,11 @@ dependencies {
 	// Redis Connection Pool
 	implementation 'org.apache.commons:commons-pool2'
 
-	// Redisson
+	// Retry
+	implementation 'org.springframework.retry:spring-retry'
+	implementation 'org.springframework:spring-aspects'
+
+  // Redisson
 	implementation 'org.redisson:redisson-spring-boot-starter:3.50.0'
 
 	// Actuator
