@@ -22,19 +22,11 @@ import java.util.Objects;
 public class CacheEvictionScheduler {
     private final RedisTemplate<String, String> redisTemplate;
 
-    // 매일 00:01에 실행되어 캐시 삭제(인기, 추천)
-    @Scheduled(cron = "0 1 0 * * *", zone = "Asia/Seoul")
-    public void evictMidnightUpdateCaches() {
-        deleteKeysByPattern(RedisConfig.POPULAR_SETUPS_CACHE + "*");
-        deleteKeysByPattern(RedisConfig.RECOMMEND_ITEMS_CACHE + "*");
-        log.info("Popular setups and Recommend items caches have been evicted.");
-    }
-
-    // 매일 오후 1시 1분에 실행
-    @Scheduled(cron = "0 1 13 * * *", zone = "Asia/Seoul")
-    public void evictCachesAt13PM() {
-        deleteKeysByPattern(RedisConfig.TODAY_PROMOTION_CACHE + "*");
-        log.info("Today promotion products cache has been evicted.");
+    // 매일 00:01 및 13:01 실행
+    @Scheduled(cron = "0 1 0,13 * * *", zone = "Asia/Seoul")
+    public void evictMainPageCaches() {
+        deleteKeysByPattern(RedisConfig.MAIN_CACHE + "*");
+        log.info("Today promotion products, Popular setups and Recommend items caches have been evicted.");
     }
 
     private void deleteKeysByPattern(String pattern) {

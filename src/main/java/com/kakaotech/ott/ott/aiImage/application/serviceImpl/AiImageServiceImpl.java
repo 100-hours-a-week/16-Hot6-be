@@ -7,6 +7,7 @@ import com.kakaotech.ott.ott.aiImage.domain.model.AiImageConcept;
 import com.kakaotech.ott.ott.aiImage.domain.model.AiImageState;
 import com.kakaotech.ott.ott.aiImage.domain.model.ImageGenerationHistory;
 import com.kakaotech.ott.ott.aiImage.domain.repository.ImageGenerationHistoryRepository;
+import com.kakaotech.ott.ott.aiImage.infrastructure.stream.AiImageEventPublisher;
 import com.kakaotech.ott.ott.aiImage.presentation.dto.request.FastApiRequestDto;
 import com.kakaotech.ott.ott.global.exception.CustomException;
 import com.kakaotech.ott.ott.global.exception.ErrorCode;
@@ -22,6 +23,9 @@ import com.kakaotech.ott.ott.user.domain.model.User;
 import com.kakaotech.ott.ott.user.domain.repository.UserAuthRepository;
 import com.kakaotech.ott.ott.util.KstDateTime;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,6 +34,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiImageServiceImpl implements AiImageService {
@@ -41,6 +46,7 @@ public class AiImageServiceImpl implements AiImageService {
     private final ImageGenerationHistoryRepository imageGenerationHistoryRepository;
     private final AiImageRecommendedProductRepository aiImageRecommendedProductRepository;
     private final FastApiClient fastApiClient;
+    private final AiImageEventPublisher aiImageEventPublisher;
 
     @Override
     @Transactional
@@ -75,6 +81,14 @@ public class AiImageServiceImpl implements AiImageService {
 
         AiImage aiImage = AiImage.createAiImage(userId, concept, response.getInitialImageUrl());
         AiImage savedAiImage = aiImageRepository.saveImage(aiImage);
+
+        // 4. Redis Stream으로 AI 처리 요청 발행
+        try {
+            String recordId = aiImageEventPublisher.publishImageProcessingRequest(
+                    request.getInitialImageUrl(), request.getConcept());
+        } catch (Exception e) {
+            log.error("AI 이미지 처리 요청 발행 실패: aiImageId={}", savedAiImage.getId(), e);
+        }
 
         return new AiImageSaveResponseDto(savedAiImage.getId());
     }
